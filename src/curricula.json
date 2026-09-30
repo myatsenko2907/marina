@@ -1,0 +1,176 @@
+{
+  "majors": [
+    {
+      "slug": "software",
+      "name": "Software Development",
+      "short": "Build coding and software skills.",
+      "page": "bachelor-software-development.html",
+      "pdf": "files/curriculum-bachelor-software-development.pdf",
+      "intro": "Learn to build websites, mobile apps and software that people can use. The curriculum is focused on AI skills, professional development and most relevant technical skills to prepare students for successful careers.",
+      "study": "Python and C#; databases; HTML, CSS and JavaScript; web and mobile development; cloud solutions; AI applications; cybersecurity and project management.",
+      "build": "Web applications, mobile apps, and team projects. The final stage includes research and a thesis.",
+      "credits": 120,
+      "certs": "Cisco IT Essentials certificate exam",
+      "years": [
+        [
+          "English for IT",
+          "Introduction to Information Technology",
+          "Digital Literacy",
+          "IT Essentials with CISCO certificate exam",
+          "Python Core",
+          "Microsoft .NET and programming C#",
+          "Database Theory and MS SQL programming",
+          "Entity Framework Core",
+          "Basic Entrepreneurship"
+        ],
+        [
+          "HTML and CSS in web development",
+          "JavaScript Programming Language",
+          "Web Application Development with ASP.NET Core",
+          "Term project .NET",
+          "Developing Web applications using Python",
+          "Cloud Solutions for applications development",
+          "Web applications development with PHP and MS SQL",
+          "Development Mobile Apps Using React Native",
+          "Web development team project"
+        ],
+        [
+          "Android Mobile applications development: Java and Kotlin",
+          "AI applications development with Python",
+          "Mobile app term project",
+          "Introduction to Cyber Security",
+          "Digital Awareness",
+          "Digital Entrepreneurship / CISCO",
+          "IT Project Management"
+        ],
+        [
+          "Professional Report Development",
+          "Introduction to Modern AI and Generative AI tools",
+          "AI Ethics",
+          "User Experience Design",
+          "Communication skills & Personality Dynamics",
+          "Problem Solving and Process Control",
+          "Academic Research in IT",
+          "Thesis"
+        ]
+      ]
+    },
+    {
+      "slug": "design",
+      "name": "Computer Graphics and Design",
+      "short": "Develop visual and digital design skills.",
+      "page": "bachelor-computer-graphics-design.html",
+      "pdf": "files/curriculum-bachelor-computer-graphics-design.pdf",
+      "intro": "Turn ideas into visual design, digital experiences, 3D work, and motion. The curriculum includes relevant AI skills, creative and professional development and most relevant technical skills to prepare students for successful careers.",
+      "study": "Drawing and design; Photoshop and Illustrator; branding; UX/UI; 3D modelling with Autodesk tools; animation; video and visual effects.",
+      "build": "Brand identity, advertising materials, interfaces, and 3D portfolio work. The final stage includes research and a thesis.",
+      "credits": 121,
+      "certs": "Autodesk certificate exams (3ds Max, AutoCAD, Maya)",
+      "years": [
+        [
+          "English for IT",
+          "Introduction to Information Technology",
+          "Digital Literacy",
+          "Adobe Photoshop",
+          "Drawing",
+          "Adobe Illustrator",
+          "Theory of Design",
+          "History of Art",
+          "Corporate Identity",
+          "Basic Entrepreneurship"
+        ],
+        [
+          "Advertising Design",
+          "Adobe InDesign",
+          "UX/UI design",
+          "Digital Marketing",
+          "Autodesk 3ds Max: Fundamentals of 3D modeling",
+          "Autodesk 3ds Max: Texturing",
+          "Autodesk 3ds Max: Modeling of Complex objects",
+          "Autodesk 3ds Max: Photorealistic Visualization",
+          "Autodesk AutoCAD",
+          "Interior Design"
+        ],
+        [
+          "Autodesk Maya 3D Modeling and Visualization",
+          "Autodesk Maya 3D Animation and Special Effects",
+          "Autodesk Maya 3D Animation of a character",
+          "Video editing with Adobe Premiere",
+          "Special Effects with Adobe After Effects",
+          "Digital Entrepreneurship / CISCO",
+          "Project Management"
+        ],
+        [
+          "Professional IT Report Development",
+          "Introduction to Modern AI and Generative AI tools in Creative industries",
+          "AI Ethics",
+          "User Experience Design",
+          "Communication skills & Personality Dynamics",
+          "Problem Solving and Process Control",
+          "Academic Research in IT",
+          "Thesis"
+        ]
+      ]
+    },
+    {
+      "slug": "marketing",
+      "name": "Digital Marketing and Communication",
+      "short": "Learn content, campaigns and communication.",
+      "page": "bachelor-digital-marketing-communication.html",
+      "pdf": "files/curriculum-bachelor-digital-marketing-communication.pdf",
+      "intro": "Create digital content, build brands, and plan marketing that connects with people. The curriculum includes relevant AI skills, creative and professional development and most relevant technical skills to prepare students for successful careers.",
+      "study": "Design and brand identity; UX/UI and website development; digital marketing; video; generative AI in communication; digital strategy and content.",
+      "build": "A brandbook, a website/app concept, and a digital marketing strategy, and run successful campaigns. The final stage includes research and a thesis.",
+      "credits": 120,
+      "certs": "Cisco digital skills certificates",
+      "years": [
+        [
+          "English for IT",
+          "Introduction to Information Technology",
+          "Digital Literacy",
+          "Using Computer and Mobile Devices",
+          "History of Art",
+          "Adobe Photoshop",
+          "Adobe Illustrator",
+          "Theory of Design",
+          "Corporate Identity",
+          "Term project: Brandbook development",
+          "Basic Entrepreneurship"
+        ],
+        [
+          "Advertising Design",
+          "UX/UI design",
+          "Website Development",
+          "Term project: website development and app design",
+          "Digital Marketing",
+          "Creating compelling report",
+          "Digital Awareness",
+          "Create Digital Content, Communicate and Collaborate Online"
+        ],
+        [
+          "Business Pitching and Presentation skills",
+          "Video editing with Adobe Premiere",
+          "Special Effects with Adobe After Effects",
+          "Engaging Stakeholders for Success",
+          "Generative AI in Communication",
+          "Term project: Digital Marketing strategy and content"
+        ],
+        [
+          "Professional Report Development",
+          "Introduction to Modern AI and Generative AI tools in Creative Industries",
+          "AI Ethics",
+          "User Experience Design",
+          "Communication skills & Personality Dynamics",
+          "Problem Solving and Process Control",
+          "Academic Research in IT",
+          "Thesis"
+        ]
+      ]
+    }
+  ],
+  "dbai": {
+    "slug": "business-ai",
+    "name": "Digital Business and AI",
+    "short": "Explore digital tools, business processes and AI applications."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "step-cambodia-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "IT Academy STEP Cambodia — phone-first static website",
+  "type": "module",
+  "scripts": {
+    "build": "node src/build.mjs",
+    "pdf": "python3 scripts/make_pdfs.py",
+    "serve": "python3 -m http.server 8080 -d docs"
+  }
+}
