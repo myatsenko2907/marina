@@ -44,7 +44,7 @@ const STATUS = {
 };
 const pill = (st) => `<span class="st ${st}"><svg viewBox="0 0 16 16">${STATUS[st].icon}</svg>${STATUS[st].label}</span>`;
 const SRC = {
-  branch: "цена лида филиала",
+  branch: "цена лида филиала (FB, 3 мес.)",
   default: "примерная цена лида (настройки)",
   crm_requests: "заявки CRM × нормы",
   manual: "вручную",
@@ -461,7 +461,7 @@ async function renderOverview() {
       <div class="value">${fmt(sum("planContracts"))}</div>
       <div class="foot">${S.settings.carryOver ? `Перенос недостачи: +${fmt(sum("carryBalls"))} лидобалов` : `${fmt(sum("targetBalls"))} лидобалов = ${pct(S.settings.ballsPlanFactor)} плана`}</div></div>
     <div class="card kpi"><div class="label">Бюджет месяца (прогноз)</div>
-      <div class="value">${budget}</div><div class="foot">${missingBudget ? `без цены лида: ${missingBudget} фил. · ` : ""}по примерной цене лида</div></div>
+      <div class="value">${budget}</div><div class="foot">${missingBudget ? `без цены лида: ${missingBudget} фил. · ` : ""}по цене лида из FB за 3 месяца</div></div>
     <div class="card kpi"><div class="label">Набор: договоры</div>
       <div class="value">${fmt(seasonFact)} <small>/ ${fmt(seasonPlan || null)}</small></div>
       <div class="foot">${seasonPlan ? pct(seasonFact / seasonPlan) + " плана набора" : "план набора не загружен"}</div></div>
@@ -522,7 +522,7 @@ async function renderBranch(id, tab = "dash") {
   ];
   const fbInfo = [
     t.factSource === "crm_requests" ? "Факт: заявки CRM по типам × нормы" : t.factSource === "products" ? "Факт: отчёт «Лидобалы»" : "Факта лидобалов пока нет",
-    `цена лида: ${branch.cpl && Object.keys(branch.cpl).length ? "своя для филиала" : "примерная из настроек"}`,
+    `цена лида: ${branch.cplNote ? branch.cplNote.split(":")[0] + " (кампании за 3 мес.)" : branch.cpl && Object.keys(branch.cpl).length ? "своя для филиала" : "примерная из настроек"}`,
   ].join(" · ");
 
   let body = "";
