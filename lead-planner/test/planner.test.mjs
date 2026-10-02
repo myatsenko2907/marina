@@ -4,7 +4,7 @@ import { applyCaps, computeMonth, computeSeason, elapsedShare, seasonOf, classif
 import { DEFAULT_SETTINGS } from "../lib/defaults.mjs";
 import { parseCsv, tableToRecords, toMonth } from "../lib/importer.mjs";
 
-const settings = structuredClone(DEFAULT_SETTINGS);
+const settings = { ...structuredClone(DEFAULT_SETTINGS), carryOver: true };
 const branch = { id: "dp", name: "Днепр" };
 const near = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
 
@@ -177,4 +177,14 @@ test("бюджет по примерной цене лида: филиал → �
   near(p.byType.find((x) => x.typeId === "lid_form").cpl, 3);
   near(p.byType.find((x) => x.typeId === "site").cpl, settings.cpl.site);
   near(p.budget, (4.5 / 0.05) * 3 + (4.5 / 0.15) * settings.cpl.site);
+});
+
+test("перенос недостачи выключен по умолчанию", () => {
+  const data = {
+    "2026-08": { plan: { products: { form_ma: { plan: 10 } } }, facts: { products: { form_ma: { balls: 1 } } } },
+    "2026-09": { plan: { products: { form_ma: { plan: 10 } } } },
+  };
+  const s = computeSeason({ settings: structuredClone(DEFAULT_SETTINGS), branch, month: "2026-09", getMonth: (m) => data[m], today: new Date("2026-09-10T12:00:00Z") });
+  near(s.month.totals.carryBalls, 0);
+  near(s.month.totals.targetBalls, 9);
 });

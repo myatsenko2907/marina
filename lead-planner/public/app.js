@@ -268,7 +268,7 @@ function seasonChart(months, current) {
   });
   g += `<line class="base" x1="${left}" x2="${W}" y1="${y(0)}" y2="${y(0)}"/>`;
   return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="План и факт лидобалов по месяцам набора">${g}</svg></div>
-  <div class="legend"><span><i class="dot" style="background:var(--s1)"></i>план месяца (договоры × норма)</span><span><i class="dot" style="background:var(--s2)"></i>перенос недостачи</span><span><i class="dot" style="background:var(--good)"></i><i class="dot" style="background:var(--warn)"></i><i class="dot" style="background:var(--bad)"></i>факт лидобалов (цвет = статус)</span><span><svg width="16" height="10"><line x1="1" x2="15" y1="5" y2="5" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/></svg> факт договоров (CRM)</span></div>`;
+  <div class="legend"><span><i class="dot" style="background:var(--s1)"></i>план месяца (договоры × норма)</span>${S.settings.carryOver ? '<span><i class="dot" style="background:var(--s2)"></i>перенос недостачи</span>' : ""}<span><i class="dot" style="background:var(--good)"></i><i class="dot" style="background:var(--warn)"></i><i class="dot" style="background:var(--bad)"></i>факт лидобалов (цвет = статус)</span><span><svg width="16" height="10"><line x1="1" x2="15" y1="5" y2="5" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/></svg> факт договоров (CRM)</span></div>`;
 }
 
 // ---------- shell ----------
@@ -459,7 +459,7 @@ async function renderOverview() {
       <div class="bar-mini"><i style="width:${Math.min(100, (netPace || 0) * 100)}%;background:${netPace == null ? "var(--idle)" : netPace >= S.settings.thresholds.ok ? "var(--good)" : netPace >= S.settings.thresholds.risk ? "var(--warn)" : "var(--bad)"}"></i></div></div>
     <div class="card kpi"><div class="label">План договоров месяца</div>
       <div class="value">${fmt(sum("planContracts"))}</div>
-      <div class="foot">Перенос недостачи: +${fmt(sum("carryBalls"))} лидобалов</div></div>
+      <div class="foot">${S.settings.carryOver ? `Перенос недостачи: +${fmt(sum("carryBalls"))} лидобалов` : `${fmt(sum("targetBalls"))} лидобалов = ${pct(S.settings.ballsPlanFactor)} плана`}</div></div>
     <div class="card kpi"><div class="label">Бюджет месяца (прогноз)</div>
       <div class="value">${budget}</div><div class="foot">${missingBudget ? `без цены лида: ${missingBudget} фил. · ` : ""}по примерной цене лида</div></div>
     <div class="card kpi"><div class="label">Набор: договоры</div>
@@ -585,8 +585,8 @@ function branchDash(r, season, cur) {
       <div class="foot">из них платных ${fmt(t.paidLeads + t.registrations)} · рег. на ивенты ${fmt(t.registrations)}</div></div>
   </div>
   <div class="grid cols-2">
-    <div class="card"><h2>План и факт по продуктам</h2><div class="hint">Лидобалы месяца, включая перенос недостачи</div>${planFactChart(r.products)}</div>
-    <div class="card"><h2>Набор: ${esc(season.season.name)}</h2><div class="hint">Недостача закрытого месяца переносится в следующий</div>${seasonChart(season.months, r.month)}</div>
+    <div class="card"><h2>План и факт по продуктам</h2><div class="hint">Лидобалы месяца${S.settings.carryOver ? ", включая перенос недостачи" : ""}</div>${planFactChart(r.products)}</div>
+    <div class="card"><h2>Набор: ${esc(season.season.name)}</h2><div class="hint">${S.settings.carryOver ? "Недостача закрытого месяца переносится в следующий" : "План и факт по месяцам полугодия"}</div>${seasonChart(season.months, r.month)}</div>
   </div>
   ${sourcesCard(r)}
   <div class="card mt"><h2>Откуда берём лидобалы</h2><div class="hint">План по типам лидов (доли — вклад источников; события — по плану регистраций)</div>${typeStack(byType)}</div>
