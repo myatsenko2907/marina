@@ -8,6 +8,7 @@ import { Store } from "./lib/store.mjs";
 import { computeSeason, seasonOf, addMonths } from "./lib/planner.mjs";
 import { fetchBranchFb } from "./lib/meta.mjs";
 import { readTable, tableToRecords } from "./lib/importer.mjs";
+import { applySnapshot } from "./lib/snapshot.mjs";
 import * as auth from "./lib/auth.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -15,6 +16,10 @@ const PORT = Number(process.env.PORT || 8787);
 const store = new Store(process.env.DATA_FILE || path.join(ROOT, "data", "store.json"));
 const META_TOKEN = process.env.META_ACCESS_TOKEN || "";
 const API_TOKEN = process.env.API_TOKEN || ""; // для автоматической загрузки данных из CRM-скриптов
+// Автообновление: FB по всем городам + снимок CRM по URL (если задан).
+const REFRESH_MINUTES = Number(process.env.REFRESH_MINUTES || 600); // по умолчанию раз в 10 часов
+const CRM_SNAPSHOT_URL = process.env.CRM_SNAPSHOT_URL || "";
+const CRM_SNAPSHOT_TOKEN = process.env.CRM_SNAPSHOT_TOKEN || "";
 
 // Первый запуск: создаём администратора.
 if (!store.data.users.some((u) => u.role === "admin")) {
@@ -70,6 +75,52 @@ function overview(user, month) {
   const order = { fail: 0, risk: 1, nodata: 2, ok: 3, future: 4 };
   rows.sort((a, b) => order[a.status] - order[b.status] || (a.pace ?? 9) - (b.pace ?? 9));
   return { month, season: seasonOf(month), elapsedShare: rows[0] ? undefined : null, branches: rows };
+}
+
+// ---------- автообновление ----------
+let refreshing = null;
+async function refreshAll(reason = "schedule") {
+  if (refreshing) return refreshing;
+  refreshing = (async () => {
+    const month = currentMonth();
+    const result = { at: new Date().toISOString(), reason, crm: null, fb: {} };
+    if (CRM_SNAPSHOT_URL) {
+      try {
+        const res = await fetch(CRM_SNAPSHOT_URL, { headers: CRM_SNAPSHOT_TOKEN ? { authorization: `Bearer ${CRM_SNAPSHOT_TOKEN}` } : {} });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const r = applySnapshot(store, await res.json(), month);
+        result.crm = `ok: ${r.records} строк`;
+      } catch (e) {
+        result.crm = `ошибка: ${e.message}`;
+      }
+    }
+    if (META_TOKEN) {
+      for (const b of store.data.branches.filter((x) => x.adAccountId && !x.archived)) {
+        try {
+          store.data.fb[b.id] = await fetchBranchFb({ branch: b, token: META_TOKEN, settings: store.data.settings, month });
+          result.fb[b.id] = "ok";
+        } catch (e) {
+          result.fb[b.id] = e.message;
+        }
+      }
+    }
+    store.data.lastRefresh = result;
+    store.save();
+    return result;
+  })().finally(() => (refreshing = null));
+  return refreshing;
+}
+
+/** Время последнего изменения данных (импорт, FB, автообновление) — для отметки «обновлено». */
+function dataUpdatedAt() {
+  const times = [store.data.lastRefresh?.at, store.data.imports.at(-1)?.at, ...Object.values(store.data.fb).map((f) => f?.fetchedAt)].filter(Boolean);
+  return times.sort().at(-1) || null;
+}
+
+if (REFRESH_MINUTES > 0 && (META_TOKEN || CRM_SNAPSHOT_URL)) {
+  setTimeout(() => refreshAll("start").catch(console.error), 5000);
+  setInterval(() => refreshAll("schedule").catch(console.error), REFRESH_MINUTES * 60 * 1000);
+  console.log(`Автообновление данных: каждые ${REFRESH_MINUTES} мин.`);
 }
 
 // ---------- http helpers ----------
@@ -176,13 +227,19 @@ async function handleApi(req, res, url) {
   // Машинный доступ по токену — только импорт.
   const bearer = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
   if (API_TOKEN && bearer && bearer.length === API_TOKEN.length && crypto.timingSafeEqual(Buffer.from(bearer), Buffer.from(API_TOKEN))) {
+    if (p === "/api/import/snapshot" && method === "POST") {
+      const r = applySnapshot(store, await readJson(req), currentMonth());
+      store.data.imports.push({ at: new Date().toISOString(), by: "api-snapshot", records: r.records });
+      store.save();
+      return send(res, 200, r);
+    }
     if (p === "/api/import" && method === "POST") {
       const n = importJson(await readJson(req));
       store.data.imports.push({ at: new Date().toISOString(), by: "api", records: n });
       store.save();
       return send(res, 200, { imported: n });
     }
-    throw err(403, "Токен API даёт доступ только к /api/import");
+    throw err(403, "Токен API даёт доступ только к /api/import и /api/import/snapshot");
   }
 
   const user = auth.sessionUser(cookies.sid, store.data.users);
@@ -199,6 +256,19 @@ async function handleApi(req, res, url) {
   const month = validMonth(url.searchParams.get("month"));
 
   if (p === "/api/me") return send(res, 200, { ...publicUser(user), metaConfigured: !!META_TOKEN });
+
+  if (p === "/api/status")
+    return send(res, 200, {
+      updatedAt: dataUpdatedAt(),
+      lastRefresh: store.data.lastRefresh || null,
+      refreshMinutes: META_TOKEN || CRM_SNAPSHOT_URL ? REFRESH_MINUTES : 0,
+      sources: { meta: !!META_TOKEN, crmUrl: !!CRM_SNAPSHOT_URL, apiImport: !!API_TOKEN },
+    });
+
+  if (p === "/api/refresh" && method === "POST") {
+    needAdmin();
+    return send(res, 200, await refreshAll("manual"));
+  }
 
   if (p === "/api/me/password" && method === "POST") {
     const { oldPassword, newPassword } = await readJson(req);

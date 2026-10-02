@@ -524,8 +524,8 @@ export function computeSeason({ settings, branch, month, getMonth, seasonPlan = 
       monthsPlanContracts: rows.reduce((a, p) => a + p.planContracts, 0),
       factContracts: rows.reduce((a, p) => a + (p.factContracts || 0), 0),
       planBalls: rows.reduce((a, p) => a + p.baseBalls, 0),
-      factBalls: rows.reduce((a, p) => a + (p.factBalls || 0), 0),
-      budget: rows.reduce((a, p) => a + (p.budget || 0), 0),
+      factBalls: rows.some((p) => p.factBalls != null) ? rows.reduce((a, p) => a + (p.factBalls || 0), 0) : null,
+      budget: rows.some((p) => p.budget == null && p.paidLeads > 0) ? null : rows.reduce((a, p) => a + (p.budget || 0), 0),
     };
   }
   const list = Object.values(totals).sort((a, b) => (a.order < 0 ? 99 : a.order) - (b.order < 0 ? 99 : b.order));
@@ -553,8 +553,8 @@ export function computeSeason({ settings, branch, month, getMonth, seasonPlan = 
       monthsPlanContracts: list.reduce((a, p) => a + p.monthsPlanContracts, 0),
       factContracts: list.reduce((a, p) => a + p.factContracts, 0),
       planBalls: list.reduce((a, p) => a + p.planBalls, 0),
-      factBalls: list.reduce((a, p) => a + p.factBalls, 0),
-      budget: list.reduce((a, p) => a + p.budget, 0),
+      factBalls: list.some((p) => p.factBalls != null) ? list.reduce((a, p) => a + (p.factBalls || 0), 0) : null,
+      budget: list.some((p) => p.budget == null) ? null : list.reduce((a, p) => a + p.budget, 0),
     },
   };
 }

@@ -244,7 +244,8 @@ function shell(active, inner) {
     <a class="logo" href="#/"><i><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 12l4-5 3 2.5L14 3" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></i>План лидобалов</a>
     <nav class="nav">${links.map(([h, t, k]) => `<a href="${h}" class="${k === active ? "on" : ""}">${t}</a>`).join("")}</nav>
     <span class="spacer"></span>
-    <span class="who">${esc(S.me.name)} <span class="chip">${isAdmin ? "администратор" : "маркетолог"}</span>
+    <span class="upd" id="upd"></span>
+    <span class="who"><span class="uname">${esc(S.me.name)}</span> <span class="chip">${isAdmin ? "админ" : "маркетолог"}</span>
     <button class="btn ghost sm" id="pw">Пароль</button><button class="btn ghost sm" id="logout">Выйти</button></span>
   </div></header>
   <main>${inner}</main>`;
@@ -254,7 +255,49 @@ function shell(active, inner) {
     renderLogin();
   };
   document.getElementById("pw").onclick = changePassword;
+  showStatus();
 }
+
+async function showStatus() {
+  const el = document.getElementById("upd");
+  if (!el) return;
+  try {
+    const st = await api("/api/status");
+    S.status = st;
+    const t = st.updatedAt ? new Date(st.updatedAt) : null;
+    const today = t && t.toDateString() === new Date().toDateString();
+    const label = t ? (today ? "сегодня " : t.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) + " ") + t.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) : "нет данных";
+    const fbErr = Object.entries(st.lastRefresh?.fb || {}).filter(([, v]) => v !== "ok");
+    const tip = [
+      st.refreshMinutes ? `Автообновление каждые ${st.refreshMinutes % 60 ? st.refreshMinutes + " мин." : st.refreshMinutes / 60 + " ч."}` : "Автообновление не настроено (нет META_ACCESS_TOKEN / CRM_SNAPSHOT_URL)",
+      st.lastRefresh ? `Последний прогон: ${new Date(st.lastRefresh.at).toLocaleString("ru-RU")}` : "",
+      st.lastRefresh?.crm ? `CRM: ${st.lastRefresh.crm}` : "",
+      fbErr.length ? `Ошибки FB: ${fbErr.map(([k, v]) => `${k}: ${v}`).join("; ")}` : "",
+    ].filter(Boolean).join("<br>");
+    el.innerHTML = `<i class="live ${today ? "on" : ""}"></i>Данные: ${esc(label)}${S.me.role === "admin" ? ' <button class="btn ghost sm" id="refreshNow" title="Обновить сейчас">↻</button>' : ""}`;
+    el.setAttribute("data-tip", esc(tip));
+    const rb = document.getElementById("refreshNow");
+    if (rb)
+      rb.onclick = async () => {
+        rb.disabled = true;
+        try {
+          await api("/api/refresh", { method: "POST" });
+          toast("Данные обновлены");
+          route();
+        } catch (e) {
+          toast(e.message, true);
+          rb.disabled = false;
+        }
+      };
+  } catch {}
+}
+
+// Живой отчёт: каждые 5 минут перерисовываем текущую страницу (кроме форм ввода и открытых окон).
+setInterval(() => {
+  if (!S.me || document.hidden || document.querySelector("dialog[open]")) return;
+  if (/\/input$|\/admin\//.test(location.hash)) return;
+  route();
+}, 5 * 60 * 1000);
 
 const monthNav = () => `<div class="monthnav"><button data-m="-1" aria-label="Предыдущий месяц">‹</button><b>${monthName(S.month)}</b><button data-m="1" aria-label="Следующий месяц">›</button></div>`;
 function bindMonthNav() {
@@ -558,7 +601,7 @@ function branchSeason(season, inputs) {
   <div class="card"><h2>${esc(season.season.name)}</h2><div class="hint">План набора из CRM и выполнение по месяцам</div>
     ${seasonChart(season.months, S.month)}</div>
   <div class="card"><h2>Месяцы набора</h2><div class="tbl-wrap"><table><thead><tr><th>Месяц</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Перенос</th><th class="n">Факт ЛБ</th><th>Статус</th></tr></thead><tbody>
-  ${season.months.map((m) => `<tr class="${m.status} ${m.month === S.month ? "" : ""}"><td>${m.month === S.month ? "<b>" : ""}${monthName(m.month)}${m.month === S.month ? "</b>" : ""}</td><td class="n">${fmt(m.planContracts)}</td><td class="n">${fmt(m.factContracts)}</td><td class="n">${fmt(m.baseBalls, 1)}</td><td class="n">${m.carryBalls ? "+" + fmt(m.carryBalls, 1) : "—"}</td><td class="n">${fmt(m.factBalls, 1)}</td><td>${pill(m.status)}</td></tr>`).join("")}
+  ${season.months.map((m) => `<tr class="${m.status}"><td style="white-space:nowrap">${m.month === S.month ? "<b>" : ""}${MONTHS[Number(m.month.slice(5)) - 1]}${m.month === S.month ? "</b>" : ""}</td><td class="n">${fmt(m.planContracts)}</td><td class="n">${fmt(m.factContracts)}</td><td class="n">${fmt(m.baseBalls, 1)}</td><td class="n">${m.carryBalls ? "+" + fmt(m.carryBalls, 1) : "—"}</td><td class="n">${fmt(m.factBalls, 1)}</td><td>${pill(m.status)}</td></tr>`).join("")}
   </tbody></table></div></div></div>
   <div class="card mt"><h2>Набор по продуктам</h2><div class="tbl-wrap"><table><thead><tr><th>Продукт</th><th class="n">План набора (CRM)</th><th class="n">Сумма планов месяцев</th><th class="n">Факт договоров</th><th class="n">Выполнение набора</th><th class="n">План ЛБ</th><th class="n">Факт ЛБ</th><th class="n">Бюджет набора</th></tr></thead><tbody>
   ${season.products.map((p) => `<tr><td>${esc(p.name)}</td><td class="n">${fmt(p.seasonPlanContracts)}</td><td class="n">${fmt(p.monthsPlanContracts)}</td><td class="n">${fmt(p.factContracts)}</td><td class="n">${p.seasonPlanContracts ? pct(p.factContracts / p.seasonPlanContracts) : "—"}</td><td class="n">${fmt(p.planBalls, 1)}</td><td class="n">${fmt(p.factBalls, 1)}</td><td class="n">${money(p.budget, season.month.currency)}</td></tr>`).join("")}

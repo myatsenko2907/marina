@@ -37,7 +37,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* --- layout --- */
 .top { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
-.top-in { max-width: 1320px; margin: 0 auto; padding: 10px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.top-in { max-width: 1320px; margin: 0 auto; padding: 10px 20px; display: flex; gap: 14px; align-items: center; }
+@media (max-width: 980px) { .top-in { flex-wrap: wrap; } }
 .logo { display: flex; gap: 10px; align-items: center; font-weight: 650; font-size: 15px; color: var(--ink); }
 .logo i { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; }
 .nav { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -45,7 +46,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .nav a:hover { background: var(--idle-soft); }
 .nav a.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .spacer { flex: 1; }
-.who { color: var(--ink-2); font-size: 13px; display: flex; gap: 10px; align-items: center; }
+.who { color: var(--ink-2); font-size: 13px; display: flex; gap: 6px; align-items: center; white-space: nowrap; }
 main { max-width: 1320px; margin: 0 auto; padding: 20px; }
 .head { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
 .head h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -.01em; }
@@ -118,7 +119,7 @@ tr.total td { font-weight: 650; border-top: 1px solid var(--axis); }
 .months { display: flex; gap: 3px; }
 .months i { width: 14px; height: 14px; border-radius: 4px; background: var(--idle-soft); }
 .months i.ok { background: var(--good); } .months i.risk { background: var(--warn); } .months i.fail { background: var(--bad); }
-.months i.cur { box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 3px var(--ink); }
+.months i.cur { outline: 2px solid var(--ink); outline-offset: -2px; }
 
 /* --- charts --- */
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -158,3 +159,8 @@ dialog::backdrop { background: rgba(22, 24, 29, .35); }
   .kpi .value { font-size: 24px; }
   .monthnav b { min-width: 100px; }
 }
+
+.upd { font-size: 12.5px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+.live { width: 8px; height: 8px; border-radius: 50%; background: var(--idle); display: inline-block; }
+.live.on { background: var(--good); box-shadow: 0 0 0 3px var(--good-soft); }
+@media (max-width: 1240px) { .who .uname { display: none; } }
