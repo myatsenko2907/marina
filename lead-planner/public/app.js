@@ -38,11 +38,15 @@ const STATUS = {
   ok: { label: "В плане", color: "var(--good)", icon: '<path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
   risk: { label: "Риск", color: "var(--warn)", icon: '<path d="M8 3v6M8 12.5v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
   fail: { label: "Провал", color: "var(--bad)", icon: '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
+  branch: { label: "По филиалу", color: "var(--idle)", icon: '<path d="M3 13h10M5 10v3M8 6v7M11 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' },
   nodata: { label: "Нет факта ЛБ", color: "var(--idle)", icon: '<circle cx="8" cy="8" r="2" fill="currentColor"/>' },
   future: { label: "Не начался", color: "var(--idle)", icon: '<circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.8" fill="none"/>' },
 };
 const pill = (st) => `<span class="st ${st}"><svg viewBox="0 0 16 16">${STATUS[st].icon}</svg>${STATUS[st].label}</span>`;
 const SRC = {
+  branch: "цена лида филиала",
+  default: "примерная цена лида (настройки)",
+  crm_requests: "заявки CRM × нормы",
   manual: "вручную",
   fb_product: "FB, кампании продукта",
   fb_branch: "FB, средний по кабинету",
@@ -67,6 +71,17 @@ function toast(msg, isErr = false) {
 }
 
 async function api(path, opts = {}) {
+  if (window.LOCAL_API) {
+    try {
+      return await window.LOCAL_API(path, opts);
+    } catch (e) {
+      if (e.status === 401 && !path.endsWith("/login")) {
+        S.me = null;
+        renderLogin();
+      }
+      throw e;
+    }
+  }
   const res = await fetch(path, {
     method: opts.method || "GET",
     headers: opts.raw ? {} : { "content-type": "application/json" },
@@ -80,6 +95,37 @@ async function api(path, opts = {}) {
   }
   if (!res.ok) throw new Error(data?.error || `Ошибка ${res.status}`);
   return data;
+}
+
+/** Подтверждение в окне страницы (системные confirm/prompt недоступны во встроенном режиме). */
+function ask(text, okLabel = "Удалить") {
+  return new Promise((resolve) => {
+    const d = document.createElement("dialog");
+    d.innerHTML = `<form method="dialog" class="grid" style="gap:14px"><p style="margin:0">${esc(text)}</p><div class="row-actions"><button class="btn danger" value="ok">${esc(okLabel)}</button><button class="btn" value="no">Отмена</button></div></form>`;
+    document.body.append(d);
+    d.addEventListener("close", () => {
+      resolve(d.returnValue === "ok");
+      d.remove();
+    });
+    d.showModal();
+  });
+}
+
+function showSecret(title, value) {
+  const d = document.createElement("dialog");
+  d.innerHTML = `<form method="dialog" class="grid" style="gap:12px"><h2 style="margin:0">${esc(title)}</h2><input type="text" readonly value="${esc(value)}" id="secretVal"><p class="muted" style="margin:0">Передайте пароль маркетологу. Повторно он не показывается.</p><div class="row-actions"><button class="btn primary" type="button" id="copySecret">Копировать</button><button class="btn" value="ok">Готово</button></div></form>`;
+  document.body.append(d);
+  d.addEventListener("close", () => d.remove());
+  d.showModal();
+  d.querySelector("#copySecret").onclick = async () => {
+    const inp = d.querySelector("#secretVal");
+    try {
+      await navigator.clipboard.writeText(inp.value);
+      toast("Скопировано");
+    } catch {
+      inp.select();
+    }
+  };
 }
 
 const setMonth = (m) => {
@@ -232,7 +278,7 @@ function shell(active, inner) {
     ["#/", isAdmin ? "Все филиалы" : "Мои филиалы", "home"],
     ...(isAdmin
       ? [
-          ["#/admin/import", "Импорт", "import"],
+          ...(window.LOCAL_MODE ? [] : [["#/admin/import", "Импорт", "import"]]),
           ["#/admin/branches", "Филиалы", "branches"],
           ["#/admin/users", "Доступы", "users"],
           ["#/admin/settings", "Настройки", "settings"],
@@ -246,7 +292,7 @@ function shell(active, inner) {
     <span class="spacer"></span>
     <span class="upd" id="upd"></span>
     <span class="who"><span class="uname">${esc(S.me.name)}</span> <span class="chip">${isAdmin ? "админ" : "маркетолог"}</span>
-    <button class="btn ghost sm" id="pw">Пароль</button><button class="btn ghost sm" id="logout">Выйти</button></span>
+    ${window.LOCAL_MODE ? "" : '<button class="btn ghost sm" id="pw">Пароль</button>'}<button class="btn ghost sm" id="logout">${window.LOCAL_MODE ? "Сменить роль" : "Выйти"}</button></span>
   </div></header>
   <main>${inner}</main>`;
   document.getElementById("logout").onclick = async () => {
@@ -254,7 +300,8 @@ function shell(active, inner) {
     S.me = null;
     renderLogin();
   };
-  document.getElementById("pw").onclick = changePassword;
+  const pwBtn = document.getElementById("pw");
+  if (pwBtn) pwBtn.onclick = changePassword;
   showStatus();
 }
 
@@ -305,6 +352,7 @@ function bindMonthNav() {
 }
 
 function renderLogin() {
+  if (window.LOCAL_MODE) return renderLocalLogin();
   $app.innerHTML = `<div class="login"><form class="card" id="lf">
     <h1>План лидобалов</h1><p class="muted" style="margin:0 0 18px">Планы по лидам, лидобалам и бюджету для маркетологов филиалов</p>
     <div class="grid" style="gap:12px">
@@ -317,6 +365,32 @@ function renderLogin() {
     const fd = new FormData(e.target);
     try {
       await api("/api/login", { method: "POST", body: Object.fromEntries(fd) });
+      await boot();
+    } catch (er) {
+      toast(er.message, true);
+    }
+  };
+}
+
+/** Вход в опубликованной версии: пароль расшифровывает данные, затем выбор роли. */
+function renderLocalLogin() {
+  const unlocked = !!window.LOCAL_API;
+  $app.innerHTML = `<div class="login"><form class="card" id="lf">
+    <h1>План лидобалов</h1><p class="muted" style="margin:0 0 18px">Планы по лидам, лидобалам и бюджету для маркетологов филиалов. Украина, данные CRM.</p>
+    <div class="grid" style="gap:12px">
+      ${unlocked ? "" : '<label class="f">Пароль<input type="password" id="pwd" name="password" autocomplete="current-password" required></label>'}
+      ${unlocked ? `<label class="f">Войти как<select id="as" name="as">${window.LOCAL_USERS().map((u) => `<option value="${esc(u.id)}">${esc(u.name)}</option>`).join("")}</select></label><p class="muted" style="margin:0;font-size:12.5px">Маркетолог видит только свой город — так выглядит отдельный доступ для каждого филиала.</p>` : ""}
+      <button class="btn primary">${unlocked ? "Войти" : "Открыть"}</button>
+    </div></form></div>`;
+  document.getElementById("lf").onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (!window.LOCAL_API) {
+        await window.LOCAL_UNLOCK(document.getElementById("pwd").value);
+        return renderLocalLogin();
+      }
+      await api("/api/login", { method: "POST", body: { as: document.getElementById("as").value } });
+      location.hash = "#/";
       await boot();
     } catch (er) {
       toast(er.message, true);
@@ -357,7 +431,7 @@ async function renderOverview() {
   const active = rows.filter((r) => r.status !== "future");
   const fails = rows.filter((r) => r.status === "fail");
   const risks = rows.filter((r) => r.status === "risk");
-  const nodata = rows.filter((r) => r.status === "nodata");
+  const nodata = rows.filter((r) => r.status === "nodata" || r.status === "branch");
   const sum = (k) => rows.reduce((a, r) => a + (r[k] || 0), 0);
   const fact = sum("factBalls");
   const expected = rows.filter((r) => r.factBalls != null).reduce((a, r) => a + r.expectedBalls, 0);
@@ -387,13 +461,13 @@ async function renderOverview() {
       <div class="value">${fmt(sum("planContracts"))}</div>
       <div class="foot">Перенос недостачи: +${fmt(sum("carryBalls"))} лидобалов</div></div>
     <div class="card kpi"><div class="label">Бюджет месяца (прогноз)</div>
-      <div class="value">${budget}</div><div class="foot">${missingBudget ? `без CPL: ${missingBudget} фил. · ` : ""}потрачено в FB: ${spent}</div></div>
+      <div class="value">${budget}</div><div class="foot">${missingBudget ? `без цены лида: ${missingBudget} фил. · ` : ""}по примерной цене лида</div></div>
     <div class="card kpi"><div class="label">Набор: договоры</div>
       <div class="value">${fmt(seasonFact)} <small>/ ${fmt(seasonPlan || null)}</small></div>
       <div class="foot">${seasonPlan ? pct(seasonFact / seasonPlan) + " плана набора" : "план набора не загружен"}</div></div>
   </div>
 
-  ${nodata.length ? `<div class="alerts"><div class="alert-row info">Нет факта лидобалов за ${monthName(S.month).toLowerCase()} по ${nodata.length} фил. — ${S.me.role === "admin" ? '<a href="#/admin/import">загрузите выгрузку отчёта CRM «Маркетинг → Лидобалы»</a>' : "администратор загрузит отчёт CRM «Маркетинг → Лидобалы»"}. Без факта статус и перенос недостачи не считаются.</div></div>` : ""}
+  ${nodata.length && !rows.some((r) => r.factSource) ? `<div class="alerts"><div class="alert-row info">Нет факта лидобалов за ${monthName(S.month).toLowerCase()} по ${nodata.length} фил. — ${S.me.role === "admin" ? '<a href="#/admin/import">загрузите выгрузку отчёта CRM «Маркетинг → Лидобалы»</a>' : "администратор загрузит отчёт CRM «Маркетинг → Лидобалы»"}. Без факта статус и перенос недостачи не считаются.</div></div>` : ""}
   ${fails.length ? `<div class="alerts">${fails.map((r) => `<a class="alert-row bad" href="#/b/${r.id}"><b>${esc(r.name)}</b> — провал по лидобалам: ${fmt(r.factBalls, 1)} из ожидаемых ${fmt(r.expectedBalls, 1)} (темп ${pct(r.pace)}), не хватает ${fmt(r.gapBalls, 1)} лидобалов.</a>`).join("")}</div>` : ""}
 
   <div class="grid cols-2">
@@ -409,8 +483,8 @@ async function renderOverview() {
   </div>
 
   <div class="card mt"><h2>Сводка по филиалам</h2><div class="hint">Лидобалы, лиды и бюджет на месяц</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Ожид. к сегодня</th><th class="n">Факт ЛБ</th><th class="n">Отставание</th><th class="n">Лиды нужно</th><th class="n">Регистрации</th><th class="n">Бюджет</th><th class="n">Расход FB</th><th class="n">Прогноз расхода</th></tr></thead><tbody>
-    ${rows.map((r) => `<tr class="click ${r.status}" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td><td class="n">${fmt(r.planContracts)}</td><td class="n">${fmt(r.factContracts)}</td><td class="n">${fmt(r.targetBalls, 1)}</td><td class="n">${fmt(r.expectedBalls, 1)}</td><td class="n">${fmt(r.factBalls, 1)}</td><td class="n ${r.gapBalls > 0 ? "neg" : ""}">${r.gapBalls ? "−" + fmt(r.gapBalls, 1) : "—"}</td><td class="n">${fmt(r.leads)}</td><td class="n">${fmt(r.registrations)}</td><td class="n">${r.budgetMissing ? '<span class="muted" data-tip="Нет CPL — подключите FB или задайте CPL">—</span>' : money(r.budget, r.currency)}</td><td class="n">${money(r.spentMtd, r.currency)}</td><td class="n">${money(r.projectedSpend, r.currency)}</td></tr>`).join("")}
+    <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Ожид. к сегодня</th><th class="n">Факт ЛБ</th><th class="n">Отставание</th><th class="n">Лиды нужно</th><th class="n">Регистрации</th><th class="n">Бюджет</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr class="click ${r.status}" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td><td class="n">${fmt(r.planContracts)}</td><td class="n">${fmt(r.factContracts)}</td><td class="n">${fmt(r.targetBalls, 1)}</td><td class="n">${fmt(r.expectedBalls, 1)}</td><td class="n">${fmt(r.factBalls, 1)}</td><td class="n ${r.gapBalls > 0 ? "neg" : ""}">${r.gapBalls ? "−" + fmt(r.gapBalls, 1) : "—"}</td><td class="n">${fmt(r.leads)}</td><td class="n">${fmt(r.registrations)}</td><td class="n">${r.budgetMissing ? '<span class="muted" data-tip="Нет CPL — подключите FB или задайте CPL">—</span>' : money(r.budget, r.currency)}</td></tr>`).join("")}
     </tbody></table></div></div>`;
   shell("home", inner);
   bindMonthNav();
@@ -446,9 +520,10 @@ async function renderBranch(id, tab = "dash") {
     ["season", "Набор"],
     ...(data.canEdit ? [["input", "Ввод данных"]] : []),
   ];
-  const fbInfo = r.fb
-    ? `FB: ${new Date(r.fb.fetchedAt).toLocaleString("ru-RU", { dateStyle: "short", timeStyle: "short" })} · CPL кабинета ${money(r.fb.cpl, cur)} за ${r.fb.period.since} – ${r.fb.period.until}`
-    : "FB-кабинет не подключён";
+  const fbInfo = [
+    t.factSource === "crm_requests" ? "Факт: заявки CRM по типам × нормы" : t.factSource === "products" ? "Факт: отчёт «Лидобалы»" : "Факта лидобалов пока нет",
+    `цена лида: ${branch.cpl && Object.keys(branch.cpl).length ? "своя для филиала" : "примерная из настроек"}`,
+  ].join(" · ");
 
   let body = "";
   if (tab === "dash") body = branchDash(r, season, cur);
@@ -463,7 +538,7 @@ async function renderBranch(id, tab = "dash") {
       <h1>${esc(branch.name)} ${pill(t.status)}</h1><div class="sub">${esc(fbInfo)}</div></div>
       <span class="spacer"></span>${monthNav()}
       ${branch.adAccountId && S.me.metaConfigured ? '<button class="btn" id="fbRef">Обновить из FB</button>' : ""}
-      <a class="btn" href="/api/branches/${id}/export.csv?month=${S.month}">Скачать CSV</a></div>
+      ${window.LOCAL_MODE ? "" : `<a class="btn" href="/api/branches/${id}/export.csv?month=${S.month}">Скачать CSV</a>`}</div>
     <nav class="tabs">${tabs.map(([k, n]) => `<a href="#/b/${id}/${k}" class="${k === tab ? "on" : ""}">${n}</a>`).join("")}</nav>
     ${r.warnings.length ? `<div class="alerts">${r.warnings.map((w) => `<div class="alert-row">${esc(w)}</div>`).join("")}</div>` : ""}
     ${body}`,
@@ -500,23 +575,45 @@ function branchDash(r, season, cur) {
     <div class="card kpi"><div class="label">План лидобалов на месяц</div><div class="value">${fmt(t.targetBalls, 1)}</div>
       <div class="foot">${fmt(t.planContracts)} дог. × ${pct(S.settings.ballsPlanFactor)}${t.carryBalls ? ` + перенос ${fmt(t.carryBalls, 1)}` : ""}</div></div>
     <div class="card kpi ${st === "fail" ? "alert" : ""}"><div class="label">Факт лидобалов</div><div class="value">${fmt(t.factBalls, 1)} <small>/ ${fmt(t.expectedBalls, 1)} ожид.</small></div>
-      <div class="foot">${pill(st)} темп ${pct(t.pace)}</div>
+      <div class="foot">${pill(st)} темп ${pct(t.pace)}${t.factSource === "crm_requests" ? " · по заявкам CRM" : ""}</div>
       <div class="bar-mini"><i style="width:${Math.min(100, ((t.factBalls || 0) / (t.targetBalls || 1)) * 100)}%;background:${STATUS[st].color}"></i></div></div>
     <div class="card kpi"><div class="label">Нужно в день до конца месяца</div><div class="value">${fmt(needPerDay, 1)}</div>
       <div class="foot">лидобалов · осталось ${r.daysLeft} дн.</div></div>
     <div class="card kpi"><div class="label">Бюджет на месяц (прогноз)</div><div class="value">${money(t.budget, cur)}</div>
       <div class="foot">продукты ${money(t.productBudget, cur)} · ивенты ${money(t.eventBudget, cur)}</div></div>
-    <div class="card kpi"><div class="label">Расход FB в этом месяце</div><div class="value">${money(t.spentMtd, cur)}</div>
-      <div class="foot">${t.budgetPace != null ? `темп расхода ${pct(t.budgetPace)} · ` : ""}${t.dailyBudgetLeft != null ? `${money(t.dailyBudgetLeft, cur)}/день осталось` : "нет данных FB за месяц"}</div></div>
+    <div class="card kpi"><div class="label">Лидов нужно за месяц</div><div class="value">${fmt(t.leads + t.registrations)}</div>
+      <div class="foot">из них платных ${fmt(t.paidLeads + t.registrations)} · рег. на ивенты ${fmt(t.registrations)}</div></div>
   </div>
   <div class="grid cols-2">
     <div class="card"><h2>План и факт по продуктам</h2><div class="hint">Лидобалы месяца, включая перенос недостачи</div>${planFactChart(r.products)}</div>
     <div class="card"><h2>Набор: ${esc(season.season.name)}</h2><div class="hint">Недостача закрытого месяца переносится в следующий</div>${seasonChart(season.months, r.month)}</div>
   </div>
+  ${sourcesCard(r)}
   <div class="card mt"><h2>Откуда берём лидобалы</h2><div class="hint">План по типам лидов (доли — вклад источников; события — по плану регистраций)</div>${typeStack(byType)}</div>
-  <div class="card mt"><h2>Коротко по продуктам</h2><div class="tbl-wrap"><table><thead><tr><th>Продукт</th><th>Статус</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Факт ЛБ</th><th class="n">Лидов нужно</th><th class="n">CPL</th><th class="n">Бюджет</th><th class="n">Расход FB</th></tr></thead><tbody>
-  ${r.products.map((p) => `<tr class="${p.status}"><td>${esc(p.name)}</td><td>${pill(p.status)}</td><td class="n">${fmt(p.planContracts)}</td><td class="n">${fmt(p.factContracts)}</td><td class="n">${fmt(p.targetBalls, 1)}</td><td class="n">${fmt(p.factBalls, 1)}</td><td class="n">${fmt(p.leads)}</td><td class="n" data-tip="${esc(SRC[p.cplSource] || "")}">${money(p.cpl, cur)}</td><td class="n">${money(p.budget, cur)}</td><td class="n">${money(p.spentMtd, cur)}</td></tr>`).join("")}
+  <div class="card mt"><h2>Коротко по продуктам</h2><div class="tbl-wrap"><table><thead><tr><th>Продукт</th><th>Статус</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Факт ЛБ</th><th class="n">Лидов нужно</th><th class="n">Ср. цена лида</th><th class="n">Бюджет</th></tr></thead><tbody>
+  ${r.products.map((p) => `<tr class="${p.status}"><td>${esc(p.name)}</td><td>${pill(p.status)}</td><td class="n">${fmt(p.planContracts)}</td><td class="n">${fmt(p.factContracts)}</td><td class="n">${fmt(p.targetBalls, 1)}</td><td class="n">${fmt(p.factBalls, 1)}</td><td class="n">${fmt(p.leads)}</td><td class="n" data-tip="${esc((p.cplSource || "").split("+").map((x) => SRC[x] || x).join(", "))}">${money(p.cpl, cur)}</td><td class="n">${money(p.budget, cur)}</td></tr>`).join("")}
   </tbody></table></div></div>`;
+}
+
+/** План и факт по источникам (типам лидов) за месяц. */
+function sourcesCard(r) {
+  const rows = r.sources.filter((x) => x.planBalls > 0 || x.factLeads);
+  if (!rows.length) return "";
+  const hasFact = rows.some((x) => x.factLeads != null);
+  const reqs = r.requests ? Object.entries(r.requests).sort((a, b) => b[1].net - a[1].net) : [];
+  return `<div class="card mt"><h2>Источники: план и факт</h2><div class="hint">${hasFact ? "Факт — заявки CRM за месяц (без спама и дублей) × норма конверсии типа" : "Факта по источникам пока нет"}</div>
+  <div class="tbl-wrap"><table><thead><tr><th>Тип лида</th><th class="n">Норма</th><th class="n">План лидов</th><th class="n">Факт лидов</th><th class="n">План ЛБ</th><th class="n">Ожид. к сегодня</th><th class="n">Факт ЛБ</th><th class="n">Темп</th></tr></thead><tbody>
+  ${rows
+    .map((x) => {
+      const t = S.settings.leadTypes.find((y) => y.id === x.typeId);
+      const pace = x.expectedBalls > 0 && x.factBalls != null ? x.factBalls / x.expectedBalls : null;
+      const st = pace == null ? "nodata" : pace >= S.settings.thresholds.ok ? "ok" : pace >= S.settings.thresholds.risk ? "risk" : "fail";
+      return `<tr><td><i class="dot" style="background:${typeColor(x.typeId)}"></i>${esc(t?.name || x.typeId)}</td><td class="n">${fmt(t?.ball, 2)}</td><td class="n">${fmt(x.planLeads)}</td><td class="n">${fmt(x.factLeads)}</td><td class="n">${fmt(x.planBalls, 1)}</td><td class="n">${fmt(x.expectedBalls, 1)}</td><td class="n">${fmt(x.factBalls, 1)}</td><td class="n">${pace == null ? "—" : `<span class="${st === "fail" ? "neg" : st === "ok" ? "pos" : ""}">${pct(pace)}</span>`}</td></tr>`;
+    })
+    .join("")}
+  </tbody></table></div>
+  ${reqs.length ? `<details class="help"><summary>Заявки CRM по типам за месяц</summary><div class="tbl-wrap"><table><thead><tr><th>Тип заявки CRM</th><th>→ тип лида</th><th class="n">Заявок</th><th class="n">Договоров</th><th class="n">Конверсия</th></tr></thead><tbody>${reqs.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v.typeId ? typeName(v.typeId) : "не учитывается")}</td><td class="n">${fmt(v.net)}</td><td class="n">${fmt(v.contracts)}</td><td class="n">${v.net ? pct(v.contracts / v.net, 1) : "—"}</td></tr>`).join("")}</tbody></table></div></details>` : ""}
+  </div>`;
 }
 
 function branchPlan(r, cur) {
@@ -527,7 +624,7 @@ function branchPlan(r, cur) {
   ${r.products
     .map((p) => {
       const open = S.expanded.has(p.id);
-      return `<tr class="click ${p.status}" data-exp="${p.id}"><td><b>${open ? "▾" : "▸"} ${esc(p.name)}</b><div class="muted" style="font-size:12px">${pct(p.factor)} плана · доли: ${esc(SRC[p.mixSource])} · CPL: ${esc(SRC[p.cplSource] || "нет")}${p.fb ? ` · FB ${S.settings.cplLookbackDays} дн.: ${money(p.fb.spend, cur)} / ${fmt(p.fb.leads)} лидов` : ""}</div></td>
+      return `<tr class="click ${p.status}" data-exp="${p.id}"><td><b>${open ? "▾" : "▸"} ${esc(p.name)}</b><div class="muted" style="font-size:12px">${pct(p.factor)} плана · доли: ${esc(SRC[p.mixSource])} · цена лида: ${esc((p.cplSource || "нет").split("+").map((x) => SRC[x] || x).join(", "))}${p.fb ? ` · FB ${S.settings.cplLookbackDays} дн.: ${money(p.fb.spend, cur)} / ${fmt(p.fb.leads)} лидов` : ""}</div></td>
       <td class="n">${fmt(p.planContracts)}</td><td></td><td></td><td class="n">${p.carryBalls ? "+" + fmt(p.carryBalls, 1) : "—"}</td><td class="n">${p.eventBalls ? fmt(p.eventBalls, 1) : "—"}</td>
       <td class="n"><b>${fmt(p.targetBalls, 1)}</b></td><td class="n"><b>${fmt(p.leads)}</b></td><td class="n">${money(p.cpl, cur)}</td><td class="n"><b>${money(p.budget, cur)}</b></td><td class="n">${fmt(p.factBalls, 1)}</td><td class="n">${pill(p.status)} ${pct(p.pace)}</td></tr>
       ${open ? p.byType.map((x) => `<tr class="sub"><td style="padding-left:28px"><i class="dot" style="background:${typeColor(x.typeId)}"></i>${esc(typeName(x.typeId))}${x.paid ? "" : ' <span class="chip">органика</span>'}</td><td></td><td class="n">${pct(x.share)}</td><td class="n">${fmt(x.norm, 3)}</td><td></td><td></td><td class="n">${fmt(x.balls, 1)}</td><td class="n">${fmt(x.leads)}</td><td class="n">${x.paid ? money(x.cpl, cur) : "—"}</td><td class="n">${x.paid ? money(x.budget, cur) : "—"}</td><td></td><td></td></tr>`).join("") : ""}`;
@@ -578,7 +675,7 @@ function eventDialog(id, ev = {}) {
     if (act === "cancel") return d.remove();
     try {
       if (act === "del") {
-        if (!confirm("Удалить ивент?")) return;
+        if (!(await ask("Удалить ивент?"))) return;
         await api(`/api/branches/${id}/events/${ev.id}`, { method: "DELETE" });
       } else {
         const fd = Object.fromEntries(new FormData(e.target));
@@ -638,7 +735,10 @@ function branchInput(r, inputs, branch, season) {
     <label class="f">Валюта кабинета<input type="text" name="b.fbCurrency" value="${v(branch.fbCurrency || "USD")}"></label>
     <label class="f">Коэф. к CPL (сезонность)<input type="number" step="0.01" min="0" name="b.cplAdjust" value="${v(branch.cplAdjust)}" placeholder="1"></label>
     <label class="f">Норма лидобалов от плана<input type="number" step="0.01" min="0" name="b.ballsPlanFactor" value="${v(branch.ballsPlanFactor)}" placeholder="${S.settings.ballsPlanFactor}"></label>
-  </div></div></div>
+  </div>
+  <h2 class="mt">Примерная цена лида, $</h2><div class="hint">Пусто — берётся цена из общих настроек</div>
+  <div class="form-grid">${S.settings.leadTypes.filter((t) => t.paid).map((t) => `<label class="f">${esc(t.name)}<input type="number" step="0.01" min="0" name="bcpl.${t.id}" value="${v(branch.cpl?.[t.id])}" placeholder="${v(S.settings.cpl?.[t.id])}"></label>`).join("")}</div>
+  </div></div>
   <div class="row-actions mt"><button class="btn primary">Сохранить</button><span class="muted">Изменения сразу пересчитают план, перенос и бюджет.</span></div></form>`;
 }
 
@@ -686,6 +786,10 @@ function bindBranch(id, tab, data) {
         if (kind === "fl" && n(val) != null) ((facts.products[pid] ||= {}).leads ||= {})[tid] = n(val);
         if (kind === "season" && n(val) != null) season[pid] = n(val);
         if (kind === "b") b[pid] = ["cplAdjust", "ballsPlanFactor"].includes(pid) ? n(val) : val;
+        if (kind === "bcpl") {
+          b.cpl ||= {};
+          if (n(val) != null) b.cpl[pid] = n(val);
+        }
       }
       if (old.cplAdjust != null) plan.cplAdjust = old.cplAdjust;
       try {
@@ -731,12 +835,12 @@ async function renderUsers() {
       try {
         let res;
         if (act === "del") {
-          if (!confirm("Удалить пользователя?")) return;
+          if (!(await ask("Удалить пользователя?"))) return;
           await api(`/api/users/${u.id}`, { method: "DELETE" });
         } else if (u) res = await api(`/api/users/${u.id}`, { method: "PUT", body: { ...body, disabled: f.disabled?.checked, resetPassword: act === "reset" } });
         else res = await api("/api/users", { method: "POST", body: { ...body, login: f.login.value } });
         d.remove();
-        if (res?.password) prompt(`Пароль для ${res.login} (передайте маркетологу, больше не покажем):`, res.password);
+        if (res?.password) showSecret(`Пароль для ${res.login}`, res.password);
         renderUsers();
       } catch (er) {
         toast(er.message, true);
@@ -780,7 +884,7 @@ async function renderSettings() {
   const s = S.settings;
   shell(
     "settings",
-    `<div class="head"><div><h1>Настройки расчёта</h1><div class="sub">Нормы конверсии (лидобалы за лид), пороги статусов, сопоставление кампаний FB с продуктами</div></div></div>
+    `<div class="head"><div><h1>Настройки расчёта</h1><div class="sub">Нормы конверсии (лидобалы за лид), примерные цены лида, пороги статусов</div></div></div>
   <form id="sf">
   <div class="grid cols-2">
   <div class="card"><h2>План и статусы</h2><div class="form-grid">
@@ -792,8 +896,8 @@ async function renderSettings() {
     <label class="f" style="align-self:end"><span><input type="checkbox" name="carryOver" ${s.carryOver !== false ? "checked" : ""}> Переносить недостачу в следующий месяц</span></label>
   </div></div>
   <div class="card"><h2>Типы лидов и нормы</h2><div class="hint">Норма = доля лидов этого типа, которые становятся оплаченным договором (= лидобалов за 1 лид). Макс. доля — потолок типа в плане лидобалов, излишек уходит на другие типы.</div>
-  <table><thead><tr><th>Тип</th><th class="n">Норма</th><th>Платный</th><th>Доля по умолч., %</th><th>Макс. доля, %</th></tr></thead><tbody>
-  ${s.leadTypes.map((t) => `<tr><td><i class="dot" style="background:${typeColor(t.id)}"></i>${esc(t.name)}</td><td class="n"><input class="cell" type="number" step="0.001" name="lt.${t.id}.ball" value="${t.ball}"></td><td><input type="checkbox" name="lt.${t.id}.paid" ${t.paid ? "checked" : ""}></td>${t.kind === "event" ? '<td colspan="2"><span class="muted">по плану ивентов</span></td>' : `<td><input class="cell" type="number" step="1" name="mix.${t.id}" value="${Math.round((s.defaultMix[t.id] || 0) * 100)}"></td><td><input class="cell" type="number" step="1" min="0" max="100" name="cap.${t.id}" value="${s.mixCaps?.[t.id] != null ? Math.round(s.mixCaps[t.id] * 100) : ""}" placeholder="—"></td>`}</tr>`).join("")}
+  <table><thead><tr><th>Тип</th><th class="n">Норма</th><th>Платный</th><th>Цена лида, $</th><th>Доля по умолч., %</th><th>Макс. доля, %</th></tr></thead><tbody>
+  ${s.leadTypes.map((t) => `<tr><td><i class="dot" style="background:${typeColor(t.id)}"></i>${esc(t.name)}</td><td class="n"><input class="cell" type="number" step="0.001" name="lt.${t.id}.ball" value="${t.ball}"></td><td><input type="checkbox" name="lt.${t.id}.paid" ${t.paid ? "checked" : ""}></td><td><input class="cell" type="number" step="0.01" min="0" name="price.${t.id}" value="${s.cpl?.[t.id] ?? ""}" placeholder="—"></td>${t.kind === "event" ? '<td colspan="2"><span class="muted">по плану ивентов</span></td>' : `<td><input class="cell" type="number" step="1" name="mix.${t.id}" value="${Math.round((s.defaultMix[t.id] || 0) * 100)}"></td><td><input class="cell" type="number" step="1" min="0" max="100" name="cap.${t.id}" value="${s.mixCaps?.[t.id] != null ? Math.round(s.mixCaps[t.id] * 100) : ""}" placeholder="—"></td>`}</tr>`).join("")}
   </tbody></table></div></div>
   <div class="card mt"><h2>Продукты и кампании FB</h2><div class="hint">Регулярное выражение по названию кампании (без учёта регистра). Кампании ивентов: <input type="text" name="eventCampaignPattern" value="${esc(s.eventCampaignPattern)}" style="max-width:420px"></div>
   <table><thead><tr><th>Код CRM</th><th>Название</th><th>Шаблон кампаний</th></tr></thead><tbody>
@@ -815,6 +919,9 @@ async function renderSettings() {
     for (const t of next.leadTypes) {
       t.ball = Number(g(`lt.${t.id}.ball`).value);
       t.paid = g(`lt.${t.id}.paid`).checked;
+      next.cpl ||= {};
+      if (g(`price.${t.id}`).value === "") delete next.cpl[t.id];
+      else next.cpl[t.id] = Number(g(`price.${t.id}`).value);
       if (g(`mix.${t.id}`)) next.defaultMix[t.id] = Number(g(`mix.${t.id}`).value) / 100;
       if (g(`cap.${t.id}`)) {
         next.mixCaps ||= {};
@@ -894,6 +1001,7 @@ async function route() {
 }
 
 async function boot() {
+  if (window.LOCAL_MODE && !window.LOCAL_API) return renderLogin();
   try {
     S.me = await api("/api/me");
     S.settings = await api("/api/settings");

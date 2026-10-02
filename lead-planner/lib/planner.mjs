@@ -202,9 +202,21 @@ export function factBallsOf(fact, ctx) {
   return any ? { balls: total, source: Object.values(byType).some((x) => x.source === "manual") ? "leads" : "fb", byType } : { balls: null, source: null, byType: null };
 }
 
+/**
+ * Примерная цена лида типа t: вручную по продукту → по филиалу → из FB-кабинета → по умолчанию в настройках.
+ * Возвращает { cpl, source }.
+ */
+export function leadPrice({ settings, branch, typeId, manual, fbCpl }) {
+  if (num(manual) != null) return { cpl: Number(manual), source: "manual" };
+  if (num(branch?.cpl?.[typeId]) != null) return { cpl: Number(branch.cpl[typeId]), source: "branch" };
+  if (fbCpl != null) return { cpl: fbCpl, source: "fb" };
+  if (num(settings.cpl?.[typeId]) != null) return { cpl: Number(settings.cpl[typeId]), source: "default" };
+  return { cpl: null, source: null };
+}
+
 /** Расчёт плана одного ивента. */
 export function computeEvent(ev, ctx) {
-  const { settings, fbEvents, branchCpl, adjust } = ctx;
+  const { settings, fbEvents, branchCpl, adjust, branch } = ctx;
   const evType = settings.leadTypes.find((t) => t.kind === "event") || { ball: 0.08 };
   const ball = num(ev.ball) ?? evType.ball;
   const warnings = [];
@@ -222,6 +234,9 @@ export function computeEvent(ev, ctx) {
   if (num(ev.cprOverride) != null) {
     cpr = Number(ev.cprOverride);
     cprSource = "manual";
+  } else if (num(branch?.cpl?.event) != null) {
+    cpr = Number(branch.cpl.event);
+    cprSource = "branch";
   } else {
     const re = toRegex(ev.fbCampaignPattern);
     if (re && fbEvents) {
@@ -242,6 +257,10 @@ export function computeEvent(ev, ctx) {
       cprSource = "fb_branch_cpl";
     }
     if (cpr != null) cpr *= adjust;
+    if (cpr == null && num(settings.cpl?.event) != null) {
+      cpr = Number(settings.cpl.event);
+      cprSource = "default";
+    }
   }
   if (cpr == null) warnings.push(`Ивент «${ev.name}»: нет цены регистрации — укажите вручную или обновите FB`);
 
@@ -291,15 +310,20 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
   const fbMtd = fb?.mtd && fb.mtd.month === month ? aggregateCampaigns(fb.mtd.campaigns, settings) : null;
   const branchCpl = fbAgg && fbAgg.leads > 0 ? fbAgg.spend / fbAgg.leads : null;
 
-  const evs = events.map((e) => computeEvent(e, { settings, fbEvents: fbEv, branchCpl, adjust }));
+  const evs = events.map((e) => computeEvent(e, { settings, fbEvents: fbEv, branchCpl, adjust, branch }));
   for (const e of evs) warnings.push(...e.warnings);
 
   const productIds = new Set([
     ...Object.keys(plan.products || {}),
     ...Object.keys(facts.products || {}),
-    ...Object.keys(carry),
+    ...Object.keys(carry).filter((k) => k !== "__branch"),
     ...evs.map((e) => e.productId).filter(Boolean),
   ]);
+
+  // Недостача, перенесённая на уровне филиала (когда факт известен только по филиалу),
+  // делится между продуктами пропорционально их плану месяца.
+  const branchCarry = Math.max(0, Number(carry.__branch) || 0);
+  const planSum = settings.products.reduce((a, p) => a + (num(plan.products?.[p.id]?.plan) || 0), 0);
 
   const products = [];
   const noCpl = [];
@@ -308,7 +332,7 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
     const inp = plan.products?.[prod.id] || {};
     const fact = facts.products?.[prod.id] || {};
     const planContracts = num(inp.plan) || 0;
-    const carryBalls = Math.max(0, Number(carry[prod.id]) || 0);
+    const carryBalls = Math.max(0, Number(carry[prod.id]) || 0) + (planSum > 0 ? (branchCarry * planContracts) / planSum : 0);
     const baseBalls = planContracts * factor;
     const targetBalls = baseBalls + carryBalls;
     const productEvents = evs.filter((e) => e.productId === prod.id);
@@ -319,29 +343,15 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
     const mixSrc = inp.mix ? "plan" : mixHint[prod.id] ? "history" : prod.mix ? "product" : "default";
     const mix = applyCaps(normalize(inp.mix || mixHint[prod.id] || prod.mix || settings.defaultMix, typeIds), settings.mixCaps);
 
-    // CPL продукта
-    let cpl = null;
-    let cplSource = null;
+    // CPL кабинета FB (если подключён) — как подсказка для платных типов без ручной цены
     const fbp = fbAgg?.byProduct[prod.id];
-    if (num(inp.cplOverride) != null) {
-      cpl = Number(inp.cplOverride);
-      cplSource = "manual";
-    } else {
-      if (fbp && fbp.leads > 0) {
-        cpl = fbp.spend / fbp.leads;
-        cplSource = "fb_product";
-      } else if (branchCpl != null) {
-        cpl = branchCpl;
-        cplSource = "fb_branch";
-      }
-      if (cpl != null) cpl *= adjust;
-    }
+    const fbCpl = fbp && fbp.leads > 0 ? (fbp.spend / fbp.leads) * adjust : branchCpl != null ? branchCpl * adjust : null;
 
     const byType = regularTypes.map((t) => {
       const norm = ballNorm(settings, prod.id, t.id, plan.ballNorms);
       const balls = restBalls * mix[t.id];
       const leads = norm > 0 ? balls / norm : 0;
-      const unitCost = t.paid ? (num(t.cpl) != null ? Number(t.cpl) : cpl != null ? cpl * (num(t.cplFactor) ?? 1) : null) : 0;
+      const price = t.paid ? leadPrice({ settings, branch, typeId: t.id, manual: inp.cplOverride, fbCpl }) : { cpl: 0, source: null };
       return {
         typeId: t.id,
         share: mix[t.id],
@@ -349,8 +359,9 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
         balls,
         leads,
         paid: !!t.paid,
-        cpl: unitCost,
-        budget: unitCost == null ? null : leads * unitCost,
+        cpl: price.cpl,
+        cplSource: price.source,
+        budget: price.cpl == null ? null : leads * price.cpl,
       };
     });
     if (restBalls > 0 && byType.some((r) => r.paid && r.leads > 0 && r.cpl == null)) noCpl.push(prod.name.split(" — ")[0]);
@@ -362,6 +373,10 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
     const expected = targetBalls * share;
     const pace = expected > 0 && factBalls != null ? factBalls / expected : null;
     const budget = byType.reduce((a, r) => (r.budget == null || a == null ? (r.paid && r.leads > 0 ? null : a) : a + r.budget), 0);
+    const paidRows = byType.filter((r) => r.paid && r.leads > 0);
+    const paidLeadsSum = paidRows.reduce((a, r) => a + r.leads, 0);
+    const cpl = budget != null && paidLeadsSum > 0 ? budget / paidLeadsSum : null; // средняя цена платного лида
+    const cplSource = [...new Set(paidRows.map((r) => r.cplSource))].join("+") || null;
     const eventBudget = productEvents.reduce((a, e) => a + (e.budget || 0), 0);
 
     products.push({
@@ -380,7 +395,7 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
       expectedBalls: expected,
       gapBalls: factBalls == null ? null : targetBalls - factBalls,
       pace,
-      status: factBalls == null && share > 0 ? "nodata" : statusOf(pace, settings, share),
+      status: factBalls == null && share > 0 ? (facts.branch?.leads ? "branch" : "nodata") : statusOf(pace, settings, share),
       mix,
       mixSource: mixSrc,
       leads: byType.reduce((a, r) => a + r.leads, 0),
@@ -396,16 +411,23 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
     });
   }
 
-  if (noCpl.length)
-    warnings.push(
-      fbAgg
-        ? `Нет CPL для: ${noCpl.join(", ")} — в FB-кабинете нет лидов по этим продуктам. Задайте CPL вручную или проверьте шаблоны кампаний в настройках.`
-        : `Бюджет не рассчитан: нет данных FB-кабинета (${noCpl.join(", ")}). Нажмите «Обновить из FB» или задайте CPL вручную во «Вводе данных».`,
-    );
+  if (noCpl.length) warnings.push(`Нет цены лида для: ${noCpl.join(", ")} — задайте примерную цену лида в настройках или для филиала.`);
   const sum = (arr, k) => arr.reduce((a, x) => a + (Number(x[k]) || 0), 0);
   const known = products.filter((p) => p.factBalls != null);
   const targetBalls = sum(products, "targetBalls");
-  const factBalls = known.length ? sum(products, "factBalls") : null;
+
+  // Факт по источникам на уровне филиала (заявки CRM по типам × норма типа).
+  const allTypes = settings.leadTypes;
+  const branchLeads = facts.branch?.leads || null;
+  const sources = allTypes.map((t) => {
+    const planBalls = t.kind === "event" ? sum(evs, "balls") : products.reduce((a, p) => a + (p.byType.find((x) => x.typeId === t.id)?.balls || 0), 0);
+    const planLeads = t.kind === "event" ? sum(evs, "registrations") : products.reduce((a, p) => a + (p.byType.find((x) => x.typeId === t.id)?.leads || 0), 0);
+    const factLeads = branchLeads ? num(branchLeads[t.id]) || 0 : null;
+    return { typeId: t.id, planBalls, planLeads, factLeads, factBalls: factLeads == null ? null : factLeads * (Number(t.ball) || 0), expectedBalls: planBalls * share };
+  });
+  const branchFact = branchLeads ? sources.reduce((a, x) => a + (x.factBalls || 0), 0) : null;
+  const factBalls = known.length ? sum(products, "factBalls") : branchFact;
+  const factSource = known.length ? "products" : branchLeads ? "crm_requests" : null;
   const expectedBalls = targetBalls * share;
   const pace = expectedBalls > 0 && factBalls != null ? factBalls / expectedBalls : null;
   const productBudget = products.some((p) => p.budget == null && p.paidLeads > 0) ? null : sum(products, "budget");
@@ -423,6 +445,8 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
     daysLeft,
     products,
     events: evs,
+    sources,
+    requests: facts.branch?.requests || null,
     fb: fbAgg
       ? {
           fetchedAt: fb.fetchedAt,
@@ -444,6 +468,7 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
       targetBalls,
       eventBalls: sum(evs, "balls"),
       factBalls,
+      factSource,
       expectedBalls,
       gapBalls: factBalls == null ? null : Math.max(0, expectedBalls - factBalls),
       pace,
@@ -500,10 +525,15 @@ export function computeSeason({ settings, branch, month, getMonth, seasonPlan = 
     // Недостачу переносим только из закрытых месяцев с известным фактом.
     const next = {};
     if (r.elapsedShare >= 1) {
-      for (const p of r.products) {
-        if (p.factBalls == null) continue;
-        const gap = p.targetBalls - p.factBalls;
-        if (gap > 0) next[p.id] = gap;
+      if (r.totals.factSource === "products") {
+        for (const p of r.products) {
+          if (p.factBalls == null) continue;
+          const gap = p.targetBalls - p.factBalls;
+          if (gap > 0) next[p.id] = gap;
+        }
+      } else if (r.totals.factBalls != null) {
+        const gap = r.totals.targetBalls - r.totals.factBalls;
+        if (gap > 0) next.__branch = gap;
       }
     }
     carry = settings.carryOver === false ? {} : next;
@@ -542,6 +572,7 @@ export function computeSeason({ settings, branch, month, getMonth, seasonPlan = 
       carryBalls: r.totals.carryBalls,
       targetBalls: r.totals.targetBalls,
       factBalls: r.totals.factBalls,
+      factSource: r.totals.factSource,
       pace: r.totals.pace,
       status: r.totals.status,
       budget: r.totals.budget,

@@ -5,10 +5,11 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { Store } from "./lib/store.mjs";
-import { computeSeason, seasonOf, addMonths } from "./lib/planner.mjs";
+import { seasonOf } from "./lib/planner.mjs";
 import { fetchBranchFb } from "./lib/meta.mjs";
 import { readTable, tableToRecords } from "./lib/importer.mjs";
 import { applySnapshot } from "./lib/snapshot.mjs";
+import * as service from "./lib/service.mjs";
 import * as auth from "./lib/auth.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -34,48 +35,8 @@ const currentMonth = () => new Date().toISOString().slice(0, 7);
 const validMonth = (m) => (/^20\d\d-(0[1-9]|1[0-2])$/.test(m || "") ? m : currentMonth());
 
 // ---------- расчёт ----------
-function seasonFor(branch, month) {
-  const s = seasonOf(month);
-  return computeSeason({
-    settings: store.data.settings,
-    branch,
-    month,
-    seasonPlan: store.seasonPlan(branch.id, s.id),
-    getMonth: (m) => {
-      const rec = store.month(branch.id, m);
-      return {
-        plan: rec?.plan,
-        facts: rec?.facts,
-        events: store.eventsFor(branch.id, m),
-        fb: store.data.fb[branch.id] || null,
-      };
-    },
-  });
-}
-
-function overview(user, month) {
-  const rows = [];
-  for (const b of store.data.branches) {
-    if (!auth.canSee(user, b.id) || b.archived) continue;
-    const s = seasonFor(b, month);
-    const t = s.month.totals;
-    rows.push({
-      id: b.id,
-      name: b.name,
-      currency: s.month.currency,
-      fbConnected: !!b.adAccountId,
-      fbFetchedAt: store.data.fb[b.id]?.fetchedAt || null,
-      ...t,
-      season: s.totals,
-      seasonMonths: s.months.map((m) => ({ month: m.month, status: m.status, pace: m.pace, targetBalls: m.targetBalls, factBalls: m.factBalls })),
-      warnings: s.month.warnings.length,
-      budgetMissing: t.budget == null,
-    });
-  }
-  const order = { fail: 0, risk: 1, nodata: 2, ok: 3, future: 4 };
-  rows.sort((a, b) => order[a.status] - order[b.status] || (a.pace ?? 9) - (b.pace ?? 9));
-  return { month, season: seasonOf(month), elapsedShare: rows[0] ? undefined : null, branches: rows };
-}
+const seasonFor = (branch, month) => service.seasonFor(store.data, branch, month);
+const overview = (user, month) => service.overview(store.data, user, month);
 
 // ---------- автообновление ----------
 let refreshing = null;
@@ -310,25 +271,11 @@ async function handleApi(req, res, url) {
   let m = p.match(/^\/api\/branches\/([\w-]+)$/);
   if (m) {
     const b = branchOr404(m[1]);
-    if (method === "GET") {
-      const s = seasonFor(b, month);
-      const rec = store.month(b.id, month);
-      return send(res, 200, {
-        branch: b,
-        season: s,
-        inputs: {
-          plan: rec?.plan || { products: {} },
-          facts: rec?.facts || { products: {} },
-          seasonPlan: store.seasonPlan(b.id, s.season.id) || {},
-          events: store.eventsFor(b.id, month),
-        },
-        canEdit: isAdmin,
-      });
-    }
+    if (method === "GET") return send(res, 200, service.branchDetail(store.data, user, b, month));
     if (method === "PUT") {
       needAdmin();
       const body = await readJson(req);
-      for (const k of ["name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note"]) if (k in body) b[k] = body[k];
+      for (const k of service.BRANCH_FIELDS) if (k in body) b[k] = body[k];
       store.save();
       return send(res, 200, b);
     }
@@ -362,14 +309,8 @@ async function handleApi(req, res, url) {
     // скопировать настройки (mix, CPL) из прошлого месяца
     needAdmin();
     const b = branchOr404(m[1]);
-    const prev = store.month(b.id, addMonths(month, -1));
-    if (!prev) throw err(404, "В прошлом месяце нет плана");
-    const rec = store.ensureMonth(b.id, month);
-    for (const [pid, v] of Object.entries(prev.plan.products || {})) {
-      const cur = (rec.plan.products[pid] ||= {});
-      if (v.mix && !cur.mix) cur.mix = v.mix;
-      if (v.cplOverride && cur.cplOverride == null) cur.cplOverride = v.cplOverride;
-    }
+    const rec = service.copyPlanFromPrev(store.data, b.id, month);
+    if (!rec) throw err(404, "В прошлом месяце нет плана");
     store.save();
     return send(res, 200, rec);
   }
@@ -378,7 +319,7 @@ async function handleApi(req, res, url) {
   m = p.match(/^\/api\/branches\/([\w-]+)\/events(?:\/([\w-]+))?$/);
   if (m) {
     const b = branchOr404(m[1]);
-    const fields = ["name", "date", "productId", "registrationsPlan", "targetBalls", "registrationsFact", "ball", "paidShare", "cprOverride", "fbCampaignPattern", "note"];
+    const fields = service.EVENT_FIELDS;
     if (method === "POST" && !m[2]) {
       const body = await readJson(req);
       if (!body.name || !/^\d{4}-\d\d-\d\d$/.test(body.date || "")) throw err(400, "Нужны название и дата ивента");

@@ -4,6 +4,8 @@
 //   season:   { alias: { form: план набора } }                    — план набора текущего полугодия
 //   months:   { alias: { "YYYY-MM": { form: [план, факт договоров] } } }
 //   balls:    { alias: { "YYYY-MM": { form: факт лидобалов } } }  — отчёт «Маркетинг → Лидобалы» (необязательно)
+//   requests: { alias: { "YYYY-MM": { type_request: [всего, удалено, договоров] } } } — заявки CRM по типам
+//             (crm_internet_requests); факт лидобалов филиала = заявки × норма типа
 import { seasonOf } from "./planner.mjs";
 
 export function applySnapshot(store, snap, seasonMonth = new Date().toISOString().slice(0, 7)) {
@@ -32,6 +34,22 @@ export function applySnapshot(store, snap, seasonMonth = new Date().toISOString(
         (rec.facts.products[form] ||= {}).balls = balls;
         n++;
       }
+    }
+  }
+  // Заявки CRM по типам: { alias: { "YYYY-MM": { type_request: [всего, удалено, договоров] } } }
+  const map = store.data.settings.requestTypeMap || {};
+  for (const [id, months] of Object.entries(snap.requests || {})) {
+    for (const [m, types] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      const leads = {};
+      const requests = {};
+      for (const [type, [total, deleted = 0, contracts = 0]] of Object.entries(types)) {
+        const net = Math.max(0, total - deleted);
+        requests[type] = { net, contracts, typeId: map[type] || null };
+        if (map[type]) leads[map[type]] = (leads[map[type]] || 0) + net;
+      }
+      rec.facts.branch = { leads, requests, source: "crm_requests" };
+      n++;
     }
   }
   return { branches: Object.keys(snap.branches || {}).length, records: n, season: sid };

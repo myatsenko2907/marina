@@ -26,6 +26,22 @@ export const DEFAULT_SETTINGS = {
   // Максимальная доля типа в плане лидобалов (лишнее перераспределяется на остальные типы).
   // Входящих звонков мало — на них не больше 5%.
   mixCaps: { call: 0.05 },
+  // Примерная цена лида (USD) по типу — для прогноза бюджета. Для филиала можно задать свою.
+  cpl: { site: 4, lid_form: 1.5, messenger: 2.5, event: 2 },
+  // Типы заявок CRM (отчёт по интернет-запросам) → типы лидов.
+  requestTypeMap: {
+    Facebook: "lid_form",
+    internet: "site",
+    course: "site",
+    consultation: "site",
+    contact: "site",
+    register_interest: "site",
+    "study-form": "study",
+    ai_bot: "messenger",
+    event: "event",
+    demo: "demo",
+    call: "call",
+  },
   // Нормы по конкретному продукту: { form_ma: { lid_form: 0.04 } }
   ballNorms: {},
 

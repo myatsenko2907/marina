@@ -148,3 +148,33 @@ test("звонки — не больше 5% плана лидобалов, из�
   });
   near(r.products[0].byType.find((x) => x.typeId === "call").balls, 18 * 0.05);
 });
+
+test("факт лидобалов по заявкам CRM филиала и перенос недостачи по филиалу", () => {
+  const data = {
+    "2026-08": { plan: { products: { form_ma: { plan: 10 }, form_st: { plan: 30 } } }, facts: { branch: { leads: { lid_form: 200, site: 40 } } } },
+    "2026-09": { plan: { products: { form_ma: { plan: 10 }, form_st: { plan: 30 } } }, facts: { branch: { leads: { lid_form: 100 } } } },
+  };
+  const s = computeSeason({ settings, branch, month: "2026-09", getMonth: (m) => data[m], today: new Date("2026-09-16T12:00:00Z") });
+  const aug = s.months.find((m) => m.month === "2026-08");
+  near(aug.factBalls, 200 * 0.05 + 40 * 0.15); // 16
+  near(aug.targetBalls, 36);
+  const sep = s.month;
+  near(sep.totals.carryBalls, 20); // 36 − 16
+  near(sep.products.find((p) => p.id === "form_ma").carryBalls, 5); // доля 10/40
+  assert.equal(sep.totals.factSource, "crm_requests");
+  assert.equal(sep.products[0].status, "branch");
+});
+
+test("бюджет по примерной цене лида: филиал → настройки", () => {
+  const r = computeMonth({
+    settings,
+    branch: { id: "x", name: "X", cpl: { lid_form: 3 } },
+    month: "2026-10",
+    plan: { products: { form_ma: { plan: 10, mix: { lid_form: 0.5, site: 0.5 } } } },
+    today: new Date("2026-10-11T12:00:00Z"),
+  });
+  const p = r.products[0];
+  near(p.byType.find((x) => x.typeId === "lid_form").cpl, 3);
+  near(p.byType.find((x) => x.typeId === "site").cpl, settings.cpl.site);
+  near(p.budget, (4.5 / 0.05) * 3 + (4.5 / 0.15) * settings.cpl.site);
+});
