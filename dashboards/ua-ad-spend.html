@@ -95,33 +95,52 @@ details.camps li span:first-child{overflow-wrap:anywhere}
 @media (prefers-reduced-motion:reduce){.progress i{transition:none}}
 </style>
 
+<style>
+.field select{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0}
+.owner{background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.owner h3{margin:0;font-size:14px}
+.owner p{margin:0;color:var(--muted);max-width:80ch}
+.owner .row{align-items:flex-end;margin:0}
+.months{display:flex;flex-wrap:wrap;gap:6px}
+.mchip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--muted)}
+.mchip.ok{border-color:var(--accent);color:var(--accent)}
+.freshness{font-size:13px;color:var(--muted)}
+</style>
+
 <div class="wrap">
   <div>
     <h1>Реклама филиалов Украины</h1>
-    <p class="sub">Расход Meta Ads по продуктам за выбранный период и доля каждого продукта в рекламном бюджете филиала.</p>
+    <p class="sub">Расход Meta Ads по продуктам за выбранные месяцы и доля каждого продукта в рекламном бюджете филиала.</p>
   </div>
 
   <form class="controls" id="controls">
-    <div class="field"><label for="from">С</label><input type="date" id="from" required></div>
-    <div class="field"><label for="to">По</label><input type="date" id="to" required></div>
+    <div class="field"><label for="from">С месяца</label><select id="from"></select></div>
+    <div class="field"><label for="to">По месяц</label><select id="to"></select></div>
     <div class="field grow"><label>Быстрый выбор</label>
       <div class="presets" id="presets">
         <button type="button" class="chip" data-p="this_month">Этот месяц</button>
         <button type="button" class="chip" data-p="last_month">Прошлый месяц</button>
-        <button type="button" class="chip" data-p="last_30">30 дней</button>
+        <button type="button" class="chip" data-p="last_3">3 месяца</button>
         <button type="button" class="chip" data-p="quarter">Квартал</button>
         <button type="button" class="chip" data-p="ytd">С начала года</button>
       </div>
     </div>
-    <div class="field"><label for="rate">Курс, грн за $</label><input type="number" id="rate" step="0.01" min="1"></div>
-    <button class="primary" id="go" type="submit">Показать</button>
   </form>
 
+  <section class="owner" id="owner" hidden aria-label="Обновление данных">
+    <h3>Обновление данных (видите только вы)</h3>
+    <p>Коллеги видят только сохранённые здесь цифры, к рекламным кабинетам они не подключаются. Нажмите кнопку, чтобы выгрузить из Meta месяцы, выбранные выше. Текущий месяц обновляйте по мере необходимости: он сохраняется на день выгрузки.</p>
+    <div class="row">
+      <div class="field"><label for="rate">Курс, грн за $</label><input type="number" id="rate" step="0.01" min="1"></div>
+      <button type="button" class="primary" id="refresh">Обновить выбранные месяцы из Meta</button>
+    </div>
+    <div class="status" id="ownerStatus"></div>
+    <div class="progress" id="progressWrap" hidden><i id="progress"></i></div>
+    <div class="months" id="monthChips"></div>
+  </section>
+
   <div id="banner" hidden></div>
-  <div>
-    <div class="status" id="status">Загружаю данные из рекламных кабинетов Meta…</div>
-    <div class="progress" id="progressWrap"><i id="progress"></i></div>
-  </div>
+  <div class="freshness" id="freshness">Загружаю сохранённые данные…</div>
 
   <section class="summary" id="summary" aria-label="Итоги"></section>
 
@@ -135,12 +154,13 @@ details.camps li span:first-child{overflow-wrap:anywhere}
 
   <details class="panel" id="rulesPanel">
     <summary>Как кампании распределяются по продуктам</summary>
-    <p>Продукт определяется по названию кампании: каждая строка — продукт и через запятую метки, которые ищутся в названии. Проверка идёт сверху вниз, срабатывает первая подошедшая строка. Короткие метки до 3 букв (ПКО, СК, ШС) ищутся как отдельное слово, длинные — как часть названия. Кабинеты школ, колледжей, университетов и лагерей целиком относятся к своему продукту. Всё, что не подошло, попадает в «Не определено» — раскройте строку, чтобы увидеть такие кампании и дописать метку.</p>
-    <label for="rules" class="status">Правила (сохраняются в этом браузере)</label>
-    <textarea id="rules" spellcheck="false"></textarea>
-    <div class="row">
-      <button type="button" class="primary" id="applyRules">Применить</button>
+    <p>Продукт определяется по названию кампании: каждая строка — продукт и через запятую метки, которые ищутся в названии. Проверка идёт сверху вниз, срабатывает первая подошедшая строка. Короткие метки до 3 букв (ПКО, СК, ШС) ищутся как отдельное слово, длинные — как часть названия. Кабинеты школ, колледжей, университетов и лагерей целиком относятся к своему продукту. Всё, что не подошло, попадает в «Не определено».</p>
+    <label for="rules" class="status" id="rulesLabel">Правила</label>
+    <textarea id="rules" spellcheck="false" readonly></textarea>
+    <div class="row" id="rulesActions" hidden>
+      <button type="button" class="primary" id="applyRules">Сохранить для всех</button>
       <button type="button" class="ghost" id="resetRules">Вернуть стандартные</button>
+      <span class="status" id="rulesStatus"></span>
     </div>
   </details>
 
@@ -155,7 +175,6 @@ const TOOL = "ads_get_ad_entities";
 const CID = Array.from({length:20},()=>"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random()*62)]).join("");
 const ASK = "я хочу видеть по каждому филиалу Украины. дашборд по такому принципу: для заданного периода продукт - расход на рекламу - процент от всех затрат";
 
-// Филиал → рекламные кабинеты Meta. fixed: весь кабинет относится к одному продукту.
 const BRANCHES = [
   {name:"Киев", acc:[["1571785870203567","TecDo kyiv_main"],["1366737444702918","TecDo kyiv"],["1081653731894266","Київ"],["24047114978229442","IT STEP School Київ",null,"Школа"],["211198441658887","IT STEP College Київ",null,"Колледж"],["1282574981802139","Университет",null,"Университет"]]},
   {name:"Днепр", acc:[["583445294461444","TecDo dnipro"],["946369265406162","Днепр"],["1572100653126629","Днепр School",null,"Школа"],["720108183701913","Днепр School new",null,"Школа"],["1228678127880681","Днепр College",null,"Колледж"]]},
@@ -214,16 +233,12 @@ const DEFAULT_RULES = [
   "Педагогическая академия: teacher, педагог"
 ].join("\n");
 const OTHER = "Не определено";
-
 const $ = id => document.getElementById(id);
-const store = {
-  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
-  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
-};
+const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
 // ---------- rules ----------
 function parseRules(text){
-  return text.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+  return String(text||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
     const i=l.indexOf(":"); if(i<1) return null;
     const product=l.slice(0,i).trim();
     const keys=l.slice(i+1).split(",").map(s=>s.trim().toLowerCase()).filter(Boolean);
@@ -233,199 +248,140 @@ function parseRules(text){
 function tokens(s){return s.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean)}
 function classify(name, rules){
   const low=name.toLowerCase(), toks=tokens(name);
-  for(const r of rules){
-    for(const k of r.keys){
-      if(k.length<=3 && !/\s/.test(k)){ if(toks.includes(k)) return r.product; }
-      else if(low.includes(k)) return r.product;
-    }
+  for(const r of rules) for(const k of r.keys){
+    if(k.length<=3 && !/\s/.test(k)){ if(toks.includes(k)) return r.product; }
+    else if(low.includes(k)) return r.product;
   }
   return OTHER;
 }
-let rulesText = store.get("uaads.rules") || DEFAULT_RULES;
-let rules = parseRules(rulesText);
+let rulesText = DEFAULT_RULES, rules = parseRules(rulesText);
 $("rules").value = rulesText;
 
-// ---------- period ----------
+// ---------- months ----------
+const MONTHS_RU=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
 const pad=n=>String(n).padStart(2,"0");
-const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-function preset(p){
-  const t=new Date(); t.setHours(0,0,0,0);
-  const y=t.getFullYear(), m=t.getMonth();
-  const yest=new Date(t); yest.setDate(t.getDate()-1);
-  switch(p){
-    case "this_month": return [new Date(y,m,1), t];
-    case "last_month": return [new Date(y,m-1,1), new Date(y,m,0)];
-    case "last_30": {const f=new Date(t); f.setDate(t.getDate()-30); return [f, yest];}
-    case "quarter": return [new Date(y,Math.floor(m/3)*3,1), t];
-    case "ytd": return [new Date(y,0,1), t];
+const mkey=(y,m)=>y+"-"+pad(m+1);            // m: 0-based
+const today=new Date(); today.setHours(0,0,0,0);
+const curKey=mkey(today.getFullYear(),today.getMonth());
+const monthList=[]; // newest first, last 24 months
+for(let i=0;i<24;i++){const d=new Date(today.getFullYear(),today.getMonth()-i,1); monthList.push(mkey(d.getFullYear(),d.getMonth()));}
+const mlabel=k=>{const [y,m]=k.split("-"); return MONTHS_RU[+m-1]+" "+y;};
+const mlabelShort=k=>{const [y,m]=k.split("-"); return MONTHS_RU[+m-1].slice(0,3)+" "+y.slice(2);};
+function rangeKeys(a,b){ if(a>b) [a,b]=[b,a]; return monthList.filter(k=>k>=a&&k<=b).sort(); }
+function monthBounds(k){
+  const [y,m]=k.split("-").map(Number);
+  const first=new Date(y,m-1,1), last=new Date(y,m,0);
+  const end = k===curKey ? today : last;
+  const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+  return [iso(first), iso(end)];
+}
+
+let months={}; // key -> doc data
+function fillSelects(){
+  for(const id of ["from","to"]){
+    const sel=$(id), keep=sel.value;
+    sel.innerHTML=monthList.map(k=>'<option value="'+k+'">'+mlabel(k)+(months[k]?"":" · нет данных")+'</option>').join("");
+    if(keep) sel.value=keep;
   }
 }
 function setPreset(p){
-  const [f,to]=preset(p); $("from").value=iso(f); $("to").value=iso(to);
-  document.querySelectorAll("#presets .chip").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.p===p)));
+  const y=today.getFullYear(), m=today.getMonth();
+  const k=(dy,dm)=>{const d=new Date(y+dy,m+dm,1); return mkey(d.getFullYear(),d.getMonth());};
+  let a,b;
+  switch(p){
+    case "this_month": a=b=curKey; break;
+    case "last_month": a=b=k(0,-1); break;
+    case "last_3": a=k(0,-3); b=k(0,-1); break;
+    case "quarter": a=mkey(y,Math.floor(m/3)*3); b=curKey; break;
+    case "ytd": a=mkey(y,0); b=curKey; break;
+  }
+  $("from").value=a; $("to").value=b;
+  document.querySelectorAll("#presets .chip").forEach(x=>x.setAttribute("aria-pressed", String(x.dataset.p===p)));
+  store.set("uaads.preset", p);
+  render();
 }
-$("rate").value = store.get("uaads.rate") || "41.5";
-setPreset("last_month");
 
 // ---------- formatting ----------
 const usd = v => "$" + Math.round(v).toLocaleString("ru-RU");
 const pct = v => (v*100).toFixed(v>=0.1?0:1).replace(".",",") + "%";
-const fmtDate = s => {const [y,m,d]=s.split("-"); return d+"."+m+"."+y};
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtWhen = iso => { try{ return new Date(iso).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}); }catch(e){ return iso; } };
 
-// ---------- data ----------
-let mcp=null, runId=0, lastData=null;
-
-function parseEntities(payload){
-  if(!payload || typeof payload!=="object") return {rows:[],next:null};
-  let ents = payload.ad_entities;
-  if(typeof ents==="string"){ try{ ents=JSON.parse(ents) }catch(e){ ents=[] } }
-  const next = payload.pagination && payload.pagination.next_cursor || null;
-  return {rows:Array.isArray(ents)?ents:[], next};
-}
-
-async function fetchAccount(id, since, until){
-  const out=[]; let cursor=null, guard=0;
-  do{
-    const input={ad_account_id:id, level:"campaign", time_range:JSON.stringify({since,until}),
-      fields:["id","name","amount_spent"],
-      filtering:[{field:"amount_spent",operator:"GREATER_THAN",value:["0"]}],
-      limit:500, include_additional_context:false,
-      client_conversation_id:CID, advertiser_request:ASK};
-    if(cursor) input.cursor=cursor;
-    let res;
-    try{ res = await mcp.callTool(SERVER, TOOL, input, {cache:{staleTime:300000}}); }
-    catch(e){
-      if(e && e.retryable && guard===0){
-        await new Promise(r=>setTimeout(r, Math.min(e.retryAfterMs||1500, 8000)+Math.random()*800));
-        res = await mcp.callTool(SERVER, TOOL, input, {cache:{staleTime:300000}});
-      } else throw e;
-    }
-    const {rows,next}=parseEntities(res.payload);
-    out.push(...rows); cursor=next; guard++;
-  } while(cursor && guard<20);
-  return out;
-}
-
-async function load(){
-  const since=$("from").value, until=$("to").value;
-  if(!since || !until || since>until){ showBanner("warn","Проверьте даты: начало периода должно быть не позже конца."); return; }
-  const rate=parseFloat($("rate").value)||41.5; store.set("uaads.rate", String(rate));
-  const my=++runId;
-  hideBanner(); $("go").disabled=true;
-  $("periodLabel").textContent = "Период: " + fmtDate(since) + " — " + fmtDate(until);
-
-  const jobs=[]; BRANCHES.forEach((b,bi)=>b.acc.forEach(a=>jobs.push({bi, id:a[0], label:a[1], cur:a[2], fixed:a[3]})));
-  const results=BRANCHES.map(b=>({name:b.name, camps:[], errors:[]}));
-  let done=0, errCodes={};
-  const tick=()=>{ $("progress").style.width=(done/jobs.length*100)+"%";
-    $("status").textContent = done<jobs.length ? "Загружено кабинетов: "+done+" из "+jobs.length : "Обновлено " + new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}) + " · " + jobs.length + " кабинетов"; };
-  tick();
-
-  let qi=0;
-  async function worker(){
-    while(qi<jobs.length){
-      const j=jobs[qi++];
-      try{
-        const rows=await fetchAccount(j.id, since, until);
-        if(my!==runId) return;
-        for(const r of rows){
-          const v=r.amount_spent && parseFloat(r.amount_spent.value);
-          if(!v) continue;
-          const unit=(r.amount_spent.unit||j.cur||"USD").toUpperCase();
-          const amt = unit==="UAH" ? v/rate : v;
-          results[j.bi].camps.push({name:r.name||("Кампания "+r.id), spend:amt, acc:j.label, fixed:j.fixed||null});
-        }
-      }catch(e){
-        if(my!==runId) return;
-        const code=(e&&e.code)||"upstream_error"; errCodes[code]=(errCodes[code]||0)+1;
-        results[j.bi].errors.push({acc:j.label, code, msg:(e&&e.message)||""});
-      }
-      done++; tick();
-    }
-  }
-  await Promise.all([worker(),worker(),worker(),worker()]);
-  if(my!==runId) return;
-  $("go").disabled=false;
-
-  const codes=Object.keys(errCodes);
-  if(codes.length===1 && errCodes[codes[0]]===jobs.length){ pageError(codes[0]); return; }
-  lastData={since,until,results};
-  render();
-}
-
-function pageError(code){
-  const map={
-    server_not_connected:"Коннектор Meta не подключён. Добавьте его в claude.ai → Settings → Connectors и обновите страницу.",
-    needs_reauth:"Доступ к Meta истёк. Переподключите Meta в claude.ai → Settings → Connectors.",
-    not_in_manifest:"Вы не разрешили этой странице доступ к Meta. Включите его в меню разрешений артефакта.",
-    selection_required:"Подключено несколько коннекторов Meta. Выберите один в окне, которое показал Claude, и нажмите «Показать».",
-    blocked_by_policy:"Политика вашей организации запрещает этот запрос к Meta.",
-    approval_required:"Политика организации требует подтверждения каждого запроса к Meta, а на этой странице это пока не поддерживается.",
-    server_unavailable:"Meta сейчас не отвечает. Попробуйте ещё раз через минуту.",
-    not_granted:"Эта страница не может обращаться к коннекторам в текущем просмотре. Откройте её на claude.ai."
-  };
-  showBanner("bad", map[code] || "Не удалось получить данные из Meta (код "+code+"). Попробуйте нажать «Показать» ещё раз.");
-  $("status").textContent="Данные не загружены";
-  $("summary").innerHTML=""; $("grid").innerHTML=""; $("quiet").hidden=true;
-}
 function showBanner(kind, text){const b=$("banner"); b.className="banner "+kind; b.textContent=text; b.hidden=false;}
 function hideBanner(){$("banner").hidden=true;}
 
 // ---------- render ----------
-function aggregate(br){
-  const by=new Map();
-  for(const c of br.camps){
-    const p=c.fixed || classify(c.name, rules);
-    if(!by.has(p)) by.set(p,{product:p, spend:0, camps:[]});
-    const g=by.get(p); g.spend+=c.spend; g.camps.push(c);
+function aggregate(branchName, keys){
+  const by=new Map(); const errors=[];
+  for(const k of keys){
+    const br=months[k] && months[k].branches && months[k].branches[branchName];
+    if(!br) continue;
+    for(const c of (br.c||[])){
+      const [name, acc, fixed, spend]=c;
+      const p=fixed || classify(name, rules);
+      if(!by.has(p)) by.set(p,{product:p, spend:0, camps:new Map()});
+      const g=by.get(p); g.spend+=spend;
+      const ck=name+"\u0000"+acc; const prev=g.camps.get(ck);
+      g.camps.set(ck,{name,acc,spend:(prev?prev.spend:0)+spend});
+    }
+    for(const e of (br.e||[])) errors.push({month:k, acc:e[0], code:e[1]});
   }
   const total=[...by.values()].reduce((s,g)=>s+g.spend,0);
-  const rows=[...by.values()].sort((a,b)=>(a.product===OTHER)-(b.product===OTHER) || b.spend-a.spend);
-  rows.forEach(g=>g.camps.sort((a,b)=>b.spend-a.spend));
-  return {name:br.name, total, rows, errors:br.errors};
+  const rows=[...by.values()].map(g=>({product:g.product, spend:g.spend, camps:[...g.camps.values()].sort((a,b)=>b.spend-a.spend)}))
+    .sort((a,b)=>(a.product===OTHER)-(b.product===OTHER) || b.spend-a.spend);
+  return {name:branchName, total, rows, errors};
 }
 
 function render(){
-  if(!lastData) return;
+  const keys=rangeKeys($("from").value||curKey, $("to").value||curKey);
+  const have=keys.filter(k=>months[k]), missing=keys.filter(k=>!months[k]);
+  $("periodLabel").textContent = "Период: " + (keys.length===1? mlabel(keys[0]) : mlabel(keys[0])+" — "+mlabel(keys[keys.length-1]));
+  const fresh=have.map(k=>months[k].fetchedAt).filter(Boolean).sort();
+  $("freshness").textContent = !have.length ? "" :
+    "Данные выгружены из Meta: " + (fresh.length? fmtWhen(fresh[0]) + (fresh.length>1&&fresh[0]!==fresh[fresh.length-1]?" — "+fmtWhen(fresh[fresh.length-1]):"") : "—") +
+    (have.includes(curKey)? ". Текущий месяц — по "+ (months[curKey].through? months[curKey].through.split("-").reverse().join(".") : "день выгрузки") : "");
+
+  if(!have.length){
+    $("summary").innerHTML=""; $("grid").innerHTML=""; $("quiet").hidden=true;
+    $("grid").innerHTML='<div class="empty">'+(isOwner? "За этот период данные ещё не выгружены. Нажмите «Обновить выбранные месяцы из Meta» выше." : "За этот период данные ещё не выгружены. Выберите другие месяцы или попросите владельца дашборда обновить данные.")+'</div>';
+    $("foot").textContent=footText(); return;
+  }
   const q=$("q").value.trim().toLowerCase();
-  const all=lastData.results.map(aggregate);
+  const all=BRANCHES.map(b=>aggregate(b.name, have));
   const active=all.filter(b=>b.total>0).sort((a,b)=>b.total-a.total);
   const quiet=all.filter(b=>b.total===0);
 
-  // summary
   const grand=active.reduce((s,b)=>s+b.total,0);
   const prodTotals=new Map();
   active.forEach(b=>b.rows.forEach(r=>prodTotals.set(r.product,(prodTotals.get(r.product)||0)+r.spend)));
   const topProd=[...prodTotals.entries()].filter(e=>e[0]!==OTHER).sort((a,b)=>b[1]-a[1])[0];
-  const undef=prodTotals.get(OTHER)||0;
-  const top=active[0];
+  const undef=prodTotals.get(OTHER)||0, top=active[0];
   $("summary").innerHTML =
-    stat("Расход по Украине", usd(grand), active.length+" филиалов с рекламой") +
+    stat("Расход по Украине", usd(grand), active.length+" "+plural(active.length,"филиал","филиала","филиалов")+" с рекламой") +
     stat("Больше всех тратит", top?esc(top.name):"—", top?usd(top.total)+" · "+pct(top.total/grand):"") +
     stat("Главный продукт", topProd?esc(topProd[0]):"—", topProd?usd(topProd[1])+" · "+pct(topProd[1]/grand):"") +
-    stat("Не определено", usd(undef), grand?pct(undef/grand)+" расхода — уточните правила ниже":"");
+    stat("Не определено", usd(undef), grand?pct(undef/grand)+" расхода":"");
 
-  // cards
+  if(missing.length) showBanner("warn","Нет данных за: "+missing.map(mlabel).join(", ")+". Итоги посчитаны только по выгруженным месяцам."+(isOwner?" Нажмите «Обновить выбранные месяцы из Meta», чтобы добавить их.":""));
+  else hideBanner();
+
   const shown=active.filter(b=>!q || b.name.toLowerCase().includes(q));
-  $("grid").innerHTML = shown.map(card).join("") || (active.length? '<div class="empty">Филиал не найден среди тех, у кого был расход.</div>' : '<div class="empty">За этот период ни в одном кабинете нет расхода. Выберите другой период.</div>');
+  $("grid").innerHTML = shown.map(card).join("") || (active.length? '<div class="empty">Филиал не найден среди тех, у кого был расход.</div>' : '<div class="empty">За этот период расхода нет.</div>');
 
   const quietShown=quiet.filter(b=>!q || b.name.toLowerCase().includes(q));
   const qe=$("quiet");
   if(quietShown.length){
-    const errs=quietShown.filter(b=>b.errors.length);
-    qe.innerHTML="<b>Без расхода за период:</b> "+quietShown.map(b=>esc(b.name)+(b.errors.length?" (не загрузился)":"")).join(", ")+
-      (errs.length?'<div class="acc-errors">'+errs.map(b=>b.errors.map(e=>esc(b.name+" · "+e.acc+": "+errText(e))).join("<br>")).join("<br>")+"</div>":"");
+    qe.innerHTML="<b>Без расхода за период:</b> "+quietShown.map(b=>esc(b.name)+(b.errors.length?" (не все кабинеты загрузились)":"")).join(", ");
     qe.hidden=false;
   } else qe.hidden=true;
-
-  $("foot").textContent = "Источник: рекламные кабинеты Meta, расход в долларах; кабинеты в гривне пересчитаны по курсу "+($("rate").value||"41.5")+" грн. Процент — доля продукта в рекламном расходе филиала за период. Не учтены кабинеты, к которым Meta пока не даёт доступ: "+NO_ACCESS+". Google Ads и другие каналы сюда не входят.";
+  $("foot").textContent=footText();
+}
+function footText(){
+  const rates=[...new Set(Object.values(months).map(m=>m.rate).filter(Boolean))];
+  return "Источник: рекламные кабинеты Meta, расход в долларах"+(rates.length?"; кабинеты в гривне пересчитаны по курсу "+rates.join(" / ")+" грн":"")+". Процент — доля продукта в рекламном расходе филиала за период. Не учтены кабинеты, к которым Meta пока не даёт доступ: "+NO_ACCESS+". Google Ads и другие каналы сюда не входят.";
 }
 function stat(label, big, small){return '<div class="stat"><span>'+label+'</span><b class="num">'+big+'</b><small class="num">'+small+'</small></div>'}
-function errText(e){
-  const m={tool_error:"Meta вернула ошибку", server_unavailable:"Meta не ответила", needs_reauth:"нужно переподключить Meta", not_in_manifest:"доступ не разрешён"};
-  return (m[e.code]||e.code)+(e.msg?" — "+e.msg.slice(0,120):"");
-}
+const ERR={tool_error:"Meta вернула ошибку", server_unavailable:"Meta не ответила", needs_reauth:"нужно переподключить Meta", not_in_manifest:"доступ не разрешён"};
 function card(b){
   const rows=b.rows.map(r=>{
     const share=b.total? r.spend/b.total : 0;
@@ -436,31 +392,141 @@ function card(b){
       '<td class="r spend num">'+usd(r.spend)+'</td>'+
       '<td class="share"><div class="sharecell"><div class="bar" aria-hidden="true"><i style="width:'+(share*100).toFixed(1)+'%"></i></div><span class="pct">'+pct(share)+'</span></div></td></tr>';
   }).join("");
-  const errs=b.errors.length?'<div class="acc-errors">Не загрузились: '+b.errors.map(e=>esc(e.acc+" ("+errText(e)+")")).join("; ")+". Итог может быть занижен.</div>":"";
+  const errs=b.errors.length?'<div class="acc-errors">Не загрузились: '+b.errors.map(e=>esc(e.acc+", "+mlabelShort(e.month)+" ("+(ERR[e.code]||e.code)+")")).join("; ")+". Итог может быть занижен.</div>":"";
   return '<article class="card"><header><h2>'+esc(b.name)+'</h2><span class="total num">'+usd(b.total)+'</span></header>'+
     '<table><thead><tr><th>Продукт</th><th class="r">Расход</th><th class="r">% от рекламы филиала</th></tr></thead><tbody>'+rows+'</tbody></table>'+errs+'</article>';
 }
 function plural(n,a,b,c){const m10=n%10,m100=n%100; if(m10===1&&m100!==11)return a; if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b; return c;}
 
+function renderMonthChips(){
+  $("monthChips").innerHTML = monthList.slice(0,13).slice().reverse().map(k=>'<span class="mchip'+(months[k]?" ok":"")+'" title="'+(months[k]?"выгружено "+fmtWhen(months[k].fetchedAt):"не выгружено")+'">'+mlabelShort(k)+(months[k]?" ✓":"")+'</span>').join("");
+}
+
+// ---------- owner: fetch from Meta, save to db ----------
+let db=null, mcp=null, isOwner=false, busy=false;
+
+function parseEntities(payload){
+  if(!payload || typeof payload!=="object") return {rows:[],next:null};
+  let ents=payload.ad_entities;
+  if(typeof ents==="string"){ try{ ents=JSON.parse(ents) }catch(e){ ents=[] } }
+  return {rows:Array.isArray(ents)?ents:[], next:(payload.pagination&&payload.pagination.next_cursor)||null};
+}
+async function fetchAccount(id, since, until){
+  const out=[]; let cursor=null, n=0;
+  do{
+    const input={ad_account_id:id, level:"campaign", time_range:JSON.stringify({since,until}),
+      fields:["id","name","amount_spent"], filtering:[{field:"amount_spent",operator:"GREATER_THAN",value:["0"]}],
+      limit:500, include_additional_context:false, client_conversation_id:CID, advertiser_request:ASK};
+    if(cursor) input.cursor=cursor;
+    let res;
+    try{ res=await mcp.callTool(SERVER, TOOL, input, {cache:false}); }
+    catch(e){
+      if(e && e.retryable){ await new Promise(r=>setTimeout(r, Math.min(e.retryAfterMs||1500,8000)+Math.random()*800)); res=await mcp.callTool(SERVER, TOOL, input, {cache:false}); }
+      else throw e;
+    }
+    const {rows,next}=parseEntities(res.payload); out.push(...rows); cursor=next; n++;
+  } while(cursor && n<20);
+  return out;
+}
+async function fetchMonth(k, rate, onStep){
+  const [since,until]=monthBounds(k);
+  const jobs=[]; BRANCHES.forEach(b=>b.acc.forEach(a=>jobs.push({branch:b.name, id:a[0], label:a[1], cur:a[2], fixed:a[3]||null})));
+  const branches={}; const codes={}; let qi=0;
+  async function worker(){
+    while(qi<jobs.length){
+      const j=jobs[qi++];
+      const br=branches[j.branch]||(branches[j.branch]={c:[],e:[]});
+      try{
+        const rows=await fetchAccount(j.id, since, until);
+        for(const r of rows){
+          const v=r.amount_spent && parseFloat(r.amount_spent.value); if(!v) continue;
+          const unit=(r.amount_spent.unit||j.cur||"USD").toUpperCase();
+          br.c.push([String(r.name||("Кампания "+r.id)), j.label, j.fixed, Math.round((unit==="UAH"? v/rate : v)*100)/100]);
+        }
+      }catch(e){
+        const code=(e&&e.code)||"upstream_error"; codes[code]=(codes[code]||0)+1; br.e.push([j.label, code]);
+      }
+      onStep();
+    }
+  }
+  await Promise.all([worker(),worker(),worker(),worker()]);
+  return {branches, codes, total:jobs.length, through:until};
+}
+const PAGE_ERR={
+  server_not_connected:"Коннектор Meta не подключён. Добавьте его в claude.ai → Settings → Connectors.",
+  needs_reauth:"Доступ к Meta истёк. Переподключите Meta в claude.ai → Settings → Connectors.",
+  not_in_manifest:"Вы не разрешили этой странице доступ к Meta. Включите его в меню разрешений артефакта.",
+  selection_required:"Подключено несколько коннекторов Meta. Выберите один в окне Claude и повторите.",
+  blocked_by_policy:"Политика организации запрещает этот запрос к Meta.",
+  server_unavailable:"Meta сейчас не отвечает. Попробуйте через минуту."
+};
+async function refresh(){
+  if(busy || !mcp || !db) return;
+  const keys=rangeKeys($("from").value, $("to").value);
+  const rate=parseFloat($("rate").value)||41.5; store.set("uaads.rate", String(rate));
+  busy=true; $("refresh").disabled=true; $("progressWrap").hidden=false; hideBanner();
+  const perMonth=BRANCHES.reduce((s,b)=>s+b.acc.length,0), totalSteps=perMonth*keys.length; let step=0;
+  const tick=()=>{ $("progress").style.width=(step/totalSteps*100)+"%"; };
+  const saved=[];
+  try{
+    for(const k of keys){
+      $("ownerStatus").textContent="Выгружаю "+mlabel(k)+"…";
+      const res=await fetchMonth(k, rate, ()=>{step++; tick();});
+      const codes=Object.keys(res.codes);
+      if(codes.length===1 && res.codes[codes[0]]===res.total){
+        showBanner("bad", PAGE_ERR[codes[0]] || "Не удалось получить данные из Meta (код "+codes[0]+"). Попробуйте ещё раз.");
+        break;
+      }
+      const doc={month:k, fetchedAt:new Date().toISOString(), through:res.through, rate, branches:res.branches};
+      try{ await db.doc("months/"+k).set(doc); saved.push(k); }
+      catch(e){ showBanner("bad", e&&e.code==="quota_exceeded" ? "Хранилище дашборда заполнено, данные за "+mlabel(k)+" не сохранены." : "Не удалось сохранить "+mlabel(k)+" (код "+(e&&e.code)+"). Попробуйте ещё раз."); break; }
+    }
+  } finally {
+    busy=false; $("refresh").disabled=false; $("progressWrap").hidden=true;
+    $("ownerStatus").textContent = saved.length? "Сохранено: "+saved.map(mlabel).join(", ")+". Коллеги уже видят эти цифры." : "";
+  }
+}
+
 // ---------- events ----------
-$("presets").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(!b) return; setPreset(b.dataset.p); if(mcp) load();});
-["from","to"].forEach(id=>$(id).addEventListener("input",()=>document.querySelectorAll("#presets .chip").forEach(b=>b.setAttribute("aria-pressed","false"))));
-$("controls").addEventListener("submit",e=>{e.preventDefault(); if(mcp) load();});
+$("presets").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(b) setPreset(b.dataset.p);});
+["from","to"].forEach(id=>$(id).addEventListener("change",()=>{document.querySelectorAll("#presets .chip").forEach(b=>b.setAttribute("aria-pressed","false")); render();}));
+$("controls").addEventListener("submit",e=>e.preventDefault());
 $("q").addEventListener("input",render);
-$("rate").addEventListener("change",()=>{ if(mcp) load(); });
-$("applyRules").addEventListener("click",()=>{rulesText=$("rules").value; rules=parseRules(rulesText); store.set("uaads.rules",rulesText); render();});
-$("resetRules").addEventListener("click",()=>{rulesText=DEFAULT_RULES; $("rules").value=rulesText; rules=parseRules(rulesText); store.set("uaads.rules",rulesText); render();});
+$("refresh").addEventListener("click",refresh);
+$("applyRules").addEventListener("click",async()=>{
+  if(!db) return;
+  try{ await db.doc("config/rules").set({text:$("rules").value}); $("rulesStatus").textContent="Сохранено для всех"; }
+  catch(e){ $("rulesStatus").textContent="Не сохранилось (код "+(e&&e.code)+")"; }
+});
+$("resetRules").addEventListener("click",()=>{ $("rules").value=DEFAULT_RULES; $("rulesStatus").textContent="Нажмите «Сохранить для всех», чтобы применить"; });
 
 // ---------- boot ----------
-const use = window.claude && window.claude.use ? window.claude.use("mcp") : Promise.resolve(null);
-use.then(ns=>{
-  if(!ns){
-    $("status").textContent="Нет доступа к коннекторам";
-    $("progressWrap").hidden=true;
-    showBanner("warn","Эта страница берёт данные из вашего коннектора Meta и работает только внутри claude.ai. Откройте её там под своей учётной записью.");
-    $("go").disabled=true; return;
-  }
-  mcp=ns; load();
-}).catch(()=>{ $("status").textContent="Нет доступа к коннекторам"; });
+$("rate").value = store.get("uaads.rate") || "41.5";
+fillSelects();
+setPreset(store.get("uaads.preset") || "last_month");
+
+const cl = window.claude && window.claude.use ? window.claude : null;
+if(!cl){ $("freshness").textContent="Откройте эту страницу на claude.ai, чтобы увидеть данные."; }
+else {
+  Promise.all([cl.use("db"), cl.use("user")]).then(async ([d,u])=>{
+    db=d;
+    isOwner = u ? await u.isOwner() : false;
+    if(!db){ $("freshness").textContent="Сохранённые данные недоступны в этом просмотре. Откройте страницу на claude.ai, войдя в аккаунт."; return; }
+    if(isOwner){
+      $("owner").hidden=false; $("rules").readOnly=false; $("rulesActions").hidden=false; $("rulesLabel").textContent="Правила (сохраняются для всех, кто смотрит дашборд)";
+      cl.use("mcp").then(m=>{ mcp=m; if(!m){ $("refresh").disabled=true; $("ownerStatus").textContent="Подключение к Meta недоступно в этом просмотре."; } });
+    }
+    db.collection("months").onSnapshot(snap=>{
+      const next={}; snap.docs.forEach(doc=>{ if(doc.exists) next[doc.id]=doc.data(); });
+      months=next; fillSelects(); renderMonthChips(); render();
+    }, err=>{ $("freshness").textContent="Не удалось прочитать сохранённые данные (код "+(err&&err.code)+"). Обновите страницу."; });
+    db.doc("config/rules").onSnapshot(snap=>{
+      const t = snap.exists && snap.data().text ? String(snap.data().text) : DEFAULT_RULES;
+      rulesText=t; rules=parseRules(t);
+      if(!isOwner || document.activeElement!==$("rules")) $("rules").value=t;
+      render();
+    }, ()=>{});
+  });
+}
 })();
 </script>
