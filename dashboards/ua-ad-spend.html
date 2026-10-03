@@ -1,0 +1,466 @@
+<title>Реклама филиалов Украины</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Layout: control bar → summary strip → grid of branch ledgers (product · spend · share), quiet tail of empty branches */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#18202b; --muted:#5f6b7a; --line:#dfe3ea;
+  --accent:#1f5fd6; --accent-soft:#e3ecfc; --bar:#2f6fe4; --warn:#a15c00; --warn-soft:#fff3df; --bad:#b4232c; --bad-soft:#fde8e9;
+  --font-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --font-body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --surface:#171e28; --ink:#e7ecf3; --muted:#9aa6b6; --line:#2a3442;
+  --accent:#7aa7ff; --accent-soft:#1d2b45; --bar:#5b8ef5; --warn:#f0b35a; --warn-soft:#3a2a12; --bad:#ff7b84; --bad-soft:#3d1a1e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --surface:#171e28; --ink:#e7ecf3; --muted:#9aa6b6; --line:#2a3442;
+  --accent:#7aa7ff; --accent-soft:#1d2b45; --bar:#5b8ef5; --warn:#f0b35a; --warn-soft:#3a2a12; --bad:#ff7b84; --bad-soft:#3d1a1e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--font-display);font-weight:600;font-size:22px;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:4px 0 0}
+.num{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.field input{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0}
+.field input[type=number]{width:90px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 11px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.primary{background:var(--accent);color:#fff;border:0;border-radius:7px;padding:8px 16px;font-weight:600}
+:root[data-theme="dark"] .primary{color:#0f141b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .primary{color:#0f141b}}
+.primary:disabled{opacity:.55;cursor:default}
+.grow{flex:1 1 160px}
+
+.status{font-size:13px;color:var(--muted)}
+.banner{border-radius:var(--r);padding:12px 14px;border:1px solid}
+.banner.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--ink)}
+.banner.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--ink)}
+.progress{height:3px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;min-width:0}
+.stat b{display:block;font-family:var(--font-display);font-weight:500;font-size:20px;margin-top:2px}
+.stat span{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.stat small{color:var(--muted)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.toolbar input{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 10px;width:min(280px,100%)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,370px),1fr));gap:14px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card header{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.card h2{font-size:16px;font-weight:600;margin:0}
+.card .total{font-weight:600;white-space:nowrap}
+.card .meta{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500;text-align:left;padding:4px 0;border-bottom:1px solid var(--line)}
+th.r,td.r{text-align:right}
+td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.prod{padding-right:8px;min-width:0}
+td.spend{white-space:nowrap;padding-right:10px}
+td.share{width:38%}
+.sharecell{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.bar{flex:1;height:8px;background:var(--accent-soft);border-radius:4px;overflow:hidden;min-width:40px}
+.bar i{display:block;height:100%;background:var(--bar);border-radius:4px}
+.pct{width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.other td.prod{color:var(--warn)}
+details.camps summary{cursor:pointer;color:var(--muted);font-size:12px;list-style:none}
+details.camps summary::-webkit-details-marker{display:none}
+details.camps summary::before{content:"▸ ";}
+details.camps[open] summary::before{content:"▾ ";}
+details.camps ul{margin:4px 0 0;padding:0;list-style:none;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+details.camps li{display:flex;justify-content:space-between;gap:10px}
+details.camps li span:first-child{overflow-wrap:anywhere}
+.acc-errors{font-size:12px;color:var(--bad)}
+
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:12px 14px;color:var(--muted);font-size:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px}
+.panel summary{cursor:pointer;font-weight:600}
+.panel p{color:var(--muted);margin:8px 0;max-width:75ch}
+.panel textarea{width:100%;min-height:220px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:10px;font-size:13px;line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:7px;padding:7px 12px}
+.foot{font-size:12px;color:var(--muted);max-width:90ch}
+@media (prefers-reduced-motion:reduce){.progress i{transition:none}}
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Реклама филиалов Украины</h1>
+    <p class="sub">Расход Meta Ads по продуктам за выбранный период и доля каждого продукта в рекламном бюджете филиала.</p>
+  </div>
+
+  <form class="controls" id="controls">
+    <div class="field"><label for="from">С</label><input type="date" id="from" required></div>
+    <div class="field"><label for="to">По</label><input type="date" id="to" required></div>
+    <div class="field grow"><label>Быстрый выбор</label>
+      <div class="presets" id="presets">
+        <button type="button" class="chip" data-p="this_month">Этот месяц</button>
+        <button type="button" class="chip" data-p="last_month">Прошлый месяц</button>
+        <button type="button" class="chip" data-p="last_30">30 дней</button>
+        <button type="button" class="chip" data-p="quarter">Квартал</button>
+        <button type="button" class="chip" data-p="ytd">С начала года</button>
+      </div>
+    </div>
+    <div class="field"><label for="rate">Курс, грн за $</label><input type="number" id="rate" step="0.01" min="1"></div>
+    <button class="primary" id="go" type="submit">Показать</button>
+  </form>
+
+  <div id="banner" hidden></div>
+  <div>
+    <div class="status" id="status">Загружаю данные из рекламных кабинетов Meta…</div>
+    <div class="progress" id="progressWrap"><i id="progress"></i></div>
+  </div>
+
+  <section class="summary" id="summary" aria-label="Итоги"></section>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Найти филиал" aria-label="Найти филиал">
+    <span class="status" id="periodLabel"></span>
+  </div>
+
+  <section class="grid" id="grid" aria-label="Филиалы"></section>
+  <div class="empty" id="quiet" hidden></div>
+
+  <details class="panel" id="rulesPanel">
+    <summary>Как кампании распределяются по продуктам</summary>
+    <p>Продукт определяется по названию кампании: каждая строка — продукт и через запятую метки, которые ищутся в названии. Проверка идёт сверху вниз, срабатывает первая подошедшая строка. Короткие метки до 3 букв (ПКО, СК, ШС) ищутся как отдельное слово, длинные — как часть названия. Кабинеты школ, колледжей, университетов и лагерей целиком относятся к своему продукту. Всё, что не подошло, попадает в «Не определено» — раскройте строку, чтобы увидеть такие кампании и дописать метку.</p>
+    <label for="rules" class="status">Правила (сохраняются в этом браузере)</label>
+    <textarea id="rules" spellcheck="false"></textarea>
+    <div class="row">
+      <button type="button" class="primary" id="applyRules">Применить</button>
+      <button type="button" class="ghost" id="resetRules">Вернуть стандартные</button>
+    </div>
+  </details>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+(function(){
+"use strict";
+const SERVER = "Meta";
+const TOOL = "ads_get_ad_entities";
+const CID = Array.from({length:20},()=>"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random()*62)]).join("");
+const ASK = "я хочу видеть по каждому филиалу Украины. дашборд по такому принципу: для заданного периода продукт - расход на рекламу - процент от всех затрат";
+
+// Филиал → рекламные кабинеты Meta. fixed: весь кабинет относится к одному продукту.
+const BRANCHES = [
+  {name:"Киев", acc:[["1571785870203567","TecDo kyiv_main"],["1366737444702918","TecDo kyiv"],["1081653731894266","Київ"],["24047114978229442","IT STEP School Київ",null,"Школа"],["211198441658887","IT STEP College Київ",null,"Колледж"],["1282574981802139","Университет",null,"Университет"]]},
+  {name:"Днепр", acc:[["583445294461444","TecDo dnipro"],["946369265406162","Днепр"],["1572100653126629","Днепр School",null,"Школа"],["720108183701913","Днепр School new",null,"Школа"],["1228678127880681","Днепр College",null,"Колледж"]]},
+  {name:"Львов", acc:[["693715029717775","TecDo lviv"],["1586345589181607","TecDo lviv_2"],["1066004160856425","Львів School",null,"Школа"],["2345425222425644","Львів University",null,"Университет"]]},
+  {name:"Одесса", acc:[["1058424706035751","TecDo odesa"],["947376861994257","Одеса"],["568487825380399","Одеса School","UAH","Школа"],["751091193194440","Одеса ВУЗ (ОТУШ)","UAH","Университет"]]},
+  {name:"Харьков", acc:[["1033677421914627","TecDo kharkiv"],["308766879239404","Харків"],["662174234924974","Харків Університет",null,"Университет"],["185662249316959","ITS School Харків",null,"Школа"]]},
+  {name:"Запорожье", acc:[["815204851475151","TecDo zaporizhzhia"],["1622992874424280","Запорожье"],["787146249465460","Запорожье new"],["2182783345411072","Запорожье College",null,"Колледж"]]},
+  {name:"Винница", acc:[["1022272933195911","TecDo vinnitsa"],["109393622765118","Вінниця"]]},
+  {name:"Николаев", acc:[["588627520432045","TecDo mykolaiv"],["101015947042799","Миколаїв"]]},
+  {name:"Полтава", acc:[["390491359220352","Полтава new"]]},
+  {name:"Ровно", acc:[["1486364228993884","TecDo rivne"],["1459087724602346","Рівне"],["449123726691690","Рівне School",null,"Школа"],["300040699729764","Рівне Коледж",null,"Колледж"]]},
+  {name:"Луцк", acc:[["1169207311618072","TecDo lutsk"]]},
+  {name:"Чернигов", acc:[["195482413821525","Чернігів"]]},
+  {name:"Херсон", acc:[["104377700316148","Херсон"]]},
+  {name:"Хмельницкий", acc:[["105452889877495","Хмельницький"]]},
+  {name:"Тернополь", acc:[["645162848435559","TecDo ternopil"],["416186325625598","Тернопіль"],["697181762957486","Тернопіль School new",null,"Школа"],["1246294226284975","Тернопіль School",null,"Школа"]]},
+  {name:"Кривой Рог", acc:[["848279614183327","TecDo kryvyi_rih"],["135584623509380","КА ШАГ Кривой Рог"],["971129350173495","Кривой Рог School",null,"Школа"]]},
+  {name:"Житомир", acc:[["2250228862074390","TecDo zhitomir"],["1355427108125262","Житомир"],["973875810220602","Житомир School",null,"Школа"]]},
+  {name:"Каменское", acc:[["500937456689781","Каменское"]]},
+  {name:"Черновцы", acc:[["556023114219156","TecDo chernivtsi"],["1379162299041330","Чернівці"]]},
+  {name:"Ивано-Франковск", acc:[["1939717663501014","TecDo ivano_frankivsk"]]},
+  {name:"Ужгород", acc:[["1017558488278121","Ужгород"]]},
+  {name:"Кременчуг", acc:[["610556532041415","TecDo kremenchuk"],["361575301923938","Кременчук"],["1065755941423304","Кременчук Коледж",null,"Колледж"],["2643297572532912","Кременчук School new",null,"Школа"]]},
+  {name:"Кропивницкий", acc:[["715848385540639","Кропивницький"]]},
+  {name:"Сумы", acc:[["674283518909755","TecDo sumy"]]},
+  {name:"Белая Церковь", acc:[["697612992759431","TecDo bila_tserkva"],["259652715311051","Белая Церковь"],["1361354134288075","Белая Церковь School",null,"Школа"],["1267684621357533","Белая Церковь School new",null,"Школа"]]},
+  {name:"Ирпень", acc:[["689444030209377","TecDo irpen"],["1008757799660344","Ірпінь"]]},
+  {name:"Бровары", acc:[["1465061354660767","TecDo brovary"]]},
+  {name:"Вишнёвое", acc:[["483570565997642","Вишневе"]]},
+  {name:"Александрия", acc:[["313459713208665","Олександрія"]]},
+  {name:"Дрогобыч", acc:[["529343535591225","Дрогобич"]]},
+  {name:"Калуш", acc:[["642627190723166","Калуш"]]},
+  {name:"Бердичев", acc:[["626142962379584","Бердичів"]]},
+  {name:"Мукачево", acc:[["723613563410878","TecDo mukachevo"]]},
+  {name:"Stanislav", acc:[["1722191901307837","Stanislav STEP SCHOOL Київ",null,"Школа"],["1000130799104087","TecDo stanislav_camps_2",null,"Лагеря"]]},
+  {name:"Школа Дарница", acc:[["1698141254624386","TecDo step.space.darnitsa",null,"Школа"]]},
+  {name:"Облачный (онлайн)", acc:[["1066834968533676","TecDo cloud"],["1146229760764783","TecDo cloud_2"],["917642658589574","Хмарна філія"]]},
+  {name:"Unicorn", acc:[["369013131036700","Unicorn"],["1495346005015831","TecDo unicorn_school",null,"Школа"]]},
+  {name:"Глобус", acc:[["573610951060484","Глобус працюючий"]]},
+  {name:"ITSTEP BLACK", acc:[["939919387088769","IT STEP Black"]]},
+  {name:"Step Travel Camps", acc:[["1264991847976391","Step Travel Camps",null,"Лагеря"],["1785823405700372","TecDo travel_camps",null,"Лагеря"],["967267919220982","TecDo travel_camps_2",null,"Лагеря"]]},
+  {name:"Педагогическая академия", acc:[["656730367252879","Teachers",null,"Педагогическая академия"]]},
+  {name:"Мультимед", acc:[["694410725546876","Медичний центр Мультимед"],["484101351455884","MultiMed Kyiv"]]},
+  {name:"Украина, общие кабинеты", acc:[["1521588285682569","TecDo ukraine"],["1942954836496768","TecDo step_hub_school"],["501642765256994","ЦУП (новый)"]]}
+];
+const NO_ACCESS = "Чернигов (TecDo), Полтава (TecDo и School), Харків Школа ШАГ, Луцк и Луцк School, Днепр ВУЗ, Житомир School new, Хмельницкий (TecDo)";
+
+const DEFAULT_RULES = [
+  "ПКО (взрослые): пко, тест-драйв, тест драйв",
+  "МКА (дети): мка, roblox, роблокс, minecraft, майнкрафт, brawl, кідс, kids",
+  "Школа: шс, школа, school, шкіл",
+  "Спецкурсы: ск, спецкурс, digital marketing, з нуля до, маркетолог, для бізнесу",
+  "Колледж: коледж, колледж, college",
+  "Университет: університет, университет, university, вуз",
+  "Лагеря: табір, лагер, camp, кемп",
+  "Педагогическая академия: teacher, педагог"
+].join("\n");
+const OTHER = "Не определено";
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+};
+
+// ---------- rules ----------
+function parseRules(text){
+  return text.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+    const i=l.indexOf(":"); if(i<1) return null;
+    const product=l.slice(0,i).trim();
+    const keys=l.slice(i+1).split(",").map(s=>s.trim().toLowerCase()).filter(Boolean);
+    return keys.length?{product,keys}:null;
+  }).filter(Boolean);
+}
+function tokens(s){return s.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean)}
+function classify(name, rules){
+  const low=name.toLowerCase(), toks=tokens(name);
+  for(const r of rules){
+    for(const k of r.keys){
+      if(k.length<=3 && !/\s/.test(k)){ if(toks.includes(k)) return r.product; }
+      else if(low.includes(k)) return r.product;
+    }
+  }
+  return OTHER;
+}
+let rulesText = store.get("uaads.rules") || DEFAULT_RULES;
+let rules = parseRules(rulesText);
+$("rules").value = rulesText;
+
+// ---------- period ----------
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+function preset(p){
+  const t=new Date(); t.setHours(0,0,0,0);
+  const y=t.getFullYear(), m=t.getMonth();
+  const yest=new Date(t); yest.setDate(t.getDate()-1);
+  switch(p){
+    case "this_month": return [new Date(y,m,1), t];
+    case "last_month": return [new Date(y,m-1,1), new Date(y,m,0)];
+    case "last_30": {const f=new Date(t); f.setDate(t.getDate()-30); return [f, yest];}
+    case "quarter": return [new Date(y,Math.floor(m/3)*3,1), t];
+    case "ytd": return [new Date(y,0,1), t];
+  }
+}
+function setPreset(p){
+  const [f,to]=preset(p); $("from").value=iso(f); $("to").value=iso(to);
+  document.querySelectorAll("#presets .chip").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.p===p)));
+}
+$("rate").value = store.get("uaads.rate") || "41.5";
+setPreset("last_month");
+
+// ---------- formatting ----------
+const usd = v => "$" + Math.round(v).toLocaleString("ru-RU");
+const pct = v => (v*100).toFixed(v>=0.1?0:1).replace(".",",") + "%";
+const fmtDate = s => {const [y,m,d]=s.split("-"); return d+"."+m+"."+y};
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---------- data ----------
+let mcp=null, runId=0, lastData=null;
+
+function parseEntities(payload){
+  if(!payload || typeof payload!=="object") return {rows:[],next:null};
+  let ents = payload.ad_entities;
+  if(typeof ents==="string"){ try{ ents=JSON.parse(ents) }catch(e){ ents=[] } }
+  const next = payload.pagination && payload.pagination.next_cursor || null;
+  return {rows:Array.isArray(ents)?ents:[], next};
+}
+
+async function fetchAccount(id, since, until){
+  const out=[]; let cursor=null, guard=0;
+  do{
+    const input={ad_account_id:id, level:"campaign", time_range:JSON.stringify({since,until}),
+      fields:["id","name","amount_spent"],
+      filtering:[{field:"amount_spent",operator:"GREATER_THAN",value:["0"]}],
+      limit:500, include_additional_context:false,
+      client_conversation_id:CID, advertiser_request:ASK};
+    if(cursor) input.cursor=cursor;
+    let res;
+    try{ res = await mcp.callTool(SERVER, TOOL, input, {cache:{staleTime:300000}}); }
+    catch(e){
+      if(e && e.retryable && guard===0){
+        await new Promise(r=>setTimeout(r, Math.min(e.retryAfterMs||1500, 8000)+Math.random()*800));
+        res = await mcp.callTool(SERVER, TOOL, input, {cache:{staleTime:300000}});
+      } else throw e;
+    }
+    const {rows,next}=parseEntities(res.payload);
+    out.push(...rows); cursor=next; guard++;
+  } while(cursor && guard<20);
+  return out;
+}
+
+async function load(){
+  const since=$("from").value, until=$("to").value;
+  if(!since || !until || since>until){ showBanner("warn","Проверьте даты: начало периода должно быть не позже конца."); return; }
+  const rate=parseFloat($("rate").value)||41.5; store.set("uaads.rate", String(rate));
+  const my=++runId;
+  hideBanner(); $("go").disabled=true;
+  $("periodLabel").textContent = "Период: " + fmtDate(since) + " — " + fmtDate(until);
+
+  const jobs=[]; BRANCHES.forEach((b,bi)=>b.acc.forEach(a=>jobs.push({bi, id:a[0], label:a[1], cur:a[2], fixed:a[3]})));
+  const results=BRANCHES.map(b=>({name:b.name, camps:[], errors:[]}));
+  let done=0, errCodes={};
+  const tick=()=>{ $("progress").style.width=(done/jobs.length*100)+"%";
+    $("status").textContent = done<jobs.length ? "Загружено кабинетов: "+done+" из "+jobs.length : "Обновлено " + new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}) + " · " + jobs.length + " кабинетов"; };
+  tick();
+
+  let qi=0;
+  async function worker(){
+    while(qi<jobs.length){
+      const j=jobs[qi++];
+      try{
+        const rows=await fetchAccount(j.id, since, until);
+        if(my!==runId) return;
+        for(const r of rows){
+          const v=r.amount_spent && parseFloat(r.amount_spent.value);
+          if(!v) continue;
+          const unit=(r.amount_spent.unit||j.cur||"USD").toUpperCase();
+          const amt = unit==="UAH" ? v/rate : v;
+          results[j.bi].camps.push({name:r.name||("Кампания "+r.id), spend:amt, acc:j.label, fixed:j.fixed||null});
+        }
+      }catch(e){
+        if(my!==runId) return;
+        const code=(e&&e.code)||"upstream_error"; errCodes[code]=(errCodes[code]||0)+1;
+        results[j.bi].errors.push({acc:j.label, code, msg:(e&&e.message)||""});
+      }
+      done++; tick();
+    }
+  }
+  await Promise.all([worker(),worker(),worker(),worker()]);
+  if(my!==runId) return;
+  $("go").disabled=false;
+
+  const codes=Object.keys(errCodes);
+  if(codes.length===1 && errCodes[codes[0]]===jobs.length){ pageError(codes[0]); return; }
+  lastData={since,until,results};
+  render();
+}
+
+function pageError(code){
+  const map={
+    server_not_connected:"Коннектор Meta не подключён. Добавьте его в claude.ai → Settings → Connectors и обновите страницу.",
+    needs_reauth:"Доступ к Meta истёк. Переподключите Meta в claude.ai → Settings → Connectors.",
+    not_in_manifest:"Вы не разрешили этой странице доступ к Meta. Включите его в меню разрешений артефакта.",
+    selection_required:"Подключено несколько коннекторов Meta. Выберите один в окне, которое показал Claude, и нажмите «Показать».",
+    blocked_by_policy:"Политика вашей организации запрещает этот запрос к Meta.",
+    approval_required:"Политика организации требует подтверждения каждого запроса к Meta, а на этой странице это пока не поддерживается.",
+    server_unavailable:"Meta сейчас не отвечает. Попробуйте ещё раз через минуту.",
+    not_granted:"Эта страница не может обращаться к коннекторам в текущем просмотре. Откройте её на claude.ai."
+  };
+  showBanner("bad", map[code] || "Не удалось получить данные из Meta (код "+code+"). Попробуйте нажать «Показать» ещё раз.");
+  $("status").textContent="Данные не загружены";
+  $("summary").innerHTML=""; $("grid").innerHTML=""; $("quiet").hidden=true;
+}
+function showBanner(kind, text){const b=$("banner"); b.className="banner "+kind; b.textContent=text; b.hidden=false;}
+function hideBanner(){$("banner").hidden=true;}
+
+// ---------- render ----------
+function aggregate(br){
+  const by=new Map();
+  for(const c of br.camps){
+    const p=c.fixed || classify(c.name, rules);
+    if(!by.has(p)) by.set(p,{product:p, spend:0, camps:[]});
+    const g=by.get(p); g.spend+=c.spend; g.camps.push(c);
+  }
+  const total=[...by.values()].reduce((s,g)=>s+g.spend,0);
+  const rows=[...by.values()].sort((a,b)=>(a.product===OTHER)-(b.product===OTHER) || b.spend-a.spend);
+  rows.forEach(g=>g.camps.sort((a,b)=>b.spend-a.spend));
+  return {name:br.name, total, rows, errors:br.errors};
+}
+
+function render(){
+  if(!lastData) return;
+  const q=$("q").value.trim().toLowerCase();
+  const all=lastData.results.map(aggregate);
+  const active=all.filter(b=>b.total>0).sort((a,b)=>b.total-a.total);
+  const quiet=all.filter(b=>b.total===0);
+
+  // summary
+  const grand=active.reduce((s,b)=>s+b.total,0);
+  const prodTotals=new Map();
+  active.forEach(b=>b.rows.forEach(r=>prodTotals.set(r.product,(prodTotals.get(r.product)||0)+r.spend)));
+  const topProd=[...prodTotals.entries()].filter(e=>e[0]!==OTHER).sort((a,b)=>b[1]-a[1])[0];
+  const undef=prodTotals.get(OTHER)||0;
+  const top=active[0];
+  $("summary").innerHTML =
+    stat("Расход по Украине", usd(grand), active.length+" филиалов с рекламой") +
+    stat("Больше всех тратит", top?esc(top.name):"—", top?usd(top.total)+" · "+pct(top.total/grand):"") +
+    stat("Главный продукт", topProd?esc(topProd[0]):"—", topProd?usd(topProd[1])+" · "+pct(topProd[1]/grand):"") +
+    stat("Не определено", usd(undef), grand?pct(undef/grand)+" расхода — уточните правила ниже":"");
+
+  // cards
+  const shown=active.filter(b=>!q || b.name.toLowerCase().includes(q));
+  $("grid").innerHTML = shown.map(card).join("") || (active.length? '<div class="empty">Филиал не найден среди тех, у кого был расход.</div>' : '<div class="empty">За этот период ни в одном кабинете нет расхода. Выберите другой период.</div>');
+
+  const quietShown=quiet.filter(b=>!q || b.name.toLowerCase().includes(q));
+  const qe=$("quiet");
+  if(quietShown.length){
+    const errs=quietShown.filter(b=>b.errors.length);
+    qe.innerHTML="<b>Без расхода за период:</b> "+quietShown.map(b=>esc(b.name)+(b.errors.length?" (не загрузился)":"")).join(", ")+
+      (errs.length?'<div class="acc-errors">'+errs.map(b=>b.errors.map(e=>esc(b.name+" · "+e.acc+": "+errText(e))).join("<br>")).join("<br>")+"</div>":"");
+    qe.hidden=false;
+  } else qe.hidden=true;
+
+  $("foot").textContent = "Источник: рекламные кабинеты Meta, расход в долларах; кабинеты в гривне пересчитаны по курсу "+($("rate").value||"41.5")+" грн. Процент — доля продукта в рекламном расходе филиала за период. Не учтены кабинеты, к которым Meta пока не даёт доступ: "+NO_ACCESS+". Google Ads и другие каналы сюда не входят.";
+}
+function stat(label, big, small){return '<div class="stat"><span>'+label+'</span><b class="num">'+big+'</b><small class="num">'+small+'</small></div>'}
+function errText(e){
+  const m={tool_error:"Meta вернула ошибку", server_unavailable:"Meta не ответила", needs_reauth:"нужно переподключить Meta", not_in_manifest:"доступ не разрешён"};
+  return (m[e.code]||e.code)+(e.msg?" — "+e.msg.slice(0,120):"");
+}
+function card(b){
+  const rows=b.rows.map(r=>{
+    const share=b.total? r.spend/b.total : 0;
+    const list='<details class="camps"><summary>'+r.camps.length+" "+plural(r.camps.length,"кампания","кампании","кампаний")+'</summary><ul>'+
+      r.camps.slice(0,40).map(c=>'<li><span>'+esc(c.name)+' <span class="meta">· '+esc(c.acc)+'</span></span><span class="num">'+usd(c.spend)+'</span></li>').join("")+
+      (r.camps.length>40?'<li><span>и ещё '+(r.camps.length-40)+'</span><span></span></li>':"")+'</ul></details>';
+    return '<tr class="'+(r.product===OTHER?"other":"")+'"><td class="prod">'+esc(r.product)+list+'</td>'+
+      '<td class="r spend num">'+usd(r.spend)+'</td>'+
+      '<td class="share"><div class="sharecell"><div class="bar" aria-hidden="true"><i style="width:'+(share*100).toFixed(1)+'%"></i></div><span class="pct">'+pct(share)+'</span></div></td></tr>';
+  }).join("");
+  const errs=b.errors.length?'<div class="acc-errors">Не загрузились: '+b.errors.map(e=>esc(e.acc+" ("+errText(e)+")")).join("; ")+". Итог может быть занижен.</div>":"";
+  return '<article class="card"><header><h2>'+esc(b.name)+'</h2><span class="total num">'+usd(b.total)+'</span></header>'+
+    '<table><thead><tr><th>Продукт</th><th class="r">Расход</th><th class="r">% от рекламы филиала</th></tr></thead><tbody>'+rows+'</tbody></table>'+errs+'</article>';
+}
+function plural(n,a,b,c){const m10=n%10,m100=n%100; if(m10===1&&m100!==11)return a; if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b; return c;}
+
+// ---------- events ----------
+$("presets").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(!b) return; setPreset(b.dataset.p); if(mcp) load();});
+["from","to"].forEach(id=>$(id).addEventListener("input",()=>document.querySelectorAll("#presets .chip").forEach(b=>b.setAttribute("aria-pressed","false"))));
+$("controls").addEventListener("submit",e=>{e.preventDefault(); if(mcp) load();});
+$("q").addEventListener("input",render);
+$("rate").addEventListener("change",()=>{ if(mcp) load(); });
+$("applyRules").addEventListener("click",()=>{rulesText=$("rules").value; rules=parseRules(rulesText); store.set("uaads.rules",rulesText); render();});
+$("resetRules").addEventListener("click",()=>{rulesText=DEFAULT_RULES; $("rules").value=rulesText; rules=parseRules(rulesText); store.set("uaads.rules",rulesText); render();});
+
+// ---------- boot ----------
+const use = window.claude && window.claude.use ? window.claude.use("mcp") : Promise.resolve(null);
+use.then(ns=>{
+  if(!ns){
+    $("status").textContent="Нет доступа к коннекторам";
+    $("progressWrap").hidden=true;
+    showBanner("warn","Эта страница берёт данные из вашего коннектора Meta и работает только внутри claude.ai. Откройте её там под своей учётной записью.");
+    $("go").disabled=true; return;
+  }
+  mcp=ns; load();
+}).catch(()=>{ $("status").textContent="Нет доступа к коннекторам"; });
+})();
+</script>
