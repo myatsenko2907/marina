@@ -300,6 +300,13 @@
      "fixed": "Школа",
      "id": "185662249316959",
      "label": "ITS School Харків"
+    },
+    {
+     "cur": null,
+     "fb": "Харків Садочок майбутнього",
+     "fixed": null,
+     "id": "3749626628642421",
+     "label": "Садочок майбутнього"
     }
    ],
    "alias": "kh",
@@ -337,6 +344,13 @@
      "fixed": null,
      "id": "1169207311618072",
      "label": "TecDo lutsk"
+    },
+    {
+     "cur": null,
+     "fb": "Луцк - new",
+     "fixed": null,
+     "id": "898701218052481",
+     "label": "Луцк - new"
     }
    ],
    "alias": "lt",
@@ -370,6 +384,13 @@
      "fixed": null,
      "id": "104377700316148",
      "label": "Херсон"
+    },
+    {
+     "cur": null,
+     "fb": "Kherson_new",
+     "fixed": null,
+     "id": "2011964556339211",
+     "label": "Kherson_new"
     }
    ],
    "alias": "hson",
@@ -449,6 +470,13 @@
      "fixed": "Школа",
      "id": "971129350173495",
      "label": "Кривой Рог School"
+    },
+    {
+     "cur": null,
+     "fb": "КА ШАГ Кривой Рог - IT Step School - new",
+     "fixed": "Школа",
+     "id": "814599813224211",
+     "label": "Кривой Рог School new"
     }
    ],
    "alias": "krog",
@@ -493,6 +521,13 @@
      "fixed": null,
      "id": "500937456689781",
      "label": "Каменское"
+    },
+    {
+     "cur": null,
+     "fb": "[ITS-AAA-itstep_kamianske-ED-HK-MT-P2-PV-56]",
+     "fixed": null,
+     "id": "1471263838346569",
+     "label": "TecDo kamianske"
     }
    ],
    "alias": "kmn",
@@ -544,6 +579,27 @@
      "fixed": null,
      "id": "1017558488278121",
      "label": "Ужгород"
+    },
+    {
+     "cur": null,
+     "fb": "[ITS-AAA-uzhgorod-ED-HK-MT-P2-PV-63]",
+     "fixed": null,
+     "id": "948344934400363",
+     "label": "TecDo uzhgorod"
+    },
+    {
+     "cur": null,
+     "fb": "Ужгород - new",
+     "fixed": null,
+     "id": "113105321734472",
+     "label": "Ужгород - new"
+    },
+    {
+     "cur": null,
+     "fb": "Ужгород - резерв",
+     "fixed": null,
+     "id": "1195486168506769",
+     "label": "Ужгород - резерв"
     }
    ],
    "alias": "uzh",
@@ -551,7 +607,15 @@
    "noAccess": []
   },
   {
-   "acc": [],
+   "acc": [
+    {
+     "cur": null,
+     "fb": "IT Step Черкаси",
+     "fixed": null,
+     "id": "702862158286785",
+     "label": "Черкаси"
+    }
+   ],
    "alias": "cherk",
    "name": "Черкассы",
    "noAccess": []
@@ -591,6 +655,13 @@
      "fixed": "Школа",
      "id": "2643297572532912",
      "label": "Кременчук School new"
+    },
+    {
+     "cur": null,
+     "fb": "Кременчук_IT STEP School (неактивный)",
+     "fixed": "Школа",
+     "id": "678827280147008",
+     "label": "Кременчук School (неакт.)"
     }
    ],
    "alias": "kremen",
@@ -647,6 +718,13 @@
      "fixed": null,
      "id": "674283518909755",
      "label": "TecDo sumy"
+    },
+    {
+     "cur": null,
+     "fb": "Суми",
+     "fixed": null,
+     "id": "251247014070013",
+     "label": "Суми"
     }
    ],
    "alias": "sum",
@@ -713,13 +791,18 @@
    "acc": [],
    "alias": "kovel",
    "name": "Ковель",
-   "noAccess": []
+   "noAccess": [
+    "Ковель, Нововолинськ · 891473604884952",
+    "Ковель · 259307078917332"
+   ]
   },
   {
    "alias": "novovolynsk",
    "name": "Нововолынск",
    "acc": [],
-   "noAccess": []
+   "noAccess": [
+    "Ковель, Нововолинськ · 891473604884952"
+   ]
   },
   {
    "acc": [
@@ -736,6 +819,13 @@
      "fixed": null,
      "id": "1008757799660344",
      "label": "Ірпінь"
+    },
+    {
+     "cur": null,
+     "fb": "Ірпінь ITSTEP School",
+     "fixed": "Школа",
+     "id": "1282171819549422",
+     "label": "Ірпінь School"
     }
    ],
    "alias": "irpen",
@@ -880,6 +970,13 @@
      "fixed": null,
      "id": "723613563410878",
      "label": "TecDo mukachevo"
+    },
+    {
+     "cur": null,
+     "fb": "Мукачево",
+     "fixed": null,
+     "id": "7941617522527232",
+     "label": "Мукачево"
     }
    ],
    "alias": "mukachevo",
