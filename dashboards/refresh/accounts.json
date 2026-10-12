@@ -41,7 +41,7 @@
    "alias": "dp",
    "name": "Днепр",
    "noAccess": [
-    "Днепр ВУЗ"
+    "Днепр_ВУЗ · 895046544458406"
    ]
   },
   {
@@ -232,8 +232,8 @@
    "alias": "pl",
    "name": "Полтава",
    "noAccess": [
-    "TecDo poltava",
-    "Полтава School"
+    "[ITS-AAA-poltava-ED-HK-MT-P2-PV-26] · 1908186073302564",
+    "Полтава_IT STEP School · 5064223893641874"
    ]
   },
   {
@@ -305,7 +305,7 @@
    "alias": "kh",
    "name": "Харьков",
    "noAccess": [
-    "Харків Школа ШАГ"
+    "Харків Школа ШАГ · 493812955632456"
    ]
   },
   {
@@ -342,8 +342,8 @@
    "alias": "lt",
    "name": "Луцк",
    "noAccess": [
-    "Луцк",
-    "Луцк School"
+    "Луцк · 1392651514296257",
+    "Луцк - IT Step School · 258800369699943"
    ]
   },
   {
@@ -359,7 +359,7 @@
    "alias": "cher",
    "name": "Чернигов",
    "noAccess": [
-    "TecDo chernigov"
+    "[ITS-AAA-chernigov-ED-HK-MT-P2-PV-23] · 1232710935166310"
    ]
   },
   {
@@ -389,7 +389,7 @@
    "alias": "hm",
    "name": "Хмельницкий",
    "noAccess": [
-    "TecDo khmelnytskyi"
+    "[ITS-AAA-khmelnytskyi-ED-HK-MT-P2-PV-33] · 774414468611730"
    ]
   },
   {
@@ -482,7 +482,7 @@
    "alias": "zhitomir",
    "name": "Житомир",
    "noAccess": [
-    "Житомир School new"
+    "Житомир_IT STEP School_new · 592861010501655"
    ]
   },
   {
@@ -532,7 +532,9 @@
    ],
    "alias": "ivf",
    "name": "Ивано-Франковск",
-   "noAccess": []
+   "noAccess": [
+    "Івано-Франківськ - IT Step School · 640252233690065"
+   ]
   },
   {
    "acc": [
@@ -711,6 +713,12 @@
    "acc": [],
    "alias": "kovel",
    "name": "Ковель",
+   "noAccess": []
+  },
+  {
+   "alias": "novovolynsk",
+   "name": "Нововолынск",
+   "acc": [],
    "noAccess": []
   },
   {
