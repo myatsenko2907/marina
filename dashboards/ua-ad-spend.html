@@ -105,12 +105,18 @@ details.camps li span:first-child{overflow-wrap:anywhere}
 .mchip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--muted)}
 .mchip.ok{border-color:var(--accent);color:var(--accent)}
 .freshness{font-size:13px;color:var(--muted)}
+.card.zero{gap:4px;padding:12px 16px}
+.card.zero header{align-items:center}
+.card.zero .total{color:var(--muted);font-weight:500}
+.card .note{font-size:12px;color:var(--muted)}
+.card .note.warn{color:var(--warn)}
+.section-title{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:6px 0 0}
 </style>
 
 <div class="wrap">
   <div>
     <h1>Реклама филиалов Украины</h1>
-    <p class="sub">Расход Meta Ads по продуктам за выбранные месяцы и доля каждого продукта в рекламном бюджете филиала.</p>
+    <p class="sub">Расход Meta Ads по продуктам за выбранные месяцы и доля каждого продукта в рекламном бюджете филиала. Все филиалы Украины, данные обновляются автоматически каждый день.</p>
   </div>
 
   <form class="controls" id="controls">
@@ -127,17 +133,6 @@ details.camps li span:first-child{overflow-wrap:anywhere}
     </div>
   </form>
 
-  <section class="owner" id="owner" hidden aria-label="Обновление данных">
-    <h3>Обновление данных (видите только вы)</h3>
-    <p>Коллеги видят только сохранённые здесь цифры, к рекламным кабинетам они не подключаются. Нажмите кнопку, чтобы выгрузить из Meta месяцы, выбранные выше. Текущий месяц обновляйте по мере необходимости: он сохраняется на день выгрузки.</p>
-    <div class="row">
-      <div class="field"><label for="rate">Курс, грн за $</label><input type="number" id="rate" step="0.01" min="1"></div>
-      <button type="button" class="primary" id="refresh">Обновить выбранные месяцы из Meta</button>
-    </div>
-    <div class="status" id="ownerStatus"></div>
-    <div class="progress" id="progressWrap" hidden><i id="progress"></i></div>
-    <div class="months" id="monthChips"></div>
-  </section>
 
   <div id="banner" hidden></div>
   <div class="freshness" id="freshness">Загружаю сохранённые данные…</div>
@@ -149,8 +144,9 @@ details.camps li span:first-child{overflow-wrap:anywhere}
     <span class="status" id="periodLabel"></span>
   </div>
 
-  <section class="grid" id="grid" aria-label="Филиалы"></section>
-  <div class="empty" id="quiet" hidden></div>
+  <section class="grid" id="grid" aria-label="Филиалы с расходом"></section>
+  <h2 class="section-title" id="zeroTitle" hidden>Без расхода в Meta за период</h2>
+  <section class="grid" id="zeroGrid" aria-label="Филиалы без расхода"></section>
 
   <details class="panel" id="rulesPanel">
     <summary>Как кампании распределяются по продуктам</summary>
@@ -170,63 +166,11 @@ details.camps li span:first-child{overflow-wrap:anywhere}
 <script>
 (function(){
 "use strict";
-const SERVER = "Meta";
-const TOOL = "ads_get_ad_entities";
-const CID = Array.from({length:20},()=>"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random()*62)]).join("");
-const ASK = "я хочу видеть по каждому филиалу Украины. дашборд по такому принципу: для заданного периода продукт - расход на рекламу - процент от всех затрат";
-
-const BRANCHES = [
-  {name:"Киев", acc:[["1571785870203567","TecDo kyiv_main"],["1366737444702918","TecDo kyiv"],["1081653731894266","Київ"],["24047114978229442","IT STEP School Київ",null,"Школа"],["211198441658887","IT STEP College Київ",null,"Колледж"],["1282574981802139","Университет",null,"Университет"]]},
-  {name:"Днепр", acc:[["583445294461444","TecDo dnipro"],["946369265406162","Днепр"],["1572100653126629","Днепр School",null,"Школа"],["720108183701913","Днепр School new",null,"Школа"],["1228678127880681","Днепр College",null,"Колледж"]]},
-  {name:"Львов", acc:[["693715029717775","TecDo lviv"],["1586345589181607","TecDo lviv_2"],["1066004160856425","Львів School",null,"Школа"],["2345425222425644","Львів University",null,"Университет"]]},
-  {name:"Одесса", acc:[["1058424706035751","TecDo odesa"],["947376861994257","Одеса"],["568487825380399","Одеса School","UAH","Школа"],["751091193194440","Одеса ВУЗ (ОТУШ)","UAH","Университет"]]},
-  {name:"Харьков", acc:[["1033677421914627","TecDo kharkiv"],["308766879239404","Харків"],["662174234924974","Харків Університет",null,"Университет"],["185662249316959","ITS School Харків",null,"Школа"]]},
-  {name:"Запорожье", acc:[["815204851475151","TecDo zaporizhzhia"],["1622992874424280","Запорожье"],["787146249465460","Запорожье new"],["2182783345411072","Запорожье College",null,"Колледж"]]},
-  {name:"Винница", acc:[["1022272933195911","TecDo vinnitsa"],["109393622765118","Вінниця"]]},
-  {name:"Николаев", acc:[["588627520432045","TecDo mykolaiv"],["101015947042799","Миколаїв"]]},
-  {name:"Полтава", acc:[["390491359220352","Полтава new"]]},
-  {name:"Ровно", acc:[["1486364228993884","TecDo rivne"],["1459087724602346","Рівне"],["449123726691690","Рівне School",null,"Школа"],["300040699729764","Рівне Коледж",null,"Колледж"]]},
-  {name:"Луцк", acc:[["1169207311618072","TecDo lutsk"]]},
-  {name:"Чернигов", acc:[["195482413821525","Чернігів"]]},
-  {name:"Херсон", acc:[["104377700316148","Херсон"]]},
-  {name:"Хмельницкий", acc:[["105452889877495","Хмельницький"]]},
-  {name:"Тернополь", acc:[["645162848435559","TecDo ternopil"],["416186325625598","Тернопіль"],["697181762957486","Тернопіль School new",null,"Школа"],["1246294226284975","Тернопіль School",null,"Школа"]]},
-  {name:"Кривой Рог", acc:[["848279614183327","TecDo kryvyi_rih"],["135584623509380","КА ШАГ Кривой Рог"],["971129350173495","Кривой Рог School",null,"Школа"]]},
-  {name:"Житомир", acc:[["2250228862074390","TecDo zhitomir"],["1355427108125262","Житомир"],["973875810220602","Житомир School",null,"Школа"]]},
-  {name:"Каменское", acc:[["500937456689781","Каменское"]]},
-  {name:"Черновцы", acc:[["556023114219156","TecDo chernivtsi"],["1379162299041330","Чернівці"]]},
-  {name:"Ивано-Франковск", acc:[["1939717663501014","TecDo ivano_frankivsk"]]},
-  {name:"Ужгород", acc:[["1017558488278121","Ужгород"]]},
-  {name:"Кременчуг", acc:[["610556532041415","TecDo kremenchuk"],["361575301923938","Кременчук"],["1065755941423304","Кременчук Коледж",null,"Колледж"],["2643297572532912","Кременчук School new",null,"Школа"]]},
-  {name:"Кропивницкий", acc:[["715848385540639","Кропивницький"]]},
-  {name:"Сумы", acc:[["674283518909755","TecDo sumy"]]},
-  {name:"Белая Церковь", acc:[["697612992759431","TecDo bila_tserkva"],["259652715311051","Белая Церковь"],["1361354134288075","Белая Церковь School",null,"Школа"],["1267684621357533","Белая Церковь School new",null,"Школа"]]},
-  {name:"Ирпень", acc:[["689444030209377","TecDo irpen"],["1008757799660344","Ірпінь"]]},
-  {name:"Бровары", acc:[["1465061354660767","TecDo brovary"]]},
-  {name:"Вишнёвое", acc:[["483570565997642","Вишневе"]]},
-  {name:"Александрия", acc:[["313459713208665","Олександрія"]]},
-  {name:"Дрогобыч", acc:[["529343535591225","Дрогобич"]]},
-  {name:"Калуш", acc:[["642627190723166","Калуш"]]},
-  {name:"Бердичев", acc:[["626142962379584","Бердичів"]]},
-  {name:"Мукачево", acc:[["723613563410878","TecDo mukachevo"]]},
-  {name:"Stanislav", acc:[["1722191901307837","Stanislav STEP SCHOOL Київ",null,"Школа"],["1000130799104087","TecDo stanislav_camps_2",null,"Лагеря"]]},
-  {name:"Школа Дарница", acc:[["1698141254624386","TecDo step.space.darnitsa",null,"Школа"]]},
-  {name:"Облачный (онлайн)", acc:[["1066834968533676","TecDo cloud"],["1146229760764783","TecDo cloud_2"],["917642658589574","Хмарна філія"]]},
-  {name:"Unicorn", acc:[["369013131036700","Unicorn"],["1495346005015831","TecDo unicorn_school",null,"Школа"]]},
-  {name:"Глобус", acc:[["573610951060484","Глобус працюючий"]]},
-  {name:"ITSTEP BLACK", acc:[["939919387088769","IT STEP Black"]]},
-  {name:"Step Travel Camps", acc:[["1264991847976391","Step Travel Camps",null,"Лагеря"],["1785823405700372","TecDo travel_camps",null,"Лагеря"],["967267919220982","TecDo travel_camps_2",null,"Лагеря"]]},
-  {name:"Педагогическая академия", acc:[["656730367252879","Teachers",null,"Педагогическая академия"]]},
-  {name:"Мультимед", acc:[["694410725546876","Медичний центр Мультимед"],["484101351455884","MultiMed Kyiv"]]},
-  {name:"Украина, общие кабинеты", acc:[["1521588285682569","TecDo ukraine"],["1942954836496768","TecDo step_hub_school"],["501642765256994","ЦУП (новый)"]]}
-];
-const NO_ACCESS = "Чернигов (TecDo), Полтава (TecDo и School), Харків Школа ШАГ, Луцк и Луцк School, Днепр ВУЗ, Житомир School new, Хмельницкий (TecDo)";
-
 const DEFAULT_RULES = [
   "ПКО (взрослые): пко, тест-драйв, тест драйв",
   "МКА (дети): мка, roblox, роблокс, minecraft, майнкрафт, brawl, кідс, kids",
   "Школа: шс, школа, school, шкіл",
-  "Спецкурсы: ск, спецкурс, digital marketing, з нуля до, маркетолог, для бізнесу",
+  "Спецкурсы: ск, спецкурс, курс, digital marketing, з нуля до, маркетолог, маркетинг, для бізнесу, ui ux, 2d",
   "Колледж: коледж, колледж, college",
   "Университет: університет, университет, university, вуз",
   "Лагеря: табір, лагер, camp, кемп",
@@ -254,29 +198,22 @@ function classify(name, rules){
   }
   return OTHER;
 }
-let rulesText = DEFAULT_RULES, rules = parseRules(rulesText);
-$("rules").value = rulesText;
+let rules = parseRules(DEFAULT_RULES);
+$("rules").value = DEFAULT_RULES;
 
 // ---------- months ----------
 const MONTHS_RU=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
 const pad=n=>String(n).padStart(2,"0");
-const mkey=(y,m)=>y+"-"+pad(m+1);            // m: 0-based
+const mkey=(y,m)=>y+"-"+pad(m+1);
 const today=new Date(); today.setHours(0,0,0,0);
 const curKey=mkey(today.getFullYear(),today.getMonth());
-const monthList=[]; // newest first, last 24 months
+const monthList=[];
 for(let i=0;i<24;i++){const d=new Date(today.getFullYear(),today.getMonth()-i,1); monthList.push(mkey(d.getFullYear(),d.getMonth()));}
 const mlabel=k=>{const [y,m]=k.split("-"); return MONTHS_RU[+m-1]+" "+y;};
 const mlabelShort=k=>{const [y,m]=k.split("-"); return MONTHS_RU[+m-1].slice(0,3)+" "+y.slice(2);};
 function rangeKeys(a,b){ if(a>b) [a,b]=[b,a]; return monthList.filter(k=>k>=a&&k<=b).sort(); }
-function monthBounds(k){
-  const [y,m]=k.split("-").map(Number);
-  const first=new Date(y,m-1,1), last=new Date(y,m,0);
-  const end = k===curKey ? today : last;
-  const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-  return [iso(first), iso(end)];
-}
 
-let months={}; // key -> doc data
+let months={}, branches=null, isOwner=false, db=null;
 function fillSelects(){
   for(const id of ["from","to"]){
     const sel=$(id), keep=sel.value;
@@ -286,14 +223,15 @@ function fillSelects(){
 }
 function setPreset(p){
   const y=today.getFullYear(), m=today.getMonth();
-  const k=(dy,dm)=>{const d=new Date(y+dy,m+dm,1); return mkey(d.getFullYear(),d.getMonth());};
+  const k=(dm)=>{const d=new Date(y,m+dm,1); return mkey(d.getFullYear(),d.getMonth());};
   let a,b;
   switch(p){
     case "this_month": a=b=curKey; break;
-    case "last_month": a=b=k(0,-1); break;
-    case "last_3": a=k(0,-3); b=k(0,-1); break;
+    case "last_month": a=b=k(-1); break;
+    case "last_3": a=k(-3); b=k(-1); break;
     case "quarter": a=mkey(y,Math.floor(m/3)*3); b=curKey; break;
     case "ytd": a=mkey(y,0); b=curKey; break;
+    default: a=b=k(-1); p="last_month";
   }
   $("from").value=a; $("to").value=b;
   document.querySelectorAll("#presets .chip").forEach(x=>x.setAttribute("aria-pressed", String(x.dataset.p===p)));
@@ -306,82 +244,84 @@ const usd = v => "$" + Math.round(v).toLocaleString("ru-RU");
 const pct = v => (v*100).toFixed(v>=0.1?0:1).replace(".",",") + "%";
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmtWhen = iso => { try{ return new Date(iso).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}); }catch(e){ return iso; } };
-
+const fmtDay = s => s ? s.split("-").reverse().join(".") : "";
+function plural(n,a,b,c){const m10=n%10,m100=n%100; if(m10===1&&m100!==11)return a; if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b; return c;}
 function showBanner(kind, text){const b=$("banner"); b.className="banner "+kind; b.textContent=text; b.hidden=false;}
 function hideBanner(){$("banner").hidden=true;}
 
 // ---------- render ----------
-function aggregate(branchName, keys){
+function aggregate(br, keys){
   const by=new Map(); const errors=[];
   for(const k of keys){
-    const br=months[k] && months[k].branches && months[k].branches[branchName];
-    if(!br) continue;
-    for(const c of (br.c||[])){
+    const d=months[k] && months[k].branches && months[k].branches[br.name];
+    if(!d) continue;
+    for(const c of (d.c||[])){
       const [name, acc, fixed, spend]=c;
-      const p=fixed || classify(name, rules);
+      const p=fixed || classify(String(name), rules);
       if(!by.has(p)) by.set(p,{product:p, spend:0, camps:new Map()});
-      const g=by.get(p); g.spend+=spend;
+      const g=by.get(p); g.spend+=Number(spend)||0;
       const ck=name+"\u0000"+acc; const prev=g.camps.get(ck);
-      g.camps.set(ck,{name,acc,spend:(prev?prev.spend:0)+spend});
+      g.camps.set(ck,{name,acc,spend:(prev?prev.spend:0)+(Number(spend)||0)});
     }
-    for(const e of (br.e||[])) errors.push({month:k, acc:e[0], code:e[1]});
+    for(const e of (d.e||[])) errors.push({month:k, acc:e[0], code:e[1]});
   }
   const total=[...by.values()].reduce((s,g)=>s+g.spend,0);
   const rows=[...by.values()].map(g=>({product:g.product, spend:g.spend, camps:[...g.camps.values()].sort((a,b)=>b.spend-a.spend)}))
     .sort((a,b)=>(a.product===OTHER)-(b.product===OTHER) || b.spend-a.spend);
-  return {name:branchName, total, rows, errors};
+  return {name:br.name, accCount:(br.acc||[]).length, noAccess:br.noAccess||[], total, rows, errors};
 }
 
 function render(){
+  if(!branches) return;
   const keys=rangeKeys($("from").value||curKey, $("to").value||curKey);
   const have=keys.filter(k=>months[k]), missing=keys.filter(k=>!months[k]);
   $("periodLabel").textContent = "Период: " + (keys.length===1? mlabel(keys[0]) : mlabel(keys[0])+" — "+mlabel(keys[keys.length-1]));
-  const fresh=have.map(k=>months[k].fetchedAt).filter(Boolean).sort();
-  $("freshness").textContent = !have.length ? "" :
-    "Данные выгружены из Meta: " + (fresh.length? fmtWhen(fresh[0]) + (fresh.length>1&&fresh[0]!==fresh[fresh.length-1]?" — "+fmtWhen(fresh[fresh.length-1]):"") : "—") +
-    (have.includes(curKey)? ". Текущий месяц — по "+ (months[curKey].through? months[curKey].through.split("-").reverse().join(".") : "день выгрузки") : "");
+  const stamps=Object.values(months).map(m=>m.fetchedAt).filter(Boolean).sort();
+  const latest=stamps[stamps.length-1];
+  $("freshness").textContent = latest ? "Данные из Meta обновляются автоматически каждый день. Последнее обновление: "+fmtWhen(latest)+(have.includes(curKey)&&months[curKey].through?". Текущий месяц — по "+fmtDay(months[curKey].through)+".":".") : "Данные ещё не выгружены. Первая выгрузка появится здесь автоматически.";
 
-  if(!have.length){
-    $("summary").innerHTML=""; $("grid").innerHTML=""; $("quiet").hidden=true;
-    $("grid").innerHTML='<div class="empty">'+(isOwner? "За этот период данные ещё не выгружены. Нажмите «Обновить выбранные месяцы из Meta» выше." : "За этот период данные ещё не выгружены. Выберите другие месяцы или попросите владельца дашборда обновить данные.")+'</div>';
-    $("foot").textContent=footText(); return;
-  }
+  if(missing.length && have.length) showBanner("warn","Нет данных за: "+missing.map(mlabel).join(", ")+". Итоги посчитаны только по выгруженным месяцам.");
+  else hideBanner();
+
   const q=$("q").value.trim().toLowerCase();
-  const all=BRANCHES.map(b=>aggregate(b.name, have));
+  const all=branches.map(b=>aggregate(b, have));
   const active=all.filter(b=>b.total>0).sort((a,b)=>b.total-a.total);
-  const quiet=all.filter(b=>b.total===0);
+  const zero=all.filter(b=>b.total===0).sort((a,b)=>(b.accCount>0)-(a.accCount>0) || a.name.localeCompare(b.name,"ru"));
 
   const grand=active.reduce((s,b)=>s+b.total,0);
   const prodTotals=new Map();
   active.forEach(b=>b.rows.forEach(r=>prodTotals.set(r.product,(prodTotals.get(r.product)||0)+r.spend)));
   const topProd=[...prodTotals.entries()].filter(e=>e[0]!==OTHER).sort((a,b)=>b[1]-a[1])[0];
   const undef=prodTotals.get(OTHER)||0, top=active[0];
-  $("summary").innerHTML =
-    stat("Расход по Украине", usd(grand), active.length+" "+plural(active.length,"филиал","филиала","филиалов")+" с рекламой") +
+  $("summary").innerHTML = !have.length ? "" :
+    stat("Расход по Украине", usd(grand), active.length+" из "+all.length+" "+plural(all.length,"филиала","филиалов","филиалов")+" с рекламой") +
     stat("Больше всех тратит", top?esc(top.name):"—", top?usd(top.total)+" · "+pct(top.total/grand):"") +
     stat("Главный продукт", topProd?esc(topProd[0]):"—", topProd?usd(topProd[1])+" · "+pct(topProd[1]/grand):"") +
     stat("Не определено", usd(undef), grand?pct(undef/grand)+" расхода":"");
 
-  if(missing.length) showBanner("warn","Нет данных за: "+missing.map(mlabel).join(", ")+". Итоги посчитаны только по выгруженным месяцам."+(isOwner?" Нажмите «Обновить выбранные месяцы из Meta», чтобы добавить их.":""));
-  else hideBanner();
-
-  const shown=active.filter(b=>!q || b.name.toLowerCase().includes(q));
-  $("grid").innerHTML = shown.map(card).join("") || (active.length? '<div class="empty">Филиал не найден среди тех, у кого был расход.</div>' : '<div class="empty">За этот период расхода нет.</div>');
-
-  const quietShown=quiet.filter(b=>!q || b.name.toLowerCase().includes(q));
-  const qe=$("quiet");
-  if(quietShown.length){
-    qe.innerHTML="<b>Без расхода за период:</b> "+quietShown.map(b=>esc(b.name)+(b.errors.length?" (не все кабинеты загрузились)":"")).join(", ");
-    qe.hidden=false;
-  } else qe.hidden=true;
-  $("foot").textContent=footText();
+  const match=b=>!q || b.name.toLowerCase().includes(q);
+  $("grid").innerHTML = active.filter(match).map(card).join("") ||
+    (!have.length ? '<div class="empty">За выбранные месяцы данных пока нет.</div>' : active.length ? "" : '<div class="empty">За этот период расхода нет ни в одном филиале.</div>');
+  const zs=zero.filter(match);
+  $("zeroGrid").innerHTML = zs.map(b=>zeroCard(b, have.length>0)).join("");
+  $("zeroTitle").hidden = !zs.length;
+  $("foot").textContent = footText();
 }
 function footText(){
   const rates=[...new Set(Object.values(months).map(m=>m.rate).filter(Boolean))];
-  return "Источник: рекламные кабинеты Meta, расход в долларах"+(rates.length?"; кабинеты в гривне пересчитаны по курсу "+rates.join(" / ")+" грн":"")+". Процент — доля продукта в рекламном расходе филиала за период. Не учтены кабинеты, к которым Meta пока не даёт доступ: "+NO_ACCESS+". Google Ads и другие каналы сюда не входят.";
+  return "Источник: рекламные кабинеты Meta (Facebook и Instagram), расход в долларах"+(rates.length?"; кабинеты в гривне пересчитаны по курсу "+rates.join(" / ")+" грн":"")+". Процент — доля продукта в рекламном расходе филиала за период. Google Ads и другие каналы сюда не входят.";
 }
 function stat(label, big, small){return '<div class="stat"><span>'+label+'</span><b class="num">'+big+'</b><small class="num">'+small+'</small></div>'}
-const ERR={tool_error:"Meta вернула ошибку", server_unavailable:"Meta не ответила", needs_reauth:"нужно переподключить Meta", not_in_manifest:"доступ не разрешён"};
+const ERR={tool_error:"Meta вернула ошибку", server_unavailable:"Meta не ответила", needs_reauth:"нужно переподключить Meta", not_queryable:"кабинет недоступен"};
+function notes(b){
+  let h="";
+  if(b.noAccess.length) h+='<div class="note warn">Не учтено, Meta не даёт доступа: '+b.noAccess.map(esc).join(", ")+'</div>';
+  if(b.errors.length){
+    const uniq=[...new Set(b.errors.map(e=>e.acc+" ("+(ERR[e.code]||e.code)+")"))];
+    h+='<div class="acc-errors">Не загрузились при последнем обновлении: '+uniq.map(esc).join("; ")+'. Итог может быть занижен.</div>';
+  }
+  return h;
+}
 function card(b){
   const rows=b.rows.map(r=>{
     const share=b.total? r.spend/b.total : 0;
@@ -392,99 +332,14 @@ function card(b){
       '<td class="r spend num">'+usd(r.spend)+'</td>'+
       '<td class="share"><div class="sharecell"><div class="bar" aria-hidden="true"><i style="width:'+(share*100).toFixed(1)+'%"></i></div><span class="pct">'+pct(share)+'</span></div></td></tr>';
   }).join("");
-  const errs=b.errors.length?'<div class="acc-errors">Не загрузились: '+b.errors.map(e=>esc(e.acc+", "+mlabelShort(e.month)+" ("+(ERR[e.code]||e.code)+")")).join("; ")+". Итог может быть занижен.</div>":"";
   return '<article class="card"><header><h2>'+esc(b.name)+'</h2><span class="total num">'+usd(b.total)+'</span></header>'+
-    '<table><thead><tr><th>Продукт</th><th class="r">Расход</th><th class="r">% от рекламы филиала</th></tr></thead><tbody>'+rows+'</tbody></table>'+errs+'</article>';
+    '<table><thead><tr><th>Продукт</th><th class="r">Расход</th><th class="r">% от рекламы филиала</th></tr></thead><tbody>'+rows+'</tbody></table>'+notes(b)+'</article>';
 }
-function plural(n,a,b,c){const m10=n%10,m100=n%100; if(m10===1&&m100!==11)return a; if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b; return c;}
-
-function renderMonthChips(){
-  $("monthChips").innerHTML = monthList.slice(0,13).slice().reverse().map(k=>'<span class="mchip'+(months[k]?" ok":"")+'" title="'+(months[k]?"выгружено "+fmtWhen(months[k].fetchedAt):"не выгружено")+'">'+mlabelShort(k)+(months[k]?" ✓":"")+'</span>').join("");
-}
-
-// ---------- owner: fetch from Meta, save to db ----------
-let db=null, mcp=null, isOwner=false, busy=false;
-
-function parseEntities(payload){
-  if(!payload || typeof payload!=="object") return {rows:[],next:null};
-  let ents=payload.ad_entities;
-  if(typeof ents==="string"){ try{ ents=JSON.parse(ents) }catch(e){ ents=[] } }
-  return {rows:Array.isArray(ents)?ents:[], next:(payload.pagination&&payload.pagination.next_cursor)||null};
-}
-async function fetchAccount(id, since, until){
-  const out=[]; let cursor=null, n=0;
-  do{
-    const input={ad_account_id:id, level:"campaign", time_range:JSON.stringify({since,until}),
-      fields:["id","name","amount_spent"], filtering:[{field:"amount_spent",operator:"GREATER_THAN",value:["0"]}],
-      limit:500, include_additional_context:false, client_conversation_id:CID, advertiser_request:ASK};
-    if(cursor) input.cursor=cursor;
-    let res;
-    try{ res=await mcp.callTool(SERVER, TOOL, input, {cache:false}); }
-    catch(e){
-      if(e && e.retryable){ await new Promise(r=>setTimeout(r, Math.min(e.retryAfterMs||1500,8000)+Math.random()*800)); res=await mcp.callTool(SERVER, TOOL, input, {cache:false}); }
-      else throw e;
-    }
-    const {rows,next}=parseEntities(res.payload); out.push(...rows); cursor=next; n++;
-  } while(cursor && n<20);
-  return out;
-}
-async function fetchMonth(k, rate, onStep){
-  const [since,until]=monthBounds(k);
-  const jobs=[]; BRANCHES.forEach(b=>b.acc.forEach(a=>jobs.push({branch:b.name, id:a[0], label:a[1], cur:a[2], fixed:a[3]||null})));
-  const branches={}; const codes={}; let qi=0;
-  async function worker(){
-    while(qi<jobs.length){
-      const j=jobs[qi++];
-      const br=branches[j.branch]||(branches[j.branch]={c:[],e:[]});
-      try{
-        const rows=await fetchAccount(j.id, since, until);
-        for(const r of rows){
-          const v=r.amount_spent && parseFloat(r.amount_spent.value); if(!v) continue;
-          const unit=(r.amount_spent.unit||j.cur||"USD").toUpperCase();
-          br.c.push([String(r.name||("Кампания "+r.id)), j.label, j.fixed, Math.round((unit==="UAH"? v/rate : v)*100)/100]);
-        }
-      }catch(e){
-        const code=(e&&e.code)||"upstream_error"; codes[code]=(codes[code]||0)+1; br.e.push([j.label, code]);
-      }
-      onStep();
-    }
-  }
-  await Promise.all([worker(),worker(),worker(),worker()]);
-  return {branches, codes, total:jobs.length, through:until};
-}
-const PAGE_ERR={
-  server_not_connected:"Коннектор Meta не подключён. Добавьте его в claude.ai → Settings → Connectors.",
-  needs_reauth:"Доступ к Meta истёк. Переподключите Meta в claude.ai → Settings → Connectors.",
-  not_in_manifest:"Вы не разрешили этой странице доступ к Meta. Включите его в меню разрешений артефакта.",
-  selection_required:"Подключено несколько коннекторов Meta. Выберите один в окне Claude и повторите.",
-  blocked_by_policy:"Политика организации запрещает этот запрос к Meta.",
-  server_unavailable:"Meta сейчас не отвечает. Попробуйте через минуту."
-};
-async function refresh(){
-  if(busy || !mcp || !db) return;
-  const keys=rangeKeys($("from").value, $("to").value);
-  const rate=parseFloat($("rate").value)||41.5; store.set("uaads.rate", String(rate));
-  busy=true; $("refresh").disabled=true; $("progressWrap").hidden=false; hideBanner();
-  const perMonth=BRANCHES.reduce((s,b)=>s+b.acc.length,0), totalSteps=perMonth*keys.length; let step=0;
-  const tick=()=>{ $("progress").style.width=(step/totalSteps*100)+"%"; };
-  const saved=[];
-  try{
-    for(const k of keys){
-      $("ownerStatus").textContent="Выгружаю "+mlabel(k)+"…";
-      const res=await fetchMonth(k, rate, ()=>{step++; tick();});
-      const codes=Object.keys(res.codes);
-      if(codes.length===1 && res.codes[codes[0]]===res.total){
-        showBanner("bad", PAGE_ERR[codes[0]] || "Не удалось получить данные из Meta (код "+codes[0]+"). Попробуйте ещё раз.");
-        break;
-      }
-      const doc={month:k, fetchedAt:new Date().toISOString(), through:res.through, rate, branches:res.branches};
-      try{ await db.doc("months/"+k).set(doc); saved.push(k); }
-      catch(e){ showBanner("bad", e&&e.code==="quota_exceeded" ? "Хранилище дашборда заполнено, данные за "+mlabel(k)+" не сохранены." : "Не удалось сохранить "+mlabel(k)+" (код "+(e&&e.code)+"). Попробуйте ещё раз."); break; }
-    }
-  } finally {
-    busy=false; $("refresh").disabled=false; $("progressWrap").hidden=true;
-    $("ownerStatus").textContent = saved.length? "Сохранено: "+saved.map(mlabel).join(", ")+". Коллеги уже видят эти цифры." : "";
-  }
+function zeroCard(b, hasData){
+  const why = !b.accCount ? (b.noAccess.length? "Кабинет есть, но Meta не даёт к нему доступа" : "Рекламный кабинет Meta не найден")
+    : hasData ? "В кабинетах не было расхода" : "Нет данных за период";
+  return '<article class="card zero"><header><h2>'+esc(b.name)+'</h2><span class="total num">$0</span></header>'+
+    '<div class="note">'+why+'</div>'+(b.accCount?notes(b):"")+'</article>';
 }
 
 // ---------- events ----------
@@ -492,7 +347,6 @@ $("presets").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(
 ["from","to"].forEach(id=>$(id).addEventListener("change",()=>{document.querySelectorAll("#presets .chip").forEach(b=>b.setAttribute("aria-pressed","false")); render();}));
 $("controls").addEventListener("submit",e=>e.preventDefault());
 $("q").addEventListener("input",render);
-$("refresh").addEventListener("click",refresh);
 $("applyRules").addEventListener("click",async()=>{
   if(!db) return;
   try{ await db.doc("config/rules").set({text:$("rules").value}); $("rulesStatus").textContent="Сохранено для всех"; }
@@ -501,28 +355,28 @@ $("applyRules").addEventListener("click",async()=>{
 $("resetRules").addEventListener("click",()=>{ $("rules").value=DEFAULT_RULES; $("rulesStatus").textContent="Нажмите «Сохранить для всех», чтобы применить"; });
 
 // ---------- boot ----------
-$("rate").value = store.get("uaads.rate") || "41.5";
 fillSelects();
 setPreset(store.get("uaads.preset") || "last_month");
 
 const cl = window.claude && window.claude.use ? window.claude : null;
-if(!cl){ $("freshness").textContent="Откройте эту страницу на claude.ai, чтобы увидеть данные."; }
+if(!cl){ $("freshness").textContent="Откройте эту страницу по ссылке на claude.ai, чтобы увидеть данные."; }
 else {
   Promise.all([cl.use("db"), cl.use("user")]).then(async ([d,u])=>{
     db=d;
     isOwner = u ? await u.isOwner() : false;
-    if(!db){ $("freshness").textContent="Сохранённые данные недоступны в этом просмотре. Откройте страницу на claude.ai, войдя в аккаунт."; return; }
-    if(isOwner){
-      $("owner").hidden=false; $("rules").readOnly=false; $("rulesActions").hidden=false; $("rulesLabel").textContent="Правила (сохраняются для всех, кто смотрит дашборд)";
-      cl.use("mcp").then(m=>{ mcp=m; if(!m){ $("refresh").disabled=true; $("ownerStatus").textContent="Подключение к Meta недоступно в этом просмотре."; } });
-    }
+    if(!db){ $("freshness").textContent="Данные недоступны в этом просмотре. Откройте страницу на claude.ai, войдя в аккаунт."; return; }
+    if(isOwner){ $("rules").readOnly=false; $("rulesActions").hidden=false; $("rulesLabel").textContent="Правила (сохраняются для всех, кто смотрит дашборд)"; }
+    db.doc("config/accounts").onSnapshot(snap=>{
+      if(snap.exists && Array.isArray(snap.data().branches)){ branches=snap.data().branches; render(); }
+      else { $("freshness").textContent="Список филиалов ещё не загружен."; }
+    }, err=>{ $("freshness").textContent="Не удалось прочитать данные (код "+(err&&err.code)+"). Обновите страницу."; });
     db.collection("months").onSnapshot(snap=>{
       const next={}; snap.docs.forEach(doc=>{ if(doc.exists) next[doc.id]=doc.data(); });
-      months=next; fillSelects(); renderMonthChips(); render();
-    }, err=>{ $("freshness").textContent="Не удалось прочитать сохранённые данные (код "+(err&&err.code)+"). Обновите страницу."; });
+      months=next; fillSelects(); render();
+    }, err=>{ $("freshness").textContent="Не удалось прочитать данные (код "+(err&&err.code)+"). Обновите страницу."; });
     db.doc("config/rules").onSnapshot(snap=>{
       const t = snap.exists && snap.data().text ? String(snap.data().text) : DEFAULT_RULES;
-      rulesText=t; rules=parseRules(t);
+      rules=parseRules(t);
       if(!isOwner || document.activeElement!==$("rules")) $("rules").value=t;
       render();
     }, ()=>{});

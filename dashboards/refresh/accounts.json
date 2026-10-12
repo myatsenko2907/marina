@@ -1,0 +1,952 @@
+{
+ "branches": [
+  {
+   "alias": "dp",
+   "name": "Днепр",
+   "acc": [
+    {
+     "id": "583445294461444",
+     "label": "TecDo dnipro",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "946369265406162",
+     "label": "Днепр",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1572100653126629",
+     "label": "Днепр School",
+     "cur": null,
+     "fixed": "Школа"
+    },
+    {
+     "id": "720108183701913",
+     "label": "Днепр School new",
+     "cur": null,
+     "fixed": "Школа"
+    },
+    {
+     "id": "1228678127880681",
+     "label": "Днепр College",
+     "cur": null,
+     "fixed": "Колледж"
+    }
+   ],
+   "noAccess": [
+    "Днепр ВУЗ"
+   ]
+  },
+  {
+   "alias": "zp",
+   "name": "Запорожье",
+   "acc": [
+    {
+     "id": "815204851475151",
+     "label": "TecDo zaporizhzhia",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1622992874424280",
+     "label": "Запорожье",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "787146249465460",
+     "label": "Запорожье new",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "2182783345411072",
+     "label": "Запорожье College",
+     "cur": null,
+     "fixed": "Колледж"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "kiev",
+   "name": "Киев",
+   "acc": [
+    {
+     "id": "1571785870203567",
+     "label": "TecDo kyiv_main",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1366737444702918",
+     "label": "TecDo kyiv",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1081653731894266",
+     "label": "Київ",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "24047114978229442",
+     "label": "IT STEP School Київ",
+     "cur": null,
+     "fixed": "Школа"
+    },
+    {
+     "id": "211198441658887",
+     "label": "IT STEP College Київ",
+     "cur": null,
+     "fixed": "Колледж"
+    },
+    {
+     "id": "1282574981802139",
+     "label": "Университет",
+     "cur": null,
+     "fixed": "Университет"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "lv",
+   "name": "Львов",
+   "acc": [
+    {
+     "id": "693715029717775",
+     "label": "TecDo lviv",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1586345589181607",
+     "label": "TecDo lviv_2",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1066004160856425",
+     "label": "Львів School",
+     "cur": null,
+     "fixed": "Школа"
+    },
+    {
+     "id": "2345425222425644",
+     "label": "Львів University",
+     "cur": null,
+     "fixed": "Университет"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "mk",
+   "name": "Николаев",
+   "acc": [
+    {
+     "id": "588627520432045",
+     "label": "TecDo mykolaiv",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "101015947042799",
+     "label": "Миколаїв",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "od",
+   "name": "Одесса",
+   "acc": [
+    {
+     "id": "1058424706035751",
+     "label": "TecDo odesa",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "947376861994257",
+     "label": "Одеса",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "568487825380399",
+     "label": "Одеса School",
+     "cur": "UAH",
+     "fixed": "Школа"
+    },
+    {
+     "id": "751091193194440",
+     "label": "Одеса ВУЗ (ОТУШ)",
+     "cur": "UAH",
+     "fixed": "Университет"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "pl",
+   "name": "Полтава",
+   "acc": [
+    {
+     "id": "390491359220352",
+     "label": "Полтава new",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": [
+    "TecDo poltava",
+    "Полтава School"
+   ]
+  },
+  {
+   "alias": "rv",
+   "name": "Ровно",
+   "acc": [
+    {
+     "id": "1486364228993884",
+     "label": "TecDo rivne",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1459087724602346",
+     "label": "Рівне",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "449123726691690",
+     "label": "Рівне School",
+     "cur": null,
+     "fixed": "Школа"
+    },
+    {
+     "id": "300040699729764",
+     "label": "Рівне Коледж",
+     "cur": null,
+     "fixed": "Колледж"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "kh",
+   "name": "Харьков",
+   "acc": [
+    {
+     "id": "1033677421914627",
+     "label": "TecDo kharkiv",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "308766879239404",
+     "label": "Харків",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "662174234924974",
+     "label": "Харків Університет",
+     "cur": null,
+     "fixed": "Университет"
+    },
+    {
+     "id": "185662249316959",
+     "label": "ITS School Харків",
+     "cur": null,
+     "fixed": "Школа"
+    }
+   ],
+   "noAccess": [
+    "Харків Школа ШАГ"
+   ]
+  },
+  {
+   "alias": "vn",
+   "name": "Винница",
+   "acc": [
+    {
+     "id": "1022272933195911",
+     "label": "TecDo vinnitsa",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "109393622765118",
+     "label": "Вінниця",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "lt",
+   "name": "Луцк",
+   "acc": [
+    {
+     "id": "1169207311618072",
+     "label": "TecDo lutsk",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": [
+    "Луцк",
+    "Луцк School"
+   ]
+  },
+  {
+   "alias": "cher",
+   "name": "Чернигов",
+   "acc": [
+    {
+     "id": "195482413821525",
+     "label": "Чернігів",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": [
+    "TecDo chernigov"
+   ]
+  },
+  {
+   "alias": "hson",
+   "name": "Херсон",
+   "acc": [
+    {
+     "id": "104377700316148",
+     "label": "Херсон",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "hm",
+   "name": "Хмельницкий",
+   "acc": [
+    {
+     "id": "105452889877495",
+     "label": "Хмельницький",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": [
+    "TecDo khmelnytskyi"
+   ]
+  },
+  {
+   "alias": "trn",
+   "name": "Тернополь",
+   "acc": [
+    {
+     "id": "645162848435559",
+     "label": "TecDo ternopil",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "416186325625598",
+     "label": "Тернопіль",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "697181762957486",
+     "label": "Тернопіль School new",
+     "cur": null,
+     "fixed": "Школа"
+    },
+    {
+     "id": "1246294226284975",
+     "label": "Тернопіль School",
+     "cur": null,
+     "fixed": "Школа"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "krog",
+   "name": "Кривой Рог",
+   "acc": [
+    {
+     "id": "848279614183327",
+     "label": "TecDo kryvyi_rih",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "135584623509380",
+     "label": "КА ШАГ Кривой Рог",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "971129350173495",
+     "label": "Кривой Рог School",
+     "cur": null,
+     "fixed": "Школа"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "zhitomir",
+   "name": "Житомир",
+   "acc": [
+    {
+     "id": "2250228862074390",
+     "label": "TecDo zhitomir",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1355427108125262",
+     "label": "Житомир",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "973875810220602",
+     "label": "Житомир School",
+     "cur": null,
+     "fixed": "Школа"
+    }
+   ],
+   "noAccess": [
+    "Житомир School new"
+   ]
+  },
+  {
+   "alias": "kmn",
+   "name": "Каменское",
+   "acc": [
+    {
+     "id": "500937456689781",
+     "label": "Каменское",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "cherniv",
+   "name": "Черновцы",
+   "acc": [
+    {
+     "id": "556023114219156",
+     "label": "TecDo chernivtsi",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1379162299041330",
+     "label": "Чернівці",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "ivf",
+   "name": "Ивано-Франковск",
+   "acc": [
+    {
+     "id": "1939717663501014",
+     "label": "TecDo ivano_frankivsk",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "uzh",
+   "name": "Ужгород",
+   "acc": [
+    {
+     "id": "1017558488278121",
+     "label": "Ужгород",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "cherk",
+   "name": "Черкассы",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "kram",
+   "name": "Краматорск",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "kremen",
+   "name": "Кременчуг",
+   "acc": [
+    {
+     "id": "610556532041415",
+     "label": "TecDo kremenchuk",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "361575301923938",
+     "label": "Кременчук",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1065755941423304",
+     "label": "Кременчук Коледж",
+     "cur": null,
+     "fixed": "Колледж"
+    },
+    {
+     "id": "2643297572532912",
+     "label": "Кременчук School new",
+     "cur": null,
+     "fixed": "Школа"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "virt",
+   "name": "Облачный (Виртуальный)",
+   "acc": [
+    {
+     "id": "1066834968533676",
+     "label": "TecDo cloud",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1146229760764783",
+     "label": "TecDo cloud_2",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "917642658589574",
+     "label": "Хмарна філія",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "krp",
+   "name": "Кропивницкий",
+   "acc": [
+    {
+     "id": "715848385540639",
+     "label": "Кропивницький",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "sum",
+   "name": "Сумы",
+   "acc": [
+    {
+     "id": "674283518909755",
+     "label": "TecDo sumy",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "bila",
+   "name": "Белая Церковь",
+   "acc": [
+    {
+     "id": "697612992759431",
+     "label": "TecDo bila_tserkva",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "259652715311051",
+     "label": "Белая Церковь",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1361354134288075",
+     "label": "Белая Церковь School",
+     "cur": null,
+     "fixed": "Школа"
+    },
+    {
+     "id": "1267684621357533",
+     "label": "Белая Церковь School new",
+     "cur": null,
+     "fixed": "Школа"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "unicorn",
+   "name": "Unicorn",
+   "acc": [
+    {
+     "id": "369013131036700",
+     "label": "Unicorn",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1495346005015831",
+     "label": "TecDo unicorn_school",
+     "cur": null,
+     "fixed": "Школа"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "kovel",
+   "name": "Ковель",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "irpen",
+   "name": "Ирпень",
+   "acc": [
+    {
+     "id": "689444030209377",
+     "label": "TecDo irpen",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1008757799660344",
+     "label": "Ірпінь",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "ol",
+   "name": "Александрия",
+   "acc": [
+    {
+     "id": "313459713208665",
+     "label": "Олександрія",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "stsm_kiev",
+   "name": "Step2Smart Киев",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "stt_ukr",
+   "name": "Step2Travel Ukraine",
+   "acc": [
+    {
+     "id": "1264991847976391",
+     "label": "Step Travel Camps",
+     "cur": null,
+     "fixed": "Лагеря"
+    },
+    {
+     "id": "1785823405700372",
+     "label": "TecDo travel_camps",
+     "cur": null,
+     "fixed": "Лагеря"
+    },
+    {
+     "id": "967267919220982",
+     "label": "TecDo travel_camps_2",
+     "cur": null,
+     "fixed": "Лагеря"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "drohobych",
+   "name": "Дрогобыч",
+   "acc": [
+    {
+     "id": "529343535591225",
+     "label": "Дрогобич",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "kyiv",
+   "name": "Вишнёвое",
+   "acc": [
+    {
+     "id": "483570565997642",
+     "label": "Вишневе",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "brovary",
+   "name": "Бровары",
+   "acc": [
+    {
+     "id": "1465061354660767",
+     "label": "TecDo brovary",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "multimed",
+   "name": "Мультимед",
+   "acc": [
+    {
+     "id": "694410725546876",
+     "label": "Медичний центр Мультимед",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "484101351455884",
+     "label": "MultiMed Kyiv",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "kalush",
+   "name": "Калуш",
+   "acc": [
+    {
+     "id": "642627190723166",
+     "label": "Калуш",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "itstepblck",
+   "name": "ITSTEP BLACK",
+   "acc": [
+    {
+     "id": "939919387088769",
+     "label": "IT STEP Black",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "berd",
+   "name": "Бердичев",
+   "acc": [
+    {
+     "id": "626142962379584",
+     "label": "Бердичів",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "globus",
+   "name": "Глобус",
+   "acc": [
+    {
+     "id": "573610951060484",
+     "label": "Глобус працюючий",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "foun",
+   "name": "Foundation",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "coll_od",
+   "name": "Колледж Одесса",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "mukachevo",
+   "name": "Мукачево",
+   "acc": [
+    {
+     "id": "723613563410878",
+     "label": "TecDo mukachevo",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "basic_sem",
+   "name": "Базовый семестр",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "kolomyia",
+   "name": "Коломия",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "stanislav",
+   "name": "Stanislav",
+   "acc": [
+    {
+     "id": "1722191901307837",
+     "label": "Stanislav STEP SCHOOL Київ",
+     "cur": null,
+     "fixed": "Школа"
+    },
+    {
+     "id": "1000130799104087",
+     "label": "TecDo stanislav_camps_2",
+     "cur": null,
+     "fixed": "Лагеря"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "med_coll",
+   "name": "Медичний коледж",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "defenders",
+   "name": "Devenders",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "teachmy",
+   "name": "Педагогічна Академія STEP",
+   "acc": [
+    {
+     "id": "656730367252879",
+     "label": "Teachers",
+     "cur": null,
+     "fixed": "Педагогическая академия"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "camp",
+   "name": "Step city camps",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "darnytsa",
+   "name": "Школа Дарница",
+   "acc": [
+    {
+     "id": "1698141254624386",
+     "label": "TecDo step.space.darnitsa",
+     "cur": null,
+     "fixed": "Школа"
+    }
+   ],
+   "noAccess": []
+  },
+  {
+   "alias": "spacekyiv",
+   "name": "STEP Space Kyiv",
+   "acc": [],
+   "noAccess": []
+  },
+  {
+   "alias": "ua_common",
+   "name": "Украина, общие кабинеты",
+   "acc": [
+    {
+     "id": "1521588285682569",
+     "label": "TecDo ukraine",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "1942954836496768",
+     "label": "TecDo step_hub_school",
+     "cur": null,
+     "fixed": null
+    },
+    {
+     "id": "501642765256994",
+     "label": "ЦУП (новый)",
+     "cur": null,
+     "fixed": null
+    }
+   ],
+   "noAccess": []
+  }
+ ],
+ "rate": 41.5
+}
