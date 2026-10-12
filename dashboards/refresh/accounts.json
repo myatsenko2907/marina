@@ -906,20 +906,20 @@
   {
    "alias": "darnytsa",
    "name": "Школа Дарница",
-   "acc": [
-    {
-     "id": "1698141254624386",
-     "label": "TecDo step.space.darnitsa",
-     "cur": null,
-     "fixed": "Школа"
-    }
-   ],
+   "acc": [],
    "noAccess": []
   },
   {
    "alias": "spacekyiv",
    "name": "STEP Space Kyiv",
-   "acc": [],
+   "acc": [
+    {
+     "id": "1698141254624386",
+     "label": "TecDo step.space.darnitsa",
+     "cur": null,
+     "fixed": null
+    }
+   ],
    "noAccess": []
   },
   {
