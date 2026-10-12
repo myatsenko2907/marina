@@ -8,31 +8,36 @@
      "id": "583445294461444",
      "label": "TecDo dnipro",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-dnipro-ED-HK-MT-P2-PV-4]"
     },
     {
      "id": "946369265406162",
      "label": "Днепр",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Днепр"
     },
     {
      "id": "1572100653126629",
      "label": "Днепр School",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Днепр_ITSTEP School"
     },
     {
      "id": "720108183701913",
      "label": "Днепр School new",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Днепр_ITSTEP School_new (неактивный)"
     },
     {
      "id": "1228678127880681",
      "label": "Днепр College",
      "cur": null,
-     "fixed": "Колледж"
+     "fixed": "Колледж",
+     "fb": "Днепр_ITSTEP College"
     }
    ],
    "noAccess": [
@@ -47,25 +52,29 @@
      "id": "815204851475151",
      "label": "TecDo zaporizhzhia",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-zaporizhzhia-ED-HK-MT-P2-PV-41]"
     },
     {
      "id": "1622992874424280",
      "label": "Запорожье",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Запорожье"
     },
     {
      "id": "787146249465460",
      "label": "Запорожье new",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Запорожье - new"
     },
     {
      "id": "2182783345411072",
      "label": "Запорожье College",
      "cur": null,
-     "fixed": "Колледж"
+     "fixed": "Колледж",
+     "fb": "Запорожье - ITSTEP College"
     }
    ],
    "noAccess": []
@@ -78,37 +87,43 @@
      "id": "1571785870203567",
      "label": "TecDo kyiv_main",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-kyiv_main-ED-HK-MT-P2-PV-5]"
     },
     {
      "id": "1366737444702918",
      "label": "TecDo kyiv",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-kyiv-ED-HK-MT-P2-PV-3]"
     },
     {
      "id": "1081653731894266",
      "label": "Київ",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Київ"
     },
     {
      "id": "24047114978229442",
      "label": "IT STEP School Київ",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "IT STEP School Київ"
     },
     {
      "id": "211198441658887",
      "label": "IT STEP College Київ",
      "cur": null,
-     "fixed": "Колледж"
+     "fixed": "Колледж",
+     "fb": "IT STEP College Київ"
     },
     {
      "id": "1282574981802139",
      "label": "Университет",
      "cur": null,
-     "fixed": "Университет"
+     "fixed": "Университет",
+     "fb": "Университет"
     }
    ],
    "noAccess": []
@@ -121,25 +136,29 @@
      "id": "693715029717775",
      "label": "TecDo lviv",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-lviv-ED-HK-MT-P2-PV-19]"
     },
     {
      "id": "1586345589181607",
      "label": "TecDo lviv_2",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-lviv_2-ED-HK-MT-P2-PV-42]"
     },
     {
      "id": "1066004160856425",
      "label": "Львів School",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Львів_IT STEP School"
     },
     {
      "id": "2345425222425644",
      "label": "Львів University",
      "cur": null,
-     "fixed": "Университет"
+     "fixed": "Университет",
+     "fb": "Львів University"
     }
    ],
    "noAccess": []
@@ -152,13 +171,15 @@
      "id": "588627520432045",
      "label": "TecDo mykolaiv",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-mykolaiv-ED-HK-MT-P2-PV-20]"
     },
     {
      "id": "101015947042799",
      "label": "Миколаїв",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Миколаїв"
     }
    ],
    "noAccess": []
@@ -171,25 +192,29 @@
      "id": "1058424706035751",
      "label": "TecDo odesa",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-odesa-ED-HK-MT-P2-PV-1]"
     },
     {
      "id": "947376861994257",
      "label": "Одеса",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Одеса"
     },
     {
      "id": "568487825380399",
      "label": "Одеса School",
      "cur": "UAH",
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Одеса_IT STEP School"
     },
     {
      "id": "751091193194440",
      "label": "Одеса ВУЗ (ОТУШ)",
      "cur": "UAH",
-     "fixed": "Университет"
+     "fixed": "Университет",
+     "fb": "Одеса_ВУЗ (ОТУШ)"
     }
    ],
    "noAccess": []
@@ -202,7 +227,8 @@
      "id": "390491359220352",
      "label": "Полтава new",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Полтава / new"
     }
    ],
    "noAccess": [
@@ -218,25 +244,29 @@
      "id": "1486364228993884",
      "label": "TecDo rivne",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-rivne-ED-HK-MT-P2-PV-16]"
     },
     {
      "id": "1459087724602346",
      "label": "Рівне",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Рівне"
     },
     {
      "id": "449123726691690",
      "label": "Рівне School",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Рівне_IT STEP School"
     },
     {
      "id": "300040699729764",
      "label": "Рівне Коледж",
      "cur": null,
-     "fixed": "Колледж"
+     "fixed": "Колледж",
+     "fb": "Рівне_IT STEP Коледж"
     }
    ],
    "noAccess": []
@@ -249,25 +279,29 @@
      "id": "1033677421914627",
      "label": "TecDo kharkiv",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-kharkiv-ED-HK-MT-P2-PV-32]"
     },
     {
      "id": "308766879239404",
      "label": "Харків",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Харків"
     },
     {
      "id": "662174234924974",
      "label": "Харків Університет",
      "cur": null,
-     "fixed": "Университет"
+     "fixed": "Университет",
+     "fb": "Харків Університет ШАГ"
     },
     {
      "id": "185662249316959",
      "label": "ITS School Харків",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "ITS School Харьков"
     }
    ],
    "noAccess": [
@@ -282,13 +316,15 @@
      "id": "1022272933195911",
      "label": "TecDo vinnitsa",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-vinnitsa-ED-HK-MT-P2-PV-15]"
     },
     {
      "id": "109393622765118",
      "label": "Вінниця",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Вінниця"
     }
    ],
    "noAccess": []
@@ -301,7 +337,8 @@
      "id": "1169207311618072",
      "label": "TecDo lutsk",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-lutsk-ED-HK-MT-P2-PV-27]"
     }
    ],
    "noAccess": [
@@ -317,7 +354,8 @@
      "id": "195482413821525",
      "label": "Чернігів",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Чернігів"
     }
    ],
    "noAccess": [
@@ -332,7 +370,8 @@
      "id": "104377700316148",
      "label": "Херсон",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Херсон"
     }
    ],
    "noAccess": []
@@ -345,7 +384,8 @@
      "id": "105452889877495",
      "label": "Хмельницький",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Хмельницький"
     }
    ],
    "noAccess": [
@@ -360,25 +400,29 @@
      "id": "645162848435559",
      "label": "TecDo ternopil",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-ternopil-ED-HK-MT-P2-PV-17]"
     },
     {
      "id": "416186325625598",
      "label": "Тернопіль",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Тернопіль"
     },
     {
      "id": "697181762957486",
      "label": "Тернопіль School new",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Тернопіль_IT Step School_new"
     },
     {
      "id": "1246294226284975",
      "label": "Тернопіль School",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Тернопіль_IT Step School (неактивный)"
     }
    ],
    "noAccess": []
@@ -391,19 +435,22 @@
      "id": "848279614183327",
      "label": "TecDo kryvyi_rih",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-kryvyi_rih-ED-HK-MT-P2-PV-11]"
     },
     {
      "id": "135584623509380",
      "label": "КА ШАГ Кривой Рог",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "КА ШАГ Кривой Рог"
     },
     {
      "id": "971129350173495",
      "label": "Кривой Рог School",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "КА ШАГ Кривой Рог - IT Step School"
     }
    ],
    "noAccess": []
@@ -416,19 +463,22 @@
      "id": "2250228862074390",
      "label": "TecDo zhitomir",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-zhitomir-ED-HK-MT-P2-PV-34]"
     },
     {
      "id": "1355427108125262",
      "label": "Житомир",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Житомир"
     },
     {
      "id": "973875810220602",
      "label": "Житомир School",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Житомир_IT STEP School"
     }
    ],
    "noAccess": [
@@ -443,7 +493,8 @@
      "id": "500937456689781",
      "label": "Каменское",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Каменское"
     }
    ],
    "noAccess": []
@@ -456,13 +507,15 @@
      "id": "556023114219156",
      "label": "TecDo chernivtsi",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-chernivtsi-ED-HK-MT-P2-PV-24]"
     },
     {
      "id": "1379162299041330",
      "label": "Чернівці",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Чернівці"
     }
    ],
    "noAccess": []
@@ -475,7 +528,8 @@
      "id": "1939717663501014",
      "label": "TecDo ivano_frankivsk",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-ivano_frankivsk-ED-HK-MT-P2-PV-9]"
     }
    ],
    "noAccess": []
@@ -488,7 +542,8 @@
      "id": "1017558488278121",
      "label": "Ужгород",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Ужгород"
     }
    ],
    "noAccess": []
@@ -513,25 +568,29 @@
      "id": "610556532041415",
      "label": "TecDo kremenchuk",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-kremenchuk-ED-HK-MT-P2-PV-21]"
     },
     {
      "id": "361575301923938",
      "label": "Кременчук",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Кременчук"
     },
     {
      "id": "1065755941423304",
      "label": "Кременчук Коледж",
      "cur": null,
-     "fixed": "Колледж"
+     "fixed": "Колледж",
+     "fb": "Кременчук_IT STEP Коледж"
     },
     {
      "id": "2643297572532912",
      "label": "Кременчук School new",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Кременчук_IT STEP School_new"
     }
    ],
    "noAccess": []
@@ -544,19 +603,22 @@
      "id": "1066834968533676",
      "label": "TecDo cloud",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-cloud-ED-HK-MT-P2-PV-2]"
     },
     {
      "id": "1146229760764783",
      "label": "TecDo cloud_2",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-cloud_2-ED-HK-MT-P2-PV-40]"
     },
     {
      "id": "917642658589574",
      "label": "Хмарна філія",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Хмарна філія"
     }
    ],
    "noAccess": []
@@ -569,7 +631,8 @@
      "id": "715848385540639",
      "label": "Кропивницький",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Кропивницький"
     }
    ],
    "noAccess": []
@@ -582,7 +645,8 @@
      "id": "674283518909755",
      "label": "TecDo sumy",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-sumy-ED-HK-MT-P2-PV-28]"
     }
    ],
    "noAccess": []
@@ -595,25 +659,29 @@
      "id": "697612992759431",
      "label": "TecDo bila_tserkva",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-bila_tserkva-ED-HK-MT-P2-PV-25]"
     },
     {
      "id": "259652715311051",
      "label": "Белая Церковь",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Белая Церковь"
     },
     {
      "id": "1361354134288075",
      "label": "Белая Церковь School",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Белая Церковь_IT STEP School"
     },
     {
      "id": "1267684621357533",
      "label": "Белая Церковь School new",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Белая Церковь_IT STEP School_new (неактивный)"
     }
    ],
    "noAccess": []
@@ -626,13 +694,15 @@
      "id": "369013131036700",
      "label": "Unicorn",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Unicorn"
     },
     {
      "id": "1495346005015831",
      "label": "TecDo unicorn_school",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "[ITS-AAA-unicorn_school-ED-HK-MT-P2-PV-36]"
     }
    ],
    "noAccess": []
@@ -651,13 +721,15 @@
      "id": "689444030209377",
      "label": "TecDo irpen",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-irpen-ED-HK-MT-P2-PV-9]"
     },
     {
      "id": "1008757799660344",
      "label": "Ірпінь",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Ірпінь"
     }
    ],
    "noAccess": []
@@ -670,7 +742,8 @@
      "id": "313459713208665",
      "label": "Олександрія",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Олександрія"
     }
    ],
    "noAccess": []
@@ -689,19 +762,22 @@
      "id": "1264991847976391",
      "label": "Step Travel Camps",
      "cur": null,
-     "fixed": "Лагеря"
+     "fixed": "Лагеря",
+     "fb": "Step Travel Camps"
     },
     {
      "id": "1785823405700372",
      "label": "TecDo travel_camps",
      "cur": null,
-     "fixed": "Лагеря"
+     "fixed": "Лагеря",
+     "fb": "[ITS-AAA-travel_camps-ED-HK-MT-P2-PV-8]"
     },
     {
      "id": "967267919220982",
      "label": "TecDo travel_camps_2",
      "cur": null,
-     "fixed": "Лагеря"
+     "fixed": "Лагеря",
+     "fb": "[ITS-AAA-itstep_travel_camps_2-ED-HK-MT-P2-PV-55]"
     }
    ],
    "noAccess": []
@@ -714,7 +790,8 @@
      "id": "529343535591225",
      "label": "Дрогобич",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Дрогобич"
     }
    ],
    "noAccess": []
@@ -727,7 +804,8 @@
      "id": "483570565997642",
      "label": "Вишневе",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Вишневе"
     }
    ],
    "noAccess": []
@@ -740,7 +818,8 @@
      "id": "1465061354660767",
      "label": "TecDo brovary",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-brovary-ED-HK-MT-P2-PV-23]"
     }
    ],
    "noAccess": []
@@ -753,13 +832,15 @@
      "id": "694410725546876",
      "label": "Медичний центр Мультимед",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Медичний центр Мультимед"
     },
     {
      "id": "484101351455884",
      "label": "MultiMed Kyiv",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "MultiMed Kyiv"
     }
    ],
    "noAccess": []
@@ -772,7 +853,8 @@
      "id": "642627190723166",
      "label": "Калуш",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Калуш"
     }
    ],
    "noAccess": []
@@ -785,7 +867,8 @@
      "id": "939919387088769",
      "label": "IT STEP Black",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "IT STEP Black"
     }
    ],
    "noAccess": []
@@ -798,7 +881,8 @@
      "id": "626142962379584",
      "label": "Бердичів",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Бердичів"
     }
    ],
    "noAccess": []
@@ -811,7 +895,8 @@
      "id": "573610951060484",
      "label": "Глобус працюючий",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "Глобус працюючий"
     }
    ],
    "noAccess": []
@@ -836,7 +921,8 @@
      "id": "723613563410878",
      "label": "TecDo mukachevo",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-mukachevo-ED-HK-MT-P2-PV-30]"
     }
    ],
    "noAccess": []
@@ -861,13 +947,15 @@
      "id": "1722191901307837",
      "label": "Stanislav STEP SCHOOL Київ",
      "cur": null,
-     "fixed": "Школа"
+     "fixed": "Школа",
+     "fb": "Stanislav STEP SCHOOL Київ"
     },
     {
      "id": "1000130799104087",
      "label": "TecDo stanislav_camps_2",
      "cur": null,
-     "fixed": "Лагеря"
+     "fixed": "Лагеря",
+     "fb": "[ITS-AAA-itstep_stanislav_camps_2-ED-HK-MT-P2-PV-54]"
     }
    ],
    "noAccess": []
@@ -892,7 +980,8 @@
      "id": "656730367252879",
      "label": "Teachers",
      "cur": null,
-     "fixed": "Педагогическая академия"
+     "fixed": "Педагогическая академия",
+     "fb": "Teachers"
     }
    ],
    "noAccess": []
@@ -917,7 +1006,8 @@
      "id": "1698141254624386",
      "label": "TecDo step.space.darnitsa",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-step.space.darnitsa-ED-HK-MT-P2-PV-60]"
     }
    ],
    "noAccess": []
@@ -930,19 +1020,22 @@
      "id": "1521588285682569",
      "label": "TecDo ukraine",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-ukraine-ED-HK-MT-P2-PV-29]"
     },
     {
      "id": "1942954836496768",
      "label": "TecDo step_hub_school",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "[ITS-AAA-step_hub_school-ED-HK-MT-P2-PV-37]"
     },
     {
      "id": "501642765256994",
      "label": "ЦУП (новый)",
      "cur": null,
-     "fixed": null
+     "fixed": null,
+     "fb": "ЦУП (новый)"
     }
    ],
    "noAccess": []

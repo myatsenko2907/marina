@@ -108,16 +108,94 @@ details.camps li span:first-child{overflow-wrap:anywhere}
 .card.zero{gap:4px;padding:12px 16px}
 .card.zero header{align-items:center}
 .card.zero .total{color:var(--muted);font-weight:500}
+.accs summary{font-size:12px}
+.accs .mono{font-size:11px;color:var(--muted)}
 .card .note{font-size:12px;color:var(--muted)}
 .card .note.warn{color:var(--warn)}
 .section-title{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:6px 0 0}
 </style>
 
+<style>
+.gate{max-width:420px;margin:6vh auto 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 22px 18px;display:flex;flex-direction:column;gap:12px}
+.gate h2{margin:0;font-size:17px}
+.gate p{margin:0;color:var(--muted)}
+.gate .field input{width:100%}
+.gate .err{color:var(--bad);font-size:13px;min-height:1.2em}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.who{font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.who b{color:var(--ink);font-weight:600}
+.pill{font-size:11px;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:2px 8px}
+.admin{background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:12px 16px}
+.admin summary{cursor:pointer;font-weight:600}
+.admin .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin-top:12px}
+.admin h3{font-size:14px;margin:0 0 8px}
+.admin table td,.admin table th{padding:6px 6px 6px 0}
+.admin .meta{font-size:12px;color:var(--muted)}
+.citylist{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:4px 12px;max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:7px;padding:8px 10px;background:var(--bg)}
+.citylist label{font-size:13px;display:flex;gap:6px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:10px}
+.inline{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.inline .field{flex:1 1 160px}
+.field input[type=text],.field input[type=password]{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0;width:100%}
+.danger{background:transparent;border:1px solid var(--bad);color:var(--bad);border-radius:7px;padding:4px 10px;font-size:12px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;user-select:all}
+</style>
+
 <div class="wrap">
-  <div>
-    <h1>Реклама филиалов Украины</h1>
-    <p class="sub">Расход Meta Ads по продуктам за выбранные месяцы и доля каждого продукта в рекламном бюджете филиала. Все филиалы Украины, данные обновляются автоматически каждый день.</p>
+  <div class="topbar">
+    <div>
+      <h1>Реклама филиалов Украины</h1>
+      <p class="sub">Расход Meta Ads по продуктам за выбранные месяцы и доля каждого продукта в рекламном бюджете филиала. Данные обновляются раз в день.</p>
+    </div>
+    <div class="who" id="who" hidden><span>Вы вошли как <b id="whoName"></b></span><span class="pill" id="whoRole"></span><button type="button" class="ghost" id="logout">Выйти</button></div>
   </div>
+
+  <form class="gate" id="loginCard" hidden autocomplete="on">
+    <h2>Вход</h2>
+    <p>Введите логин и пароль, которые вам выдал администратор дашборда.</p>
+    <div class="field"><label for="lgLogin">Логин</label><input type="text" id="lgLogin" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+    <div class="field"><label for="lgPass">Пароль</label><input type="password" id="lgPass" autocomplete="current-password" required></div>
+    <button class="primary" type="submit" id="lgBtn">Войти</button>
+    <div class="err" id="lgErr" role="alert"></div>
+  </form>
+
+  <form class="gate" id="setupCard" hidden>
+    <h2>Первичная настройка</h2>
+    <p>Создайте главного администратора. Он видит все города и выдаёт доступы остальным. Данные будут зашифрованы: без пароля их не прочитать даже по ссылке.</p>
+    <div class="field"><label for="suLogin">Логин администратора</label><input type="text" id="suLogin" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="например, marina"></div>
+    <div class="field"><label for="suPass">Пароль (не короче 10 символов)</label><input type="password" id="suPass" autocomplete="new-password" required minlength="10"></div>
+    <div class="field"><label for="suPass2">Пароль ещё раз</label><input type="password" id="suPass2" autocomplete="new-password" required minlength="10"></div>
+    <button class="primary" type="submit" id="suBtn">Создать и зашифровать данные</button>
+    <div class="err" id="suErr" role="alert"></div>
+  </form>
+
+  <div class="gate" id="notReady" hidden>
+    <h2>Дашборд ещё не настроен</h2>
+    <p id="notReadyText">Владелец дашборда пока не создал доступы. Попробуйте позже.</p>
+  </div>
+
+  <div class="stack" id="app" hidden>
+    <details class="admin" id="adminPanel" hidden>
+      <summary>Пользователи и доступы</summary>
+      <div class="cols">
+        <div>
+          <h3>Пользователи</h3>
+          <div style="overflow-x:auto"><table><thead><tr><th>Логин</th><th>Доступ</th><th></th></tr></thead><tbody id="userRows"></tbody></table></div>
+          <p class="meta">Пароль хранится только у пользователя. Если его забыли, создайте пользователя с тем же логином заново: старый пароль перестанет работать.</p>
+        </div>
+        <form class="stack" id="userForm">
+          <h3>Добавить или перезаписать пользователя</h3>
+          <div class="inline">
+            <div class="field"><label for="ufLogin">Логин</label><input type="text" id="ufLogin" autocapitalize="none" spellcheck="false" required placeholder="латиница, цифры, . _ -"></div>
+            <div class="field"><label for="ufPass">Пароль</label><input type="text" id="ufPass" required minlength="10" spellcheck="false"></div>
+            <button type="button" class="ghost" id="ufGen">Сгенерировать</button>
+          </div>
+          <label class="status"><input type="checkbox" id="ufAll"> Главный пользователь: все города</label>
+          <div class="citylist" id="ufCities"></div>
+          <div class="inline"><button class="primary" type="submit" id="ufSave">Сохранить пользователя</button><span class="status" id="ufStatus" role="status"></span></div>
+        </form>
+      </div>
+    </details>
 
   <form class="controls" id="controls">
     <div class="field"><label for="from">С месяца</label><select id="from"></select></div>
@@ -161,6 +239,7 @@ details.camps li span:first-child{overflow-wrap:anywhere}
   </details>
 
   <p class="foot" id="foot"></p>
+  </div>
 </div>
 
 <script>
@@ -168,19 +247,51 @@ details.camps li span:first-child{overflow-wrap:anywhere}
 "use strict";
 const DEFAULT_RULES = [
   "Вакансии (HR): вакансі, вакансия, пошук викладача",
+  "ШС: шс, шc",
   "ПКО (взрослые): пко, рпз, рпо, кгід, кгид, мік, ді, дизайн інтер, дизайн интерьер, профоріє, профорие, тест-драйв, тест драйв, qa",
   "Колледж: коледж, колледж, college",
   "Университет: університет, университет, university, вуз, внз, хту",
   "Лагеря: табір, лагер, camp, кемп, lager",
-  "Школа: шс, шc, школа, school, шкіл",
+  "Школа: школа, school, шкіл",
   "МКА (дети): мка, mka, мк, пу, дцр, kids, кідс, roblox, роблокс, minecraft, майнкрафт, brawl, lego, лего, людина-павук, людини-павука, супергер, super heroes, marvel, brookhaven, 99 ночей, кріпер, мультик, комікс, персонаж, gamedev, підготовка до школи, подготовка к школе",
   "НМТ (подготовка): нмт, нтм",
   "Спецкурсы: ск, спецкурс, курс, ші, ім, штучний інтелект, ai, аі, python, canva, figma, вайб, 3ds, 3dsmax, smm, marketer, marketing, маркетинг, маркетолог, digital, анімац, моушн, motion, ui ux, 2d, prompt, з нуля до, для бізнесу, кібербезпек, кибербезопасн, cybersecurity",
   "Педагогическая академия: teacher, педагог"
 ].join("\n");
 const OTHER = "Не определено";
+const PBKDF2_ITER = 310000;
 const $ = id => document.getElementById(id);
-const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const store = {get(k){try{return sessionStorage.getItem(k)}catch(e){return null}}, set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}}};
+const show = (id, on) => { $(id).hidden = !on; };
+
+// ---------- crypto ----------
+const subtle = window.crypto && window.crypto.subtle;
+const enc = new TextEncoder(), dec = new TextDecoder();
+const b64 = buf => { const b=new Uint8Array(buf); let s=""; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); };
+const ub64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const EC = {name:"ECDH", namedCurve:"P-256"};
+async function passKey(password, salt, iter){
+  const base = await subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+  return subtle.deriveKey({name:"PBKDF2", hash:"SHA-256", salt, iterations:iter}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function aesSeal(key, bytes){ const iv=crypto.getRandomValues(new Uint8Array(12)); return {iv:b64(iv), ct:b64(await subtle.encrypt({name:"AES-GCM", iv}, key, bytes))}; }
+async function aesOpen(key, box){ return new Uint8Array(await subtle.decrypt({name:"AES-GCM", iv:ub64(box.iv)}, key, ub64(box.ct))); }
+async function eciesKey(priv, pub){
+  const bits = await subtle.deriveBits({name:"ECDH", public:pub}, priv, 256);
+  const hk = await subtle.importKey("raw", bits, "HKDF", false, ["deriveKey"]);
+  return subtle.deriveKey({name:"HKDF", hash:"SHA-256", salt:new Uint8Array(32), info:enc.encode("uaads-v1")}, hk, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function eciesOpen(priv, box){
+  const epk = await subtle.importKey("raw", ub64(box.epk), EC, false, []);
+  return JSON.parse(dec.decode(await aesOpen(await eciesKey(priv, epk), box)));
+}
+async function eciesSeal(pubJwk, obj){
+  const pub = await subtle.importKey("jwk", pubJwk, EC, false, []);
+  const eph = await subtle.generateKey(EC, true, ["deriveBits"]);
+  const box = await aesSeal(await eciesKey(eph.privateKey, pub), enc.encode(JSON.stringify(obj)));
+  box.epk = b64(await subtle.exportKey("raw", eph.publicKey));
+  return box;
+}
 
 // ---------- rules ----------
 function parseRules(text){
@@ -212,10 +323,19 @@ const curKey=mkey(today.getFullYear(),today.getMonth());
 const monthList=[];
 for(let i=0;i<24;i++){const d=new Date(today.getFullYear(),today.getMonth()-i,1); monthList.push(mkey(d.getFullYear(),d.getMonth()));}
 const mlabel=k=>{const [y,m]=k.split("-"); return MONTHS_RU[+m-1]+" "+y;};
-const mlabelShort=k=>{const [y,m]=k.split("-"); return MONTHS_RU[+m-1].slice(0,3)+" "+y.slice(2);};
 function rangeKeys(a,b){ if(a>b) [a,b]=[b,a]; return monthList.filter(k=>k>=a&&k<=b).sort(); }
 
-let months={}, branches=null, isOwner=false, db=null;
+// ---------- state ----------
+let db=null, isOwner=false;
+let accounts=null;          // config/accounts branches
+let cityKeys=null;          // {branch: public JWK}
+let session=null;           // {login, admin, pk:AES key, privs:Map(branch->CryptoKey), raw:Map(branch->pkcs8 bytes)}
+let encDocs={};             // raw enc docs by month
+let months={};              // decrypted: month -> {fetchedAt, through, rate, branches:{name:{c,e}}}
+let plainMonths={};         // legacy unencrypted docs, migrated by the owner
+let users=[];
+let unsubs=[];
+
 function fillSelects(){
   for(const id of ["from","to"]){
     const sel=$(id), keep=sel.value;
@@ -252,6 +372,10 @@ function showBanner(kind, text){const b=$("banner"); b.className="banner "+kind;
 function hideBanner(){$("banner").hidden=true;}
 
 // ---------- render ----------
+function visibleBranches(){
+  if(!accounts || !session) return [];
+  return accounts.filter(b=>session.privs.has(b.name));
+}
 function aggregate(br, keys){
   const by=new Map(); const errors=[];
   for(const k of keys){
@@ -270,51 +394,50 @@ function aggregate(br, keys){
   const total=[...by.values()].reduce((s,g)=>s+g.spend,0);
   const rows=[...by.values()].map(g=>({product:g.product, spend:g.spend, camps:[...g.camps.values()].sort((a,b)=>b.spend-a.spend)}))
     .sort((a,b)=>(a.product===OTHER)-(b.product===OTHER) || b.spend-a.spend);
-  return {name:br.name, accCount:(br.acc||[]).length, noAccess:br.noAccess||[], total, rows, errors};
+  return {name:br.name, acc:br.acc||[], accCount:(br.acc||[]).length, noAccess:br.noAccess||[], total, rows, errors};
 }
-
 function render(){
-  if(!branches) return;
+  if(!session || !accounts) return;
   const keys=rangeKeys($("from").value||curKey, $("to").value||curKey);
   const have=keys.filter(k=>months[k]), missing=keys.filter(k=>!months[k]);
   $("periodLabel").textContent = "Период: " + (keys.length===1? mlabel(keys[0]) : mlabel(keys[0])+" — "+mlabel(keys[keys.length-1]));
   const stamps=Object.values(months).map(m=>m.fetchedAt).filter(Boolean).sort();
   const latest=stamps[stamps.length-1];
-  $("freshness").textContent = latest ? "Данные из Meta обновляются автоматически каждый день. Последнее обновление: "+fmtWhen(latest)+(have.includes(curKey)&&months[curKey].through?". Текущий месяц — по "+fmtDay(months[curKey].through)+".":".") : "Данные ещё не выгружены. Первая выгрузка появится здесь автоматически.";
-
+  $("freshness").textContent = latest ? "Данные из Meta обновляются раз в день. Последнее обновление: "+fmtWhen(latest)+(have.includes(curKey)&&months[curKey].through?". Текущий месяц — по "+fmtDay(months[curKey].through)+".":".") : "Данные ещё не выгружены.";
   if(missing.length && have.length) showBanner("warn","Нет данных за: "+missing.map(mlabel).join(", ")+". Итоги посчитаны только по выгруженным месяцам.");
   else hideBanner();
 
   const q=$("q").value.trim().toLowerCase();
-  const all=branches.map(b=>aggregate(b, have));
+  const all=visibleBranches().map(b=>aggregate(b, have));
   const active=all.filter(b=>b.total>0).sort((a,b)=>b.total-a.total);
   const zero=all.filter(b=>b.total===0).sort((a,b)=>(b.accCount>0)-(a.accCount>0) || a.name.localeCompare(b.name,"ru"));
-
   const grand=active.reduce((s,b)=>s+b.total,0);
   const prodTotals=new Map();
   active.forEach(b=>b.rows.forEach(r=>prodTotals.set(r.product,(prodTotals.get(r.product)||0)+r.spend)));
   const topProd=[...prodTotals.entries()].filter(e=>e[0]!==OTHER).sort((a,b)=>b[1]-a[1])[0];
   const undef=prodTotals.get(OTHER)||0, top=active[0];
+  const scope = session.admin ? "по Украине" : (all.length===1 ? "по филиалу" : "по вашим филиалам");
   $("summary").innerHTML = !have.length ? "" :
-    stat("Расход по Украине", usd(grand), active.length+" из "+all.length+" "+plural(all.length,"филиала","филиалов","филиалов")+" с рекламой") +
-    stat("Больше всех тратит", top?esc(top.name):"—", top?usd(top.total)+" · "+pct(top.total/grand):"") +
+    stat("Расход "+scope, usd(grand), active.length+" из "+all.length+" "+plural(all.length,"филиала","филиалов","филиалов")+" с рекламой") +
+    (all.length>1 ? stat("Больше всех тратит", top?esc(top.name):"—", top?usd(top.total)+" · "+pct(top.total/grand):"") : "") +
     stat("Главный продукт", topProd?esc(topProd[0]):"—", topProd?usd(topProd[1])+" · "+pct(topProd[1]/grand):"") +
     stat("Не определено", usd(undef), grand?pct(undef/grand)+" расхода":"");
-
   const match=b=>!q || b.name.toLowerCase().includes(q);
   $("grid").innerHTML = active.filter(match).map(card).join("") ||
-    (!have.length ? '<div class="empty">За выбранные месяцы данных пока нет.</div>' : active.length ? "" : '<div class="empty">За этот период расхода нет ни в одном филиале.</div>');
+    (!have.length ? '<div class="empty">За выбранные месяцы данных пока нет.</div>' : active.length ? "" : '<div class="empty">За этот период расхода нет.</div>');
   const zs=zero.filter(match);
   $("zeroGrid").innerHTML = zs.map(b=>zeroCard(b, have.length>0)).join("");
   $("zeroTitle").hidden = !zs.length;
-  $("foot").textContent = footText();
-}
-function footText(){
   const rates=[...new Set(Object.values(months).map(m=>m.rate).filter(Boolean))];
-  return "Источник: рекламные кабинеты Meta (Facebook и Instagram), расход в долларах"+(rates.length?"; кабинеты в гривне пересчитаны по курсу "+rates.join(" / ")+" грн":"")+". Процент — доля продукта в рекламном расходе филиала за период. Google Ads и другие каналы сюда не входят.";
+  $("foot").textContent = "Источник: рекламные кабинеты Meta (Facebook и Instagram), расход в долларах"+(rates.length?"; кабинеты в гривне пересчитаны по курсу "+rates.join(" / ")+" грн":"")+". Процент — доля продукта в рекламном расходе филиала за период. Google Ads и другие каналы сюда не входят.";
 }
 function stat(label, big, small){return '<div class="stat"><span>'+label+'</span><b class="num">'+big+'</b><small class="num">'+small+'</small></div>'}
-const ERR={tool_error:"Meta вернула ошибку", server_unavailable:"Meta не ответила", needs_reauth:"нужно переподключить Meta", not_queryable:"кабинет недоступен"};
+const ERR={tool_error:"Meta вернула ошибку", server_unavailable:"Meta не ответила", needs_reauth:"нужно переподключить Meta"};
+function accList(b){
+  if(!b.acc.length) return "";
+  return '<details class="camps accs"><summary>Кабинеты Meta: '+b.acc.length+'</summary><ul>'+
+    b.acc.map(a=>'<li><span>'+esc(a.fb||a.label)+'</span><span class="num mono">'+esc(a.id)+'</span></li>').join("")+'</ul></details>';
+}
 function notes(b){
   let h="";
   if(b.noAccess.length) h+='<div class="note warn">Не учтено, Meta не даёт доступа: '+b.noAccess.map(esc).join(", ")+'</div>';
@@ -334,15 +457,183 @@ function card(b){
       '<td class="r spend num">'+usd(r.spend)+'</td>'+
       '<td class="share"><div class="sharecell"><div class="bar" aria-hidden="true"><i style="width:'+(share*100).toFixed(1)+'%"></i></div><span class="pct">'+pct(share)+'</span></div></td></tr>';
   }).join("");
-  return '<article class="card"><header><h2>'+esc(b.name)+'</h2><span class="total num">'+usd(b.total)+'</span></header>'+
+  return '<article class="card"><header><h2>'+esc(b.name)+'</h2><span class="total num">'+usd(b.total)+'</span></header>'+accList(b)+
     '<table><thead><tr><th>Продукт</th><th class="r">Расход</th><th class="r">% от рекламы филиала</th></tr></thead><tbody>'+rows+'</tbody></table>'+notes(b)+'</article>';
 }
 function zeroCard(b, hasData){
   const why = !b.accCount ? (b.noAccess.length? "Кабинет есть, но Meta не даёт к нему доступа" : "Рекламный кабинет Meta не найден")
     : hasData ? "В кабинетах не было расхода" : "Нет данных за период";
-  return '<article class="card zero"><header><h2>'+esc(b.name)+'</h2><span class="total num">$0</span></header>'+
+  return '<article class="card zero"><header><h2>'+esc(b.name)+'</h2><span class="total num">$0</span></header>'+accList(b)+
     '<div class="note">'+why+'</div>'+(b.accCount?notes(b):"")+'</article>';
 }
+
+// ---------- data ----------
+async function decryptAll(){
+  if(!session) return;
+  const out={};
+  for(const [k,doc] of Object.entries(encDocs)){
+    const m={fetchedAt:doc.fetchedAt, through:doc.through, rate:doc.rate, branches:{}};
+    for(const [name, box] of Object.entries(doc.cities||{})){
+      const priv=session.privs.get(name); if(!priv) continue;
+      try{ m.branches[name]=await eciesOpen(priv, box); }catch(e){ /* sealed for a key this user no longer holds */ }
+    }
+    out[k]=m;
+  }
+  months=out; fillSelects(); render();
+}
+
+// ---------- login ----------
+const LOGIN_RE=/^[a-z0-9._-]{2,40}$/;
+async function openSession(login, password){
+  const snap=await db.doc("users/"+login).get();
+  if(!snap.exists) throw new Error("bad");
+  const u=snap.data();
+  const pk=await passKey(password, ub64(u.salt), u.iter||PBKDF2_ITER);
+  const privs=new Map(), raw=new Map();
+  for(const [name, box] of Object.entries(u.wrapped||{})){
+    let bytes;
+    try{ bytes=await aesOpen(pk, box); }catch(e){ throw new Error("bad"); }
+    raw.set(name, bytes);
+    privs.set(name, await subtle.importKey("pkcs8", bytes, EC, false, ["deriveBits"]));
+  }
+  if(!privs.size) throw new Error("bad");
+  return {login, admin:!!u.admin, pk, salt:u.salt, iter:u.iter||PBKDF2_ITER, privs, raw};
+}
+async function userDoc(login, password, admin, rawByBranch){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const pk=await passKey(password, salt, PBKDF2_ITER);
+  const wrapped={};
+  for(const [name, bytes] of rawByBranch) wrapped[name]=await aesSeal(pk, bytes);
+  return {login, admin:!!admin, cities:[...rawByBranch.keys()], salt:b64(salt), iter:PBKDF2_ITER, wrapped, updatedAt:new Date().toISOString()};
+}
+function enterApp(){
+  show("loginCard",false); show("setupCard",false); show("notReady",false);
+  show("app",true); show("who",true);
+  $("whoName").textContent=session.login;
+  $("whoRole").textContent= session.admin ? "все города" : (session.privs.size+" "+plural(session.privs.size,"город","города","городов"));
+  store.set("uaads.login", session.login);
+  fillSelects(); setPreset(store.get("uaads.preset") || "last_month");
+  decryptAll();
+  if(isOwner && session.admin) setupAdmin();
+}
+$("loginCard").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const login=$("lgLogin").value.trim().toLowerCase(), pass=$("lgPass").value;
+  $("lgErr").textContent=""; $("lgBtn").disabled=true; $("lgBtn").textContent="Проверяю…";
+  try{
+    if(!LOGIN_RE.test(login)) throw new Error("bad");
+    session=await openSession(login, pass);
+    $("lgPass").value="";
+    enterApp();
+  }catch(err){
+    $("lgErr").textContent = err.message==="bad" ? "Неверный логин или пароль." : "Не удалось войти (код "+(err.code||err.message)+"). Обновите страницу и попробуйте снова.";
+  }finally{ $("lgBtn").disabled=false; $("lgBtn").textContent="Войти"; }
+});
+$("logout").addEventListener("click",()=>{ location.reload(); });
+
+// ---------- first setup (owner) ----------
+async function genBranchKey(){
+  const kp=await subtle.generateKey(EC, true, ["deriveBits"]);
+  return {pub:await subtle.exportKey("jwk", kp.publicKey), raw:new Uint8Array(await subtle.exportKey("pkcs8", kp.privateKey))};
+}
+$("setupCard").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const login=$("suLogin").value.trim().toLowerCase(), p1=$("suPass").value, p2=$("suPass2").value;
+  const err=t=>{$("suErr").textContent=t;};
+  if(!LOGIN_RE.test(login)) return err("Логин: 2–40 символов, латиница, цифры, точка, дефис или подчёркивание.");
+  if(p1.length<10) return err("Пароль должен быть не короче 10 символов.");
+  if(p1!==p2) return err("Пароли не совпадают.");
+  $("suBtn").disabled=true; $("suBtn").textContent="Шифрую…"; err("");
+  try{
+    const keys={}, raw=new Map();
+    for(const b of accounts){ const k=await genBranchKey(); keys[b.name]=k.pub; raw.set(b.name,k.raw); }
+    await db.doc("users/"+login).set(await userDoc(login, p1, true, raw));
+    await db.doc("config/cityKeys").set({keys, updatedAt:new Date().toISOString()});
+    cityKeys=keys;
+    session=await openSession(login, p1);
+    $("suPass").value=""; $("suPass2").value="";
+    await migratePlain();
+    enterApp();
+  }catch(ex){
+    err("Не получилось сохранить (код "+(ex.code||ex.message)+"). Сохранять настройки может только владелец дашборда.");
+  }finally{ $("suBtn").disabled=false; $("suBtn").textContent="Создать и зашифровать данные"; }
+});
+// Moves unencrypted month documents into the encrypted collection, then deletes them.
+async function migratePlain(){
+  const ids=Object.keys(plainMonths);
+  for(const id of ids){
+    const doc=plainMonths[id];
+    if(!encDocs[id] || (encDocs[id].fetchedAt||"") < (doc.fetchedAt||"")){
+      const cities={};
+      for(const [name, payload] of Object.entries(doc.branches||{})) if(cityKeys[name]) cities[name]=await eciesSeal(cityKeys[name], payload);
+      await db.doc("enc/"+id).set({month:id, fetchedAt:doc.fetchedAt, through:doc.through, rate:doc.rate, cities});
+    }
+    await db.doc("months/"+id).delete();
+  }
+}
+// Branches added to the account list after setup get a key the next time an admin signs in.
+async function ensureKeys(){
+  const missing=accounts.filter(b=>!cityKeys[b.name]);
+  if(!missing.length) return;
+  const keys=Object.assign({}, cityKeys), raw=new Map(session.raw);
+  for(const b of missing){ const k=await genBranchKey(); keys[b.name]=k.pub; raw.set(b.name,k.raw); }
+  const wrapped={};
+  for(const [name, bytes] of raw) wrapped[name]=await aesSeal(session.pk, bytes);
+  await db.doc("users/"+session.login).set({login:session.login, admin:true, cities:[...raw.keys()], salt:session.salt, iter:session.iter, wrapped, updatedAt:new Date().toISOString()});
+  await db.doc("config/cityKeys").set({keys, updatedAt:new Date().toISOString()});
+  cityKeys=keys; session.raw=raw;
+  for(const b of missing) session.privs.set(b.name, await subtle.importKey("pkcs8", raw.get(b.name), EC, false, ["deriveBits"]));
+}
+
+// ---------- admin ----------
+let adminReady=false;
+async function setupAdmin(){
+  show("adminPanel", true);
+  try{ await ensureKeys(); if(Object.keys(plainMonths).length) await migratePlain(); }catch(e){ $("ufStatus").textContent="Не удалось обновить ключи (код "+(e.code||e.message)+")."; }
+  if(adminReady) return; adminReady=true;
+  $("ufCities").innerHTML = accounts.map((b,i)=>'<label><input type="checkbox" value="'+i+'"> '+esc(b.name)+'</label>').join("");
+  unsubs.push(db.collection("users").onSnapshot(snap=>{
+    users=snap.docs.filter(d=>d.exists).map(d=>d.data()); renderUsers();
+  }, ()=>{}));
+}
+function renderUsers(){
+  $("userRows").innerHTML = users.slice().sort((a,b)=>(b.admin-a.admin)||a.login.localeCompare(b.login)).map(u=>{
+    const cities=u.admin ? "Все города" : (u.cities||[]).join(", ");
+    const del = u.login===session.login ? '<span class="meta">это вы</span>' : '<button type="button" class="danger" data-del="'+esc(u.login)+'">Удалить</button>';
+    return '<tr><td class="mono">'+esc(u.login)+'</td><td>'+esc(cities)+'</td><td>'+del+'</td></tr>';
+  }).join("") || '<tr><td colspan="3" class="meta">Пока никого нет.</td></tr>';
+}
+let pendingDelete=null;
+$("userRows").addEventListener("click", async e=>{
+  const b=e.target.closest("[data-del]"); if(!b) return;
+  const login=b.dataset.del;
+  if(pendingDelete!==login){ pendingDelete=login; b.textContent="Точно удалить?"; return; }
+  pendingDelete=null; b.disabled=true;
+  try{ await db.doc("users/"+login).delete(); $("ufStatus").textContent="Пользователь "+login+" удалён."; }
+  catch(err){ b.disabled=false; $("ufStatus").textContent="Не удалось удалить (код "+(err.code||err.message)+")."; }
+});
+$("ufGen").addEventListener("click",()=>{
+  const abc="abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const r=crypto.getRandomValues(new Uint32Array(14));
+  $("ufPass").value=Array.from(r,x=>abc[x%abc.length]).join("");
+});
+$("ufAll").addEventListener("change",()=>{ $("ufCities").querySelectorAll("input").forEach(i=>{ i.disabled=$("ufAll").checked; if($("ufAll").checked) i.checked=true; }); });
+$("userForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const login=$("ufLogin").value.trim().toLowerCase(), pass=$("ufPass").value, all=$("ufAll").checked;
+  const st=t=>{$("ufStatus").textContent=t;};
+  if(!LOGIN_RE.test(login)) return st("Логин: 2–40 символов, латиница, цифры, точка, дефис или подчёркивание.");
+  if(pass.length<10) return st("Пароль должен быть не короче 10 символов.");
+  const chosen = all ? accounts.map(b=>b.name) : [...$("ufCities").querySelectorAll("input:checked")].map(i=>accounts[+i.value].name);
+  if(!chosen.length) return st("Отметьте хотя бы один город.");
+  const raw=new Map(); for(const n of chosen){ if(session.raw.has(n)) raw.set(n, session.raw.get(n)); }
+  $("ufSave").disabled=true; st("Шифрую доступ…");
+  try{
+    await db.doc("users/"+login).set(await userDoc(login, pass, all, raw));
+    st("Сохранено. Передайте пользователю логин «"+login+"» и пароль: он показан в поле выше и больше нигде не хранится.");
+  }catch(err){ st("Не удалось сохранить (код "+(err.code||err.message)+")."); }
+  finally{ $("ufSave").disabled=false; }
+});
 
 // ---------- events ----------
 $("presets").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(b) setPreset(b.dataset.p);});
@@ -357,25 +648,37 @@ $("applyRules").addEventListener("click",async()=>{
 $("resetRules").addEventListener("click",()=>{ $("rules").value=DEFAULT_RULES; $("rulesStatus").textContent="Нажмите «Сохранить для всех», чтобы применить"; });
 
 // ---------- boot ----------
-fillSelects();
-setPreset(store.get("uaads.preset") || "last_month");
-
+function chooseGate(){
+  if(session || !accounts || cityKeys===undefined) return;
+  if(cityKeys){ show("setupCard",false); show("notReady",false); show("loginCard",true); const l=store.get("uaads.login"); if(l && !$("lgLogin").value) $("lgLogin").value=l; }
+  else if(isOwner){ show("loginCard",false); show("setupCard",true); }
+  else { show("notReady",true); }
+}
+cityKeys=undefined;
 const cl = window.claude && window.claude.use ? window.claude : null;
-if(!cl){ $("freshness").textContent="Откройте эту страницу по ссылке на claude.ai, чтобы увидеть данные."; }
+if(!cl || !subtle){ show("notReady",true); $("notReadyText").textContent="Откройте эту страницу по ссылке на claude.ai."; }
 else {
   Promise.all([cl.use("db"), cl.use("user")]).then(async ([d,u])=>{
     db=d;
     isOwner = u ? await u.isOwner() : false;
-    if(!db){ $("freshness").textContent="Данные недоступны в этом просмотре. Откройте страницу на claude.ai, войдя в аккаунт."; return; }
-    if(isOwner){ $("rules").readOnly=false; $("rulesActions").hidden=false; $("rulesLabel").textContent="Правила (сохраняются для всех, кто смотрит дашборд)"; }
+    if(!db){ show("notReady",true); $("notReadyText").textContent="Данные недоступны в этом просмотре. Откройте страницу на claude.ai, войдя в аккаунт."; return; }
+    if(isOwner){ $("rules").readOnly=false; show("rulesActions",true); $("rulesLabel").textContent="Правила (сохраняются для всех, кто смотрит дашборд)"; }
     db.doc("config/accounts").onSnapshot(snap=>{
-      if(snap.exists && Array.isArray(snap.data().branches)){ branches=snap.data().branches; render(); }
-      else { $("freshness").textContent="Список филиалов ещё не загружен."; }
-    }, err=>{ $("freshness").textContent="Не удалось прочитать данные (код "+(err&&err.code)+"). Обновите страницу."; });
-    db.collection("months").onSnapshot(snap=>{
+      accounts = snap.exists && Array.isArray(snap.data().branches) ? snap.data().branches : [];
+      chooseGate(); render();
+    }, ()=>{});
+    db.doc("config/cityKeys").onSnapshot(snap=>{
+      cityKeys = snap.exists && snap.data().keys ? snap.data().keys : null;
+      chooseGate();
+    }, ()=>{ cityKeys=null; chooseGate(); });
+    db.collection("enc").onSnapshot(snap=>{
       const next={}; snap.docs.forEach(doc=>{ if(doc.exists) next[doc.id]=doc.data(); });
-      months=next; fillSelects(); render();
-    }, err=>{ $("freshness").textContent="Не удалось прочитать данные (код "+(err&&err.code)+"). Обновите страницу."; });
+      encDocs=next; decryptAll();
+    }, ()=>{});
+    if(isOwner) db.collection("months").onSnapshot(snap=>{
+      const next={}; snap.docs.forEach(doc=>{ if(doc.exists) next[doc.id]=doc.data(); });
+      plainMonths=next;
+    }, ()=>{});
     db.doc("config/rules").onSnapshot(snap=>{
       const t = snap.exists && snap.data().text ? String(snap.data().text) : DEFAULT_RULES;
       rules=parseRules(t);
