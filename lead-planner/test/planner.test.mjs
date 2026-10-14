@@ -320,3 +320,18 @@ test("качество лидов: доли от всех заявок и под
   assert.deepEqual(m.branches.map((x) => x.id), ["a"]);
   near(m.network.total, 300); // сеть считается по всем филиалам
 });
+
+test("расход по продуктам: договоры CRM формы за период и расход на договор", async () => {
+  const { spendReport } = await import("../lib/spend.mjs");
+  const data = {
+    settings: {},
+    branches: [{ id: "dp", name: "Днепр" }],
+    spend: { dp: { "2026-09": [["МКА 1", 300], ["ШС 1", 100]] } },
+    months: { "dp|2026-09": { facts: { products: { form_ma: { contracts: 10 }, form_st: { contracts: 2 } }, branch: { quality: { contracts: 4 } } } } },
+  };
+  const b = spendReport(data, { from: "2026-09", to: "2026-09" }).branches[0];
+  assert.equal(b.products.find((p) => p.name === "МКА (дети)").contracts, 10);
+  assert.equal(b.products.find((p) => p.name === "ШС").contracts, null); // у ШС нет факта договоров
+  assert.equal(b.contracts, 12);
+  assert.equal(b.contractsFromRequests, 4);
+});

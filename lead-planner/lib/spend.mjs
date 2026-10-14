@@ -87,10 +87,36 @@ export function spendReport(data, { from, to, branchIds } = {}) {
         .filter(([m]) => m >= from && m <= to)
         .map(([m, r]) => [m, r.reduce((a, x) => a + x[1], 0)]),
     );
-    branches.push({ id: b.id, name: b.name, currency: b.fbCurrency || "USD", hasData: !!data.spend?.[b.id], byMonth, ...group(rows, compiled, b.spendDefault) });
+    const g = group(rows, compiled, b.spendDefault);
+    // договоры CRM за период: по форме продукта (все договоры формы) и из интернет-заявок (строка ALL)
+    const monthsIn = Object.keys(data.months || {}).filter((k) => k.startsWith(b.id + "|") && k.slice(-7) >= from && k.slice(-7) <= to);
+    const formContracts = (pid) => {
+      const vals = monthsIn.map((k) => data.months[k]?.facts?.products?.[pid]?.contracts).filter((v) => v != null);
+      return vals.length ? vals.reduce((a, v) => a + v, 0) : null;
+    };
+    for (const p of g.products) {
+      const pid = compiled.find((r) => r.name === p.name)?.productId;
+      p.productId = pid || null;
+      p.contracts = pid ? formContracts(pid) : null;
+    }
+    const allForms = monthsIn.flatMap((k) => Object.values(data.months[k]?.facts?.products || {}).map((x) => x.contracts).filter((v) => v != null));
+    const fromRequests = monthsIn.map((k) => data.months[k]?.facts?.branch?.quality?.contracts).filter((v) => v != null);
+    g.contracts = allForms.length ? allForms.reduce((a, v) => a + v, 0) : null;
+    g.contractsFromRequests = fromRequests.length ? fromRequests.reduce((a, v) => a + v, 0) : null;
+    branches.push({ id: b.id, name: b.name, currency: b.fbCurrency || "USD", hasData: !!data.spend?.[b.id], byMonth, ...g });
   }
   branches.sort((a, b) => b.total - a.total);
-  return { from, to, months, until: data.spendMeta?.until || null, source: data.spendMeta?.source || null, network: group(all, compiled), branches, rules: compiled.map((r) => r.name).concat(UNMATCHED), ruleDefs };
+  // договоры по сети: сумма по филиалам для каждого продукта
+  const network = group(all, compiled);
+  for (const p of network.products) {
+    const vals = branches.map((b) => b.products.find((x) => x.name === p.name)?.contracts).filter((v) => v != null);
+    p.productId = compiled.find((r) => r.name === p.name)?.productId || null;
+    p.contracts = vals.length ? vals.reduce((a, v) => a + v, 0) : null;
+  }
+  const sumOf = (k) => (branches.some((b) => b[k] != null) ? branches.reduce((a, b) => a + (b[k] || 0), 0) : null);
+  network.contracts = sumOf("contracts");
+  network.contractsFromRequests = sumOf("contractsFromRequests");
+  return { from, to, months, until: data.spendMeta?.until || null, source: data.spendMeta?.source || null, network, branches, rules: compiled.map((r) => r.name).concat(UNMATCHED), ruleDefs };
 }
 
 const prevMonth = (m, n = 1) => {

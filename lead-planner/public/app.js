@@ -1078,16 +1078,20 @@ const lsSet = (k, v) => {
 /** Таблица «продукт — расход — % от всех затрат». */
 function spendTable(g, rules, cur, { campaigns = true, totalLabel = "Всего" } = {}) {
   if (!g.total) return '<div class="empty">Нет расхода за период</div>';
-  return `<div class="tbl-wrap"><table class="spend"><thead><tr><th>Продукт</th><th class="n">Расход</th><th class="n">% от всех затрат</th><th class="w-bar"></th></tr></thead><tbody>
+  const withC = g.products.some((p) => p.contracts != null);
+  const cpc = (spend, c) => (c > 0 ? money(spend / c, cur) : c === 0 ? '<span class="muted">0 дог.</span>' : "—");
+  return `<div class="tbl-wrap"><table class="spend"><thead><tr><th>Продукт</th><th class="n">Расход</th><th class="n">% от всех затрат</th><th class="w-bar"></th>${withC ? '<th class="n" data-tip="Все договоры этой формы в CRM за период — не только из рекламы">Договоры (CRM)</th><th class="n" data-tip="Расход на рекламу продукта ÷ договоры формы за период">Расход на договор</th>' : ""}</tr></thead><tbody>
   ${g.products
     .map(
       (p) => `<tr><td>${campaigns ? `<details class="camp"><summary><i class="dot" style="background:${prodColor(rules, p.name)}"></i>${esc(p.name)} <span class="muted">· ${p.campaigns.length} камп.</span></summary>
         <ul>${p.campaigns.map((c) => `<li><span>${esc(c.name)}</span><b>${money(c.spend, cur)}</b></li>`).join("")}</ul></details>` : `<i class="dot" style="background:${prodColor(rules, p.name)}"></i>${esc(p.name)}`}</td>
       <td class="n">${money(p.spend, cur)}</td><td class="n"><b>${pct(p.share, 1)}</b></td>
-      <td class="w-bar"><div class="bar-mini"><i style="width:${(p.share / g.products[0].share) * 100}%;background:${prodColor(rules, p.name)}"></i></div></td></tr>`,
+      <td class="w-bar"><div class="bar-mini"><i style="width:${(p.share / g.products[0].share) * 100}%;background:${prodColor(rules, p.name)}"></i></div></td>
+      ${withC ? `<td class="n">${p.productId ? fmt(p.contracts ?? 0) : '<span class="muted" data-tip="Продукт не привязан к форме CRM (настройки → правила расхода)">—</span>'}</td><td class="n">${p.productId ? cpc(p.spend, p.contracts ?? 0) : "—"}</td>` : ""}</tr>`,
     )
     .join("")}
-  </tbody><tfoot><tr><td>${totalLabel}</td><td class="n">${money(g.total, cur)}</td><td class="n">100%</td><td></td></tr></tfoot></table></div>`;
+  </tbody><tfoot><tr><td>${totalLabel}</td><td class="n">${money(g.total, cur)}</td><td class="n">100%</td><td></td>${withC ? `<td class="n" data-tip="Все договоры филиала в CRM за период">${fmt(g.contracts)}${g.contractsFromRequests != null ? `<small class="muted" style="display:block;font-weight:400">из интернет-заявок: ${fmt(g.contractsFromRequests)}</small>` : ""}</td><td class="n">${cpc(g.total, g.contracts)}</td>` : ""}</tr></tfoot></table></div>
+  ${withC ? '<div class="hint mt">Договоры (CRM) — все договоры формы за период, включая органику и рекомендации: в CRM нет связи договора с рекламной кампанией. «Из интернет-заявок» — договоры по онлайн-заявкам филиала (сайт, лид-формы, мессенджеры и т. д.).</div>' : ""}`;
 }
 
 /** Структура расходов филиалов: 100%-полосы по продуктам. */
