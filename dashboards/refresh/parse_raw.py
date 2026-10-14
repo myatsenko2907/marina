@@ -13,7 +13,8 @@ for a in ids:
     for r in ents:
         if str(r.get('account_id'))!=a: bad.append((a,'account_id mismatch '+str(r.get('account_id')))); break
         nm=r['name'].replace('\t',' ').replace('\n',' ').replace('\r',' ')
-        rows.append([a,r['date_start'][:7],str(r['amount_spent']['value']),r['amount_spent']['unit'],nm])
+        lead=r.get('lead'); lead='' if lead is None else str(lead)
+        rows.append([a,r['date_start'][:7],str(r['amount_spent']['value']),r['amount_spent']['unit'],lead,nm])
 if bad:
     for b in bad: print('BAD',*b)
     sys.exit(1)

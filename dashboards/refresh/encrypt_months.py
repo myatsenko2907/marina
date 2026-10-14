@@ -56,7 +56,7 @@ def main():
                 skipped.append(branch)
                 continue
             cities[branch] = seal(pubs[branch], json.dumps(payload, ensure_ascii=False).encode())
-        out = {k: doc[k] for k in ("month", "fetchedAt", "through", "rate")}
+        out = {k: doc[k] for k in ("month", "fetchedAt", "through", "rate") if k in doc}
         out["cities"] = cities
         with open(f"{out_dir}/{doc['month']}.enc.json", "w", encoding="utf-8") as f:
             json.dump(out, f)

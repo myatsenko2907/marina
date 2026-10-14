@@ -2,7 +2,8 @@
 
 Usage: python3 build_months.py accounts.json rows.tsv errors.tsv OUT_DIR YYYY-MM [YYYY-MM ...]
 
-rows.tsv    one line per campaign-month: account_id, month (YYYY-MM), spend, currency, campaign name
+rows.tsv    one line per campaign-month: account_id, month (YYYY-MM), spend, currency, [leads,] campaign name
+            (the leads column is optional; it is kept as the 5th element of each campaign entry)
 errors.tsv  one line per account that failed: account_id, error code (may be empty)
 Writes OUT_DIR/<YYYY-MM>.json for every month given, in the shape the page reads
 from the `months` collection.
@@ -29,10 +30,15 @@ def main():
             line = line.rstrip("\n")
             if not line.strip():
                 continue
-            parts = line.split("\t", 4)
-            if len(parts) != 5:
+            parts = [p.strip() for p in line.split("\t")]
+            if len(parts) == 5:
+                aid, month, spend, unit, name = parts
+                leads = None
+            elif len(parts) == 6:
+                aid, month, spend, unit, leads, name = parts
+                leads = int(float(leads)) if leads else None
+            else:
                 sys.exit("bad row: " + line)
-            aid, month, spend, unit, name = (p.strip() for p in parts)
             if month not in docs:
                 continue
             if aid not in acc:
@@ -45,7 +51,10 @@ def main():
             if v <= 0:
                 continue
             br = docs[month].setdefault(branch, {"c": [], "e": []})
-            br["c"].append([name, label, fixed, round(v, 2)])
+            row = [name, label, fixed, round(v, 2)]
+            if leads is not None:
+                row.append(leads)
+            br["c"].append(row)
 
     errors = []
     try:
