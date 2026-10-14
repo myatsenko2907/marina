@@ -254,3 +254,35 @@ test("оценка филиала по лидам: заявки CRM ÷ ожид�
   assert.equal(t.paceBasis, "leads");
   assert.equal(t.status, "low"); // 40 / 123,9 = 32% → недостаточно
 });
+
+test("цена лида продукта — по расходу и лидам FB за прошлый месяц, без ивентов", async () => {
+  const { productCplFor } = await import("../lib/spend.mjs");
+  const data = {
+    settings: { eventCampaignPattern: "Event|Івент" },
+    branches: [{ id: "dp", name: "Днепр" }],
+    spend: {
+      dp: {
+        "2026-08": [["ШС_20.08", 100, 10]],
+        "2026-09": [["МКА - 01.09", 300, 30], ["МКА лайт", 100, 10], ["Event | МКА | Roblox", 50, 50], ["ШС_05.09", 30, 2], ["Вакансія", 99, 9]],
+        "2026-10": [["МКА - 04.10", 999]], // текущий месяц без лидов не используется
+      },
+    },
+  };
+  const pc = productCplFor(data, "dp", "2026-10");
+  near(pc.form_ma.cpl, 10); // 400 / 40, ивент не учитывается
+  assert.deepEqual(pc.form_ma.months, ["2026-09"]);
+  near(pc.form_schs.cpl, 130 / 12); // в сентябре 2 лида < 5 → добавлен август
+  assert.deepEqual(pc.form_schs.months, ["2026-09", "2026-08"]);
+  near(pc.__branch.cpl, 430 / 42);
+  const r = computeMonth({
+    settings,
+    branch,
+    month: "2026-10",
+    productCpl: pc,
+    plan: { products: { form_ma: { plan: 10, mix: { lid_form: 1 } }, form_step: { plan: 10, mix: { lid_form: 1 } } } },
+    today: new Date("2026-10-11T12:00:00Z"),
+  });
+  near(r.products.find((p) => p.id === "form_ma").cpl, 10);
+  assert.equal(r.products.find((p) => p.id === "form_ma").cplSource, "prev_month");
+  assert.equal(r.products.find((p) => p.id === "form_step").cplSource, "prev_month_branch");
+});

@@ -217,8 +217,9 @@ export function factBallsOf(fact, ctx) {
  * Примерная цена лида типа t: вручную по продукту → по филиалу → из FB-кабинета → по умолчанию в настройках.
  * Возвращает { cpl, source }.
  */
-export function leadPrice({ settings, branch, typeId, manual, fbCpl }) {
+export function leadPrice({ settings, branch, typeId, manual, fbCpl, productCpl }) {
   if (num(manual) != null) return { cpl: Number(manual), source: "manual" };
+  if (productCpl?.cpl != null) return { cpl: productCpl.cpl, source: productCpl.branchAvg ? "prev_month_branch" : "prev_month" };
   if (num(branch?.cpl?.[typeId]) != null) return { cpl: Number(branch.cpl[typeId]), source: "branch" };
   if (fbCpl != null) return { cpl: fbCpl, source: "fb" };
   if (num(settings.cpl?.[typeId]) != null) return { cpl: Number(settings.cpl[typeId]), source: "default" };
@@ -308,7 +309,7 @@ export function computeEvent(ev, ctx) {
  * План филиала на один месяц.
  * carry — { productId: недостача лидобалов, перенесённая из прошлых месяцев набора }.
  */
-export function computeMonth({ settings, branch, month, plan = {}, facts = {}, events = [], fb = null, carry = {}, mixHint = {}, today = new Date() }) {
+export function computeMonth({ settings, branch, month, plan = {}, facts = {}, events = [], fb = null, productCpl = null, carry = {}, mixHint = {}, today = new Date() }) {
   const warnings = [];
   const share = elapsedShare(month, today);
   const factor = num(plan.ballsPlanFactor) ?? num(branch.ballsPlanFactor) ?? settings.ballsPlanFactor ?? 0.9;
@@ -362,7 +363,7 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
       const norm = ballNorm(settings, prod.id, t.id, plan.ballNorms);
       const balls = restBalls * mix[t.id];
       const leads = norm > 0 ? balls / norm : 0;
-      const price = t.paid ? leadPrice({ settings, branch, typeId: t.id, manual: inp.cplOverride, fbCpl }) : { cpl: 0, source: null };
+      const price = t.paid ? leadPrice({ settings, branch, typeId: t.id, manual: inp.cplOverride, fbCpl, productCpl: productCpl?.[prod.id] || (productCpl?.__branch && { ...productCpl.__branch, branchAvg: true }) }) : { cpl: 0, source: null };
       return {
         typeId: t.id,
         share: mix[t.id],
@@ -413,6 +414,10 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
       paidLeads: byType.filter((r) => r.paid).reduce((a, r) => a + r.leads, 0),
       cpl,
       cplSource,
+      cplBasis: (() => {
+        const b = productCpl?.[prod.id] || productCpl?.__branch;
+        return b ? { spend: b.spend, leads: b.leads, months: b.months, branchAvg: !productCpl?.[prod.id] } : null;
+      })(),
       fb: fbp ? { spend: fbp.spend, leads: fbp.leads, campaigns: fbp.campaigns } : null,
       spentMtd: mtdp ? mtdp.spend : null,
       fbLeadsMtd: mtdp ? mtdp.leads : null,

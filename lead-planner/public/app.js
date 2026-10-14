@@ -73,6 +73,8 @@ const basisName = (t) => (t?.paceBasis === "balls" ? "лидобалам" : "л�
 const pill = (st) => `<span class="st ${st}"><svg viewBox="0 0 16 16">${STATUS[st].icon}</svg>${STATUS[st].label}</span>`;
 const SRC = {
   branch: "цена лида филиала (FB, 3 мес.)",
+  prev_month: "FB, кампании продукта за прошлый месяц",
+  prev_month_branch: "FB, средняя по филиалу за прошлый месяц (у продукта нет своей рекламы)",
   default: "примерная цена лида (настройки)",
   crm_requests: "заявки CRM × нормы",
   manual: "вручную",
@@ -635,8 +637,15 @@ function branchDash(r, season, cur) {
   ${sourcesCard(r)}
   <div class="card mt"><h2>Откуда берём лидобалы</h2><div class="hint">План по типам лидов (доли — вклад источников; события — по плану регистраций)</div>${typeStack(byType)}</div>
   <div class="card mt"><h2>Коротко по продуктам</h2><div class="tbl-wrap"><table><thead><tr><th>Продукт</th><th>Статус</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Факт ЛБ</th><th class="n">Лидов нужно</th><th class="n">Ср. цена лида</th><th class="n">Бюджет</th></tr></thead><tbody>
-  ${r.products.map((p) => `<tr class="${p.status}"><td>${esc(p.name)}</td><td>${pill(p.status)}</td><td class="n">${fmt(p.planContracts)}</td><td class="n">${fmt(p.factContracts)}</td><td class="n">${fmt(p.targetBalls, 1)}</td><td class="n">${fmt(p.factBalls, 1)}</td><td class="n">${fmt(p.leads)}</td><td class="n" data-tip="${esc((p.cplSource || "").split("+").map((x) => SRC[x] || x).join(", "))}">${money(p.cpl, cur)}</td><td class="n">${money(p.budget, cur)}</td></tr>`).join("")}
+  ${r.products.map((p) => `<tr class="${p.status}"><td>${esc(p.name)}</td><td>${pill(p.status)}</td><td class="n">${fmt(p.planContracts)}</td><td class="n">${fmt(p.factContracts)}</td><td class="n">${fmt(p.targetBalls, 1)}</td><td class="n">${fmt(p.factBalls, 1)}</td><td class="n">${fmt(p.leads)}</td><td class="n" data-tip="${esc(cplTip(p, cur))}">${money(p.cpl, cur)}${p.cplBasis ? `<div class="muted" style="font-size:11.5px">${p.cplBasis.branchAvg ? "ср. филиала" : `${fmt(p.cplBasis.leads)} лидов`} · ${p.cplBasis.months.map(monthShort).join(", ")}</div>` : ""}</td><td class="n">${money(p.budget, cur)}</td></tr>`).join("")}
   </tbody></table></div></div>`;
+}
+
+/** Подсказка: откуда цена лида продукта. */
+function cplTip(p, cur) {
+  const src = (p.cplSource || "").split("+").map((x) => SRC[x] || x).join(", ");
+  const b = p.cplBasis;
+  return b ? `${src}: ${money(b.spend, cur)} ÷ ${fmt(b.leads)} лидов (${b.months.map(monthName).join(", ")})` : src;
 }
 
 /** План и факт по источникам (типам лидов) за месяц. */
@@ -924,6 +933,9 @@ async function renderBranches() {
   );
 }
 
+const RULE_PID = { "ШС": "form_schs", "ПКО (взрослые)": "form_st", "Колледж": "form_college", "Университет": "form_vuz_11", "Лагеря": "form_camp", "Школа": "form_school", "МКА (дети)": "form_ma", "Спецкурсы": "form_year" };
+const defaultRulePid = (name) => RULE_PID[name] || "";
+
 async function renderSettings() {
   const s = S.settings;
   const spendRules = s.spendRules?.length ? s.spendRules : (await api("/api/spend")).ruleDefs || [];
@@ -952,8 +964,8 @@ async function renderSettings() {
   ${s.products.map((p) => `<tr><td><span class="chip">${esc(p.id)}</span></td><td><input type="text" name="pr.${p.id}.name" value="${esc(p.name)}"></td><td><input type="text" name="pr.${p.id}.campaignPattern" value="${esc(p.campaignPattern || "")}"></td></tr>`).join("")}
   </tbody></table></div>
   <div class="card mt"><h2>Расход на рекламу: продукт по названию кампании</h2><div class="hint">Правила проверяются сверху вниз, побеждает первое совпадение. Ключи через запятую, без учёта регистра: ключ до 3 букв (шс, мка, ai) ищется как целое слово, длиннее — как часть названия. Пустое название — правило удаляется; в последней строке можно добавить новое.</div>
-  <table><thead><tr><th style="width:220px">Продукт</th><th>Ключевые слова в названии кампании</th></tr></thead><tbody>
-  ${[...spendRules, { name: "", keys: "" }].map((r, i) => `<tr><td><input type="text" name="sr.${i}.name" value="${esc(r.name)}" placeholder="Новый продукт"></td><td><input type="text" name="sr.${i}.keys" value="${esc(r.keys)}"></td></tr>`).join("")}
+  <table><thead><tr><th style="width:200px">Продукт</th><th style="width:190px" data-tip="Для цены лида: расход и лиды кампаний за прошлый месяц идут в этот продукт CRM">Форма CRM (цена лида)</th><th>Ключевые слова в названии кампании</th></tr></thead><tbody>
+  ${[...spendRules, { name: "", keys: "" }].map((r, i) => `<tr><td><input type="text" name="sr.${i}.name" value="${esc(r.name)}" placeholder="Новый продукт"></td><td><select name="sr.${i}.productId"><option value="">— не учитывать —</option>${s.products.map((p) => `<option value="${p.id}" ${(r.productId ?? defaultRulePid(r.name)) === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}</select></td><td><input type="text" name="sr.${i}.keys" value="${esc(r.keys)}"></td></tr>`).join("")}
   </tbody></table></div>
   <div class="row-actions mt"><button class="btn primary">Сохранить настройки</button></div></form>`,
   );
@@ -985,7 +997,7 @@ async function renderSettings() {
     next.spendRules = [];
     for (let i = 0; g(`sr.${i}.name`); i++) {
       const name = g(`sr.${i}.name`).value.trim();
-      if (name) next.spendRules.push({ name, keys: g(`sr.${i}.keys`).value });
+      if (name) next.spendRules.push({ name, productId: g(`sr.${i}.productId`).value || "", keys: g(`sr.${i}.keys`).value });
     }
     for (const p of next.products) {
       p.name = g(`pr.${p.id}.name`).value;

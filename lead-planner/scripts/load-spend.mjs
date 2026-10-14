@@ -1,5 +1,5 @@
 // Загружает расход кампаний FB по месяцам в хранилище: data/spend/<филиал>.tsv
-// Строка файла: YYYY-MM<TAB>расход<TAB>название кампании.
+// Строка файла: YYYY-MM<TAB>расход<TAB>название кампании[<TAB>лиды] — лиды нужны для цены лида по продукту.
 // Месяцы из файлов заменяются целиком, остальные месяцы в хранилище остаются (для ежедневного обновления
 // достаточно файлов только с текущим месяцем).
 //   node scripts/load-spend.mjs [папка] [данные по дату YYYY-MM-DD]
@@ -22,9 +22,11 @@ for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".tsv"))) {
   }
   const fresh = {};
   for (const line of fs.readFileSync(path.join(dir, f), "utf8").split("\n")) {
-    const [m, s, ...name] = line.split("\t");
+    const [m, s, name = "", leads] = line.split("\t");
     if (!/^\d{4}-\d\d$/.test(m || "") || !Number(s)) continue;
-    (fresh[m] ||= []).push([name.join("\t").trim(), Number(s)]);
+    const row = [name.trim(), Number(s)];
+    if (leads != null && leads.trim() !== "") row.push(Number(leads) || 0);
+    (fresh[m] ||= []).push(row);
     rows++;
   }
   store.data.spend[id] = { ...store.data.spend[id], ...fresh };

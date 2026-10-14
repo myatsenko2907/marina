@@ -1,6 +1,6 @@
 // Общая логика API поверх данных хранилища (store.data). Без I/O — работает и на сервере, и в браузере.
 import { computeSeason, seasonOf, addMonths } from "./planner.mjs";
-import { spendReport } from "./spend.mjs";
+import { spendReport, productCplFor } from "./spend.mjs";
 
 export const canSee = (user, branchId) => user.role === "admin" || (user.branches || []).includes(branchId);
 
@@ -19,6 +19,7 @@ export function seasonFor(data, branch, month, today = new Date()) {
         facts: rec?.facts,
         events: data.events.filter((e) => e.branchId === branch.id && (e.date || "").slice(0, 7) === m),
         fb: data.fb?.[branch.id] || null,
+        productCpl: productCplFor(data, branch.id, m),
       };
     },
   });
