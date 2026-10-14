@@ -512,6 +512,7 @@ async function renderOverview() {
   </div>
 
   ${nodata.length && !rows.some((r) => r.factSource) ? `<div class="alerts"><div class="alert-row info">Нет факта лидобалов за ${monthName(S.month).toLowerCase()} по ${nodata.length} фил. — ${S.me.role === "admin" ? '<a href="#/admin/import">загрузите выгрузку отчёта CRM «Маркетинг → Лидобалы»</a>' : "администратор загрузит отчёт CRM «Маркетинг → Лидобалы»"}. Без факта статус и перенос недостачи не считаются.</div></div>` : ""}
+  ${data.cpl?.alerts?.some((a) => a.level === "extreme") ? `<div class="alerts"><a class="alert-row bad" href="#cplcard" onclick="document.querySelector('.warn-card')?.scrollIntoView({behavior:'smooth'});return false"><b>Аномальная цена лида:</b>&nbsp;${data.cpl.alerts.filter((a) => a.level === "extreme").map((a) => `${esc(a.branchName)} · ${esc(a.productName.split(" — ")[0])} ${money(a.cpl)} (${ratioTxt(a.ratio)} к медиане)`).join("; ")}. Подробнее — в блоке ниже.</a></div>` : ""}
   ${fails.length || lows.length ? `<div class="alerts">${[...fails, ...lows].map((r) => `<a class="alert-row ${r.status === "fail" ? "bad" : "low"}" href="#/b/${r.id}"><b>${esc(r.name)}</b> — ${STATUS[r.status].label.toLowerCase()}: ${r.paceBasis === "leads" ? `${fmt(r.factLeads)} лидов из ожидаемых ${fmt(r.expectedLeads)}` : `${fmt(r.factBalls, 1)} лидобалов из ожидаемых ${fmt(r.expectedBalls, 1)}`} (темп ${pct(r.pace)}).</a>`).join("")}</div>` : ""}
 
   <div class="grid cols-2">
@@ -525,6 +526,8 @@ async function renderOverview() {
         <td><div class="months">${r.seasonMonths.map((m) => `<i class="${m.status} ${m.month === S.month ? "cur" : ""}" data-tip="${esc(`${monthName(m.month)}: ${STATUS[m.status].label}${m.pace != null ? ", темп " + pct(m.pace) : ""}`)}"></i>`).join("")}</div></td></tr>`).join("")}
       </tbody></table></div></div>
   </div>
+
+  ${cplAnomalyCard(data.cpl)}
 
   <div class="card mt"><h2>Сводка по филиалам</h2><div class="hint">Лидобалы, лиды и бюджет на месяц</div>
     <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Ожид. к сегодня</th><th class="n">Факт ЛБ</th><th class="n">Отставание</th><th class="n">Лиды нужно</th><th class="n">Регистрации</th><th class="n">Бюджет</th></tr></thead><tbody>
@@ -570,7 +573,7 @@ async function renderBranch(id, tab = "dash") {
   ].join(" · ");
 
   let body = "";
-  if (tab === "dash") body = branchDash(r, season, cur) + branchSpendCard(data.spend, data.spendUntil);
+  if (tab === "dash") body = branchDash(r, season, cur, data.cpl) + (data.cpl?.alerts?.length ? "" : branchCplCard(data.cpl)) + branchSpendCard(data.spend, data.spendUntil);
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
   if (tab === "season") body = branchSeason(season, inputs);
@@ -606,7 +609,7 @@ async function renderBranch(id, tab = "dash") {
   bindBranch(id, tab, data);
 }
 
-function branchDash(r, season, cur) {
+function branchDash(r, season, cur, cpl) {
   const t = r.totals;
   const byType = {};
   for (const p of r.products) for (const x of p.byType) byType[x.typeId] = (byType[x.typeId] || 0) + x.balls;
@@ -630,6 +633,7 @@ function branchDash(r, season, cur) {
     <div class="card kpi"><div class="label">Лидов нужно за месяц</div><div class="value">${fmt(t.leads + t.registrations)}</div>
       <div class="foot">из них платных ${fmt(t.paidLeads + t.registrations)} · рег. на ивенты ${fmt(t.registrations)}</div></div>
   </div>
+  ${cpl?.alerts?.length ? branchCplCard(cpl) : ""}
   <div class="grid cols-2">
     <div class="card"><h2>План и факт по продуктам</h2><div class="hint">Лидобалы месяца${S.settings.carryOver ? ", включая перенос недостачи" : ""}</div>${planFactChart(r.products)}</div>
     <div class="card"><h2>Набор: ${esc(season.season.name)}</h2><div class="hint">${S.settings.carryOver ? "Недостача закрытого месяца переносится в следующий" : "План и факт по месяцам полугодия"}</div>${seasonChart(season.months, r.month)}</div>
@@ -951,6 +955,8 @@ async function renderSettings() {
     <label class="f">«Нужно усилиться» — от, %<input type="number" step="1" name="th.boost" value="${pctInt(scale().boost)}"></label>
     <label class="f">«Неплохо» — от, %<input type="number" step="1" name="th.good" value="${pctInt(scale().good)}"></label>
     <label class="f">«Выше плана» — от, %<input type="number" step="1" name="th.ok" value="${pctInt(scale().ok)}"></label>
+    <label class="f">Цена лида «высокая» — от × медианы сети<input type="number" step="0.1" min="1" name="ca.high" value="${s.cplAnomaly?.high ?? 1.5}"></label>
+    <label class="f">Цена лида «аномальная» — от × медианы<input type="number" step="0.1" min="1" name="ca.extreme" value="${s.cplAnomaly?.extreme ?? 2}"></label>
     <label class="f">Окно CPL, дней<input type="number" name="cplLookbackDays" value="${s.cplLookbackDays}"></label>
     <label class="f">Окно цены ивента, дней<input type="number" name="eventLookbackDays" value="${s.eventLookbackDays}"></label>
     <label class="f" style="align-self:end"><span><input type="checkbox" name="carryOver" ${s.carryOver !== false ? "checked" : ""}> Переносить недостачу в следующий месяц</span></label>
@@ -977,6 +983,7 @@ async function renderSettings() {
     next.ballsPlanFactor = Number(g("ballsPlanFactor").value);
     next.thresholds = Object.fromEntries(["low", "boost", "good", "ok"].map((k) => [k, Number(g(`th.${k}`).value) / 100]));
     next.statusBasis = g("statusBasis").value;
+    next.cplAnomaly = { ...(s.cplAnomaly || { minBranches: 3 }), high: Number(g("ca.high").value), extreme: Number(g("ca.extreme").value) };
     next.cplLookbackDays = Number(g("cplLookbackDays").value);
     next.eventLookbackDays = Number(g("eventLookbackDays").value);
     next.carryOver = g("carryOver").checked;
@@ -1218,6 +1225,60 @@ function branchSpendCard(spend, until) {
   const partial = until && until.slice(0, 7) === S.month ? ` (по ${until.slice(8, 10)}.${until.slice(5, 7)})` : "";
   return `<div class="card mt"><div class="card-head"><h2>Расход на рекламу по продуктам</h2><span class="spacer"></span><a class="btn sm" href="#/spend">За другой период →</a></div>
   <div class="hint">${monthName(S.month)}${partial}: продукт — расход — % от всех затрат филиала. Факт расхода кампаний FB</div>${spendTable(spend, rules, spend.currency)}</div>`;
+}
+
+
+// ---------- аномальная цена лида ----------
+const CPL_LEVEL = { extreme: { label: "Аномально высокая", cls: "bad" }, high: { label: "Высокая", cls: "low" } };
+const cplPill = (lvl) => `<span class="st ${lvl === "extreme" ? "fail" : "low"}">${CPL_LEVEL[lvl].label}</span>`;
+const ratioTxt = (r) => `×${nf(r < 10 ? 2 : 1).format(r)}`;
+
+/** Строки-предупреждения об аномальной цене лида. */
+function cplAlertRows(c, { withBranch = true } = {}) {
+  return c.alerts
+    .map(
+      (a) => `<a class="alert-row ${CPL_LEVEL[a.level].cls}" href="#/b/${a.branchId}"><b>${withBranch ? esc(a.branchName) + " · " : ""}${esc(a.productName.split(" — ")[0])}</b>&nbsp;— цена лида ${money(a.cpl)} при медиане сети ${money(a.median)} (${ratioTxt(a.ratio)}): ${money(a.spend)} ÷ ${fmt(a.leads)} лидов за ${a.months.map((m) => monthName(m).toLowerCase()).join(", ")}${a.leads < 15 ? " (мало лидов — оценка неточная)" : ""}. Самая низкая в сети — ${money(a.min)}.</a>`,
+    )
+    .join("");
+}
+
+/** Блок дашборда: матрица «продукт × филиал» с подсветкой выбивающихся цен. */
+function cplAnomalyCard(c) {
+  if (!c?.products?.length) return "";
+  const bs = c.branches;
+  const cell = (x) =>
+    x
+      ? `<td class="n cplc ${x.level}" data-tip="${esc(`${money(x.spend)} ÷ ${fmt(x.leads)} лидов · ${ratioTxt(x.ratio)} к медиане`)}"><b>${money(x.cpl)}</b><small>${x.level === "ok" ? ratioTxt(x.ratio) : ratioTxt(x.ratio) + " ⚠"}</small></td>`
+      : '<td class="n muted">—</td>';
+  const ext = c.alerts.filter((a) => a.level === "extreme").length;
+  return `<div class="card mt ${ext ? "warn-card" : ""}"><div class="card-head"><h2>Аномальная цена лида</h2><span class="spacer"></span>${c.alerts.length ? `<span class="chip">${ext} аномальн. · ${c.alerts.length - ext} высок.</span>` : '<span class="chip">выбросов нет</span>'}</div>
+  <div class="hint">Цена лида продукта в филиале против медианы по сети за ${c.basisMonths.map((m) => monthName(m).toLowerCase()).join(", ")} (FB: расход ÷ лиды, без ивентов). Высокая — от ${ratioTxt(c.high)}, аномальная — от ${ratioTxt(c.extreme)} медианы. Продукт сравнивается, если цена есть минимум у ${c.minBranches} филиалов.</div>
+  ${c.alerts.length ? `<div class="alerts">${cplAlertRows(c)}</div>` : ""}
+  <div class="tbl-wrap mt"><table class="matrix"><thead><tr><th>Продукт</th><th class="n">Медиана сети</th>${bs.map((b) => `<th class="n">${esc(b.name)}</th>`).join("")}</tr></thead><tbody>
+  ${c.products.map((p) => `<tr class="${p.productId === "__branch" ? "avgrow" : ""}"><td>${esc(p.name.split(" — ")[0])}</td><td class="n"><b>${money(p.median)}</b><small>${p.count} фил.</small></td>${bs.map((b) => cell(p.branches[b.id])).join("")}</tr>`).join("")}
+  </tbody></table></div>
+  <div class="legend"><span><i class="dot" style="background:var(--low)"></i>высокая (от ${ratioTxt(c.high)})</span><span><i class="dot" style="background:var(--bad)"></i>аномально высокая (от ${ratioTxt(c.extreme)})</span><span class="muted">×N — во сколько раз дороже медианы сети</span></div></div>`;
+}
+
+/** Блок страницы филиала: цена лида по продуктам против сети. */
+function branchCplCard(c) {
+  if (!c?.products?.length) return "";
+  const rows = c.products.filter((p) => Object.values(p.branches)[0]);
+  if (!rows.length) return "";
+  const max = Math.max(...rows.map((p) => Math.max(Object.values(p.branches)[0].cpl, p.median)));
+  return `<div class="card mt ${c.alerts.some((a) => a.level === "extreme") ? "warn-card" : ""}"><div class="card-head"><h2>Цена лида против сети</h2><span class="spacer"></span>${c.alerts.length ? `<span class="chip">${c.alerts.length} выбивается</span>` : '<span class="chip">в норме</span>'}</div>
+  <div class="hint">Цена лида продуктов филиала против медианы по всем филиалам за ${c.basisMonths.map((m) => monthName(m).toLowerCase()).join(", ")}. Высокая — от ${ratioTxt(c.high)}, аномальная — от ${ratioTxt(c.extreme)} медианы.</div>
+  ${c.alerts.length ? `<div class="alerts">${cplAlertRows(c, { withBranch: false })}</div>` : ""}
+  <div class="tbl-wrap mt"><table class="spend"><thead><tr><th>Продукт</th><th class="n">Цена лида</th><th class="n">Медиана сети</th><th class="n">К медиане</th><th class="w-bar">филиал / медиана</th><th>Оценка</th></tr></thead><tbody>
+  ${rows
+    .map((p) => {
+      const x = Object.values(p.branches)[0];
+      const col = x.level === "extreme" ? "var(--bad)" : x.level === "high" ? "var(--low)" : "var(--good)";
+      return `<tr class="${x.level === "extreme" ? "fail" : x.level === "high" ? "low" : ""}"><td>${esc(p.name.split(" — ")[0])}<div class="muted" style="font-size:11.5px">${money(x.spend)} ÷ ${fmt(x.leads)} лидов</div></td><td class="n"><b>${money(x.cpl)}</b></td><td class="n">${money(p.median)}</td><td class="n"><b>${ratioTxt(x.ratio)}</b></td>
+      <td class="w-bar"><div class="cmpbar"><i style="width:${(x.cpl / max) * 100}%;background:${col}"></i><u style="left:${(p.median / max) * 100}%"></u></div></td><td>${x.level === "ok" ? '<span class="muted">в норме</span>' : cplPill(x.level)}</td></tr>`;
+    })
+    .join("")}
+  </tbody></table></div></div>`;
 }
 
 // ---------- router ----------

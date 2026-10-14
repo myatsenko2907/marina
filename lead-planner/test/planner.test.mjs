@@ -286,3 +286,21 @@ test("цена лида продукта — по расходу и лидам F
   assert.equal(r.products.find((p) => p.id === "form_ma").cplSource, "prev_month");
   assert.equal(r.products.find((p) => p.id === "form_step").cplSource, "prev_month_branch");
 });
+
+test("аномальная цена лида: сравнение с медианой сети по продукту", async () => {
+  const { cplComparison } = await import("../lib/spend.mjs");
+  const mk = (ma) => ({ "2026-09": [["МКА", ma, 10]] });
+  const data = {
+    settings: {},
+    branches: ["a", "b", "c", "d"].map((id) => ({ id, name: id })),
+    spend: { a: mk(100), b: mk(120), c: mk(160), d: mk(300) }, // цена 10, 12, 16, 30
+  };
+  const r = cplComparison(data, "2026-10");
+  const ma = r.products.find((p) => p.productId === "form_ma");
+  near(ma.median, 14);
+  assert.equal(ma.branches.d.level, "extreme"); // 30 / 14 = 2,1
+  assert.equal(ma.branches.c.level, "ok"); // 16 / 14 = 1,14
+  assert.deepEqual(r.alerts.map((a) => a.branchId), ["d"]);
+  const strict = cplComparison({ ...data, settings: { cplAnomaly: { high: 1.1 } } }, "2026-10");
+  assert.equal(strict.products.find((p) => p.productId === "form_ma").branches.c.level, "high");
+});

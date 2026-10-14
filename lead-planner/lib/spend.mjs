@@ -141,3 +141,44 @@ export function productCplFor(data, branchId, month, { minLeads = 5, maxBack = 3
   }
   return Object.keys(out).length ? out : null;
 }
+
+const median = (xs) => {
+  const s = [...xs].sort((a, b) => a - b);
+  const n = s.length;
+  return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null;
+};
+
+/**
+ * Сравнение цены лида филиалов по каждому продукту с медианой сети (по прошлому месяцу).
+ * Уровни: ≥ high × медиана — «высокая», ≥ extreme × медиана — «аномальная».
+ * Продукт сравнивается, только если цена есть минимум у minBranches филиалов.
+ */
+export function cplComparison(data, month, { high = 1.5, extreme = 2, minBranches = 3 } = {}) {
+  const opts = { high, extreme, minBranches, ...(data.settings?.cplAnomaly || {}) };
+  const branches = data.branches.filter((b) => !b.archived);
+  const per = Object.fromEntries(branches.map((b) => [b.id, productCplFor(data, b.id, month) || {}]));
+  const ids = [...new Set(Object.values(per).flatMap((x) => Object.keys(x)))];
+  const order = (id) => (id === "__branch" ? -1 : (data.settings?.products || []).findIndex((p) => p.id === id));
+  const products = [];
+  const alerts = [];
+  for (const pid of ids.sort((a, b) => order(a) - order(b))) {
+    const vals = branches.filter((b) => per[b.id][pid]).map((b) => per[b.id][pid].cpl);
+    if (vals.length < opts.minBranches) continue;
+    const med = median(vals);
+    const name = pid === "__branch" ? "Все продукты (в среднем)" : (data.settings?.products || []).find((p) => p.id === pid)?.name || pid;
+    const row = { productId: pid, name, median: med, count: vals.length, branches: {} };
+    for (const b of branches) {
+      const x = per[b.id][pid];
+      if (!x) continue;
+      const ratio = med > 0 ? x.cpl / med : null;
+      const level = ratio >= opts.extreme ? "extreme" : ratio >= opts.high ? "high" : "ok";
+      row.branches[b.id] = { cpl: x.cpl, spend: x.spend, leads: x.leads, months: x.months, ratio, level };
+      // средняя по филиалу — только в таблице, в предупреждения идут продукты
+      if (level !== "ok" && pid !== "__branch") alerts.push({ branchId: b.id, branchName: b.name, productId: pid, productName: name, cpl: x.cpl, median: med, ratio, level, spend: x.spend, leads: x.leads, months: x.months, min: Math.min(...vals) });
+    }
+    products.push(row);
+  }
+  alerts.sort((a, b) => b.ratio - a.ratio);
+  const basisMonths = [...new Set(Object.values(per).flatMap((x) => Object.values(x).flatMap((v) => v.months)))].sort();
+  return { month, basisMonths, ...opts, branches: branches.map((b) => ({ id: b.id, name: b.name })), products, alerts };
+}
