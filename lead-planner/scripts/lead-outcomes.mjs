@@ -19,6 +19,8 @@ const median = (xs) => {
   return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : null;
 };
 
+export const typeKey = (t) => String(t || "").replace(/^irt_/, "").toLowerCase().replace(/-/g, "_");
+
 export function outcomes(leads) {
   const live = leads.filter((x) => TYPES.has(x.type) && x.result !== "result_deleted");
   const proc = live.filter((x) => x.result);
@@ -28,6 +30,8 @@ export function outcomes(leads) {
   const reached = na.filter((x) => (x.count_contacts_ago || 0) - (x.count_contacts_ago_no_asnwer || 0) > 0);
   const days = laterReject.filter((x) => x.reject_at && x.processed_at).map((x) => (ts(x.reject_at) - ts(x.processed_at)) / 864e5);
   const m = median(days);
+  const firstRejectByType = {};
+  for (const x of firstReject) firstRejectByType[typeKey(x.type)] = (firstRejectByType[typeKey(x.type)] || 0) + 1;
   return {
     n: live.length,
     processed: proc.length,
@@ -38,6 +42,7 @@ export function outcomes(leads) {
     noAnswerReached: reached.length,
     noAnswerNever: na.length - reached.length,
     noAnswerLost: na.filter((x) => x.last_result === "Closed lost").length,
+    firstRejectByType,
   };
 }
 

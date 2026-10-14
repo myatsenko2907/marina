@@ -357,3 +357,13 @@ test("судьба лидов: отказ сразу / позже, недозв�
   assert.equal(o.noAnswerNever, 1);
   assert.equal(o.noAnswerLost, 1);
 });
+
+test("отказы сразу не входят в лиды филиала", async () => {
+  const { rebuildBranchLeads } = await import("../lib/snapshot.mjs");
+  const fb = rebuildBranchLeads({
+    requests: { Facebook: { net: 10, typeId: "lid_form" }, "study-form": { net: 3, typeId: "study" }, course: { net: 4, typeId: "site" } },
+    outcomes: { firstRejectByType: { facebook: 2, study_form: 5 } },
+  });
+  assert.deepEqual(fb.leads, { lid_form: 8, study: 0, site: 4 });
+  assert.equal(fb.requests.Facebook.firstReject, 2);
+});

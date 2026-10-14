@@ -447,7 +447,7 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
   const factSource = known.length ? "products" : branchLeads ? "crm_requests" : null;
   const expectedBalls = targetBalls * share;
   const ballsPace = expectedBalls > 0 && factBalls != null ? factBalls / expectedBalls : null;
-  // Темп по лидам: заявки CRM всех типов (без спама и дублей) ÷ план лидов × прошедшая часть месяца.
+  // Темп по лидам: заявки CRM всех типов (без спама, дублей и отказов сразу) ÷ план лидов × прошедшая часть месяца.
   const planLeadsAll = sources.reduce((a, x) => a + x.planLeads, 0);
   const factLeads = branchLeads ? sources.reduce((a, x) => a + (x.factLeads || 0), 0) : null;
   const expectedLeads = planLeadsAll * share;

@@ -5,12 +5,28 @@
 //   months:   { alias: { "YYYY-MM": { form: [план, факт договоров] } } }
 //   balls:    { alias: { "YYYY-MM": { form: факт лидобалов } } }  — отчёт «Маркетинг → Лидобалы» (необязательно)
 //   requests: { alias: { "YYYY-MM": { type_request: [всего, удалено, договоров] } } } — заявки CRM по типам
-//             (crm_internet_requests); факт лидобалов филиала = заявки × норма типа
+//             (crm_internet_requests); факт лидобалов филиала = (заявки − удалённые − отказы сразу) × норма типа
 //   quality:  { alias: { "YYYY-MM": { total, deleted, spam, dup, other, reject, unanswered, contracts } } }
 //             — качество лидов: строка ALL отчёта по интернет-заявкам
 //   outcomes: { alias: { "YYYY-MM": { n, processed, firstReject, laterReject, laterRejectDays, noAnswerFirst, noAnswerReached, noAnswerNever } } }
 //             — судьба лидов по истории заявок (scripts/lead-outcomes.mjs)
 import { seasonOf } from "./planner.mjs";
+
+const typeKey = (t) => String(t || "").replace(/^irt_/, "").toLowerCase().replace(/-/g, "_");
+
+// Лиды по типам из заявок: без удалённых и без отказов при первой обработке (outcomes.firstRejectByType).
+export function rebuildBranchLeads(fb) {
+  if (!fb?.requests) return fb;
+  const byType = fb.outcomes?.firstRejectByType || {};
+  const leads = {};
+  for (const [type, r] of Object.entries(fb.requests)) {
+    r.firstReject = Math.min(r.net, byType[typeKey(type)] || 0);
+    r.counted = r.net - r.firstReject;
+    if (r.typeId) leads[r.typeId] = (leads[r.typeId] || 0) + r.counted;
+  }
+  fb.leads = leads;
+  return fb;
+}
 
 export function applySnapshot(store, snap, seasonMonth = new Date().toISOString().slice(0, 7)) {
   for (const [id, b] of Object.entries(snap.branches || {})) {
@@ -45,14 +61,11 @@ export function applySnapshot(store, snap, seasonMonth = new Date().toISOString(
   for (const [id, months] of Object.entries(snap.requests || {})) {
     for (const [m, types] of Object.entries(months)) {
       const rec = store.ensureMonth(id, m);
-      const leads = {};
       const requests = {};
       for (const [type, [total, deleted = 0, contracts = 0]] of Object.entries(types)) {
-        const net = Math.max(0, total - deleted);
-        requests[type] = { net, contracts, typeId: map[type] || null };
-        if (map[type]) leads[map[type]] = (leads[map[type]] || 0) + net;
+        requests[type] = { net: Math.max(0, total - deleted), contracts, typeId: map[type] || null };
       }
-      rec.facts.branch = { leads, requests, source: "crm_requests", quality: rec.facts.branch?.quality, outcomes: rec.facts.branch?.outcomes };
+      rec.facts.branch = rebuildBranchLeads({ requests, source: "crm_requests", quality: rec.facts.branch?.quality, outcomes: rec.facts.branch?.outcomes });
       n++;
     }
   }
@@ -66,7 +79,7 @@ export function applySnapshot(store, snap, seasonMonth = new Date().toISOString(
   for (const [id, months] of Object.entries(snap.outcomes || {})) {
     for (const [m, o] of Object.entries(months)) {
       const rec = store.ensureMonth(id, m);
-      rec.facts.branch = { ...(rec.facts.branch || {}), outcomes: { ...o, fetchedAt: snap.fetchedAt || new Date().toISOString() } };
+      rec.facts.branch = rebuildBranchLeads({ ...(rec.facts.branch || {}), outcomes: { ...o, fetchedAt: snap.fetchedAt || new Date().toISOString() } });
       n++;
     }
   }

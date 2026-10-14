@@ -498,7 +498,7 @@ async function renderOverview() {
       <div class="scalebar">${["fail", "low", "boost", "good", "ok"].map((k) => { const n = rows.filter((r) => r.status === k).length; return n ? `<i style="flex:${n};background:${STATUS[k].color}" data-tip="${esc(STATUS[k].label)}: ${n}"></i>` : ""; }).join("")}</div></div>
     <div class="card kpi"><div class="label">Лиды сети: факт / ожидаемо</div>
       <div class="value">${fmt(leadsFact)} <small>/ ${fmt(leadsExp)}</small></div>
-      <div class="foot">${pill(statusFor(netLeadsPace))} ${pct(netLeadsPace)} · заявки CRM без спама и дублей</div></div>
+      <div class="foot">${pill(statusFor(netLeadsPace))} ${pct(netLeadsPace)} · заявки CRM без спама, дублей и отказов сразу</div></div>
     <div class="card kpi"><div class="label">Лидобалы сети: факт / ожидаемо</div>
       <div class="value">${nodata.length === active.length ? "—" : fmt(fact)} <small>/ ${nodata.length === active.length ? "—" : fmt(expected)}</small></div>
       <div class="foot">Темп сети ${pct(netPace)} · план месяца ${fmt(sum("targetBalls"))}</div>
@@ -659,7 +659,7 @@ function sourcesCard(r) {
   if (!rows.length) return "";
   const hasFact = rows.some((x) => x.factLeads != null);
   const reqs = r.requests ? Object.entries(r.requests).sort((a, b) => b[1].net - a[1].net) : [];
-  return `<div class="card mt"><h2>Источники: план и факт</h2><div class="hint">${hasFact ? "Факт — заявки CRM за месяц (без спама и дублей) × норма конверсии типа" : "Факта по источникам пока нет"}</div>
+  return `<div class="card mt"><h2>Источники: план и факт</h2><div class="hint">${hasFact ? "Факт — заявки CRM за месяц (без спама, дублей и отказов при первой обработке) × норма конверсии типа" : "Факта по источникам пока нет"}</div>
   <div class="tbl-wrap"><table><thead><tr><th>Тип лида</th><th class="n">Норма</th><th class="n">План лидов</th><th class="n">Факт лидов</th><th class="n">План ЛБ</th><th class="n">Ожид. к сегодня</th><th class="n">Факт ЛБ</th><th class="n">Темп</th></tr></thead><tbody>
   ${rows
     .map((x) => {
@@ -670,7 +670,7 @@ function sourcesCard(r) {
     })
     .join("")}
   </tbody></table></div>
-  ${reqs.length ? `<details class="help"><summary>Заявки CRM по типам за месяц</summary><div class="tbl-wrap"><table><thead><tr><th>Тип заявки CRM</th><th>→ тип лида</th><th class="n">Заявок</th><th class="n">Договоров</th><th class="n">Конверсия</th></tr></thead><tbody>${reqs.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v.typeId ? typeName(v.typeId) : "не учитывается")}</td><td class="n">${fmt(v.net)}</td><td class="n">${fmt(v.contracts)}</td><td class="n">${v.net ? pct(v.contracts / v.net, 1) : "—"}</td></tr>`).join("")}</tbody></table></div></details>` : ""}
+  ${reqs.length ? `<details class="help"><summary>Заявки CRM по типам за месяц</summary><div class="tbl-wrap"><table><thead><tr><th>Тип заявки CRM</th><th>→ тип лида</th><th class="n">Заявок</th><th class="n">Отказ сразу</th><th class="n">В лиды</th><th class="n">Договоров</th><th class="n">Конверсия</th></tr></thead><tbody>${reqs.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v.typeId ? typeName(v.typeId) : "не учитывается")}</td><td class="n">${fmt(v.net)}</td><td class="n">${v.firstReject ? "−" + fmt(v.firstReject) : "—"}</td><td class="n">${fmt(v.counted ?? v.net)}</td><td class="n">${fmt(v.contracts)}</td><td class="n">${v.net ? pct(v.contracts / v.net, 1) : "—"}</td></tr>`).join("")}</tbody></table></div></details>` : ""}
   </div>`;
 }
 
@@ -1263,7 +1263,7 @@ function outcomesBlock(o, n) {
   if (!o) return "";
   const line = (label, cnt, share, netShare, tip) => `<tr><td>${label}${tip ? ` <span class="muted" style="font-size:12px">${tip}</span>` : ""}</td><td class="n">${fmt(cnt)}</td><td class="n"><b>${pct(share, 0)}</b></td><td class="n">${pct(netShare, 0)}</td></tr>`;
   return `<h3 class="mt" style="margin-bottom:4px">Что стало с лидами</h3>
-  <div class="hint">По истории заявок CRM: результат первой обработки и итог. Доли — от обработанных заявок (${fmt(o.processed)}), «потом дозвонились» — от недозвонов.</div>
+  <div class="hint">По истории заявок CRM: результат первой обработки и итог. Доли — от обработанных заявок (${fmt(o.processed)}), «потом дозвонились» — от недозвонов. Отказы сразу не входят в лиды и лидобалы.</div>
   <div class="tbl-wrap"><table class="spend"><thead><tr><th>Исход</th><th class="n">Кол-во</th><th class="n">Филиал</th><th class="n">Сеть</th></tr></thead><tbody>
   ${line("Отказ сразу", o.firstReject, o.firstRejectShare, n?.firstRejectShare, "— при первом разговоре")}
   ${line("Отказ позже", o.laterReject, o.laterRejectShare, n?.laterRejectShare, `— после недозвона, «думает», «перезвонить»${o.laterRejectDays != null ? `; в среднем через ${fmt(o.laterRejectDays, 1)} дн.` : ""}`)}
@@ -1283,7 +1283,7 @@ function qualityOverviewCard(q) {
     .map((r) => `<tr class="click" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td><td class="n">${fmt(r.total)}</td>${main.map(([k]) => `<td class="n">${qCell(r.shares[k], r.flags[k])} <span class="muted">${fmt(r[k])}</span></td>`).join("")}<td class="n muted">${fmt(r.spam)} / ${fmt(r.dup)} / ${fmt(r.other)}</td></tr>`)
     .join("")}
   </tbody><tfoot><tr><td>Сеть</td><td class="n">${fmt(q.network.total)}</td>${main.map(([k]) => `<td class="n">${pct(q.network.shares[k], 0)} <span class="muted">${fmt(q.network[k])}</span></td>`).join("")}<td class="n muted">${fmt(q.network.spam)} / ${fmt(q.network.dup)} / ${fmt(q.network.other)}</td></tr></tfoot></table></div>
-  ${q.branches.some((r) => r.outcomes) ? `<h3 class="mt" style="margin-bottom:4px">Что стало с лидами</h3><div class="hint">По истории заявок: отказ при первом разговоре или позже (после недозвона, «думает», «перезвонить»); из тех, кому не дозвонились при первой обработке, — скольким дозвонились потом. Доли — от обработанных заявок.</div>
+  ${q.branches.some((r) => r.outcomes) ? `<h3 class="mt" style="margin-bottom:4px">Что стало с лидами</h3><div class="hint">Отказы сразу не входят в лиды и лидобалы. По истории заявок: отказ при первом разговоре или позже (после недозвона, «думает», «перезвонить»); из тех, кому не дозвонились при первой обработке, — скольким дозвонились потом. Доли — от обработанных заявок.</div>
   <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th class="n">Обработано</th><th class="n">Отказ сразу</th><th class="n">Отказ позже</th><th class="n">Не дозвонились сначала</th><th class="n">→ потом дозвонились</th><th class="n">→ так и не</th></tr></thead><tbody>
   ${q.branches
     .filter((r) => r.outcomes)
