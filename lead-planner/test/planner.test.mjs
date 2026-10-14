@@ -335,3 +335,25 @@ test("расход по продуктам: договоры CRM формы за
   assert.equal(b.contracts, 12);
   assert.equal(b.contractsFromRequests, 4);
 });
+
+test("судьба лидов: отказ сразу / позже, недозвон → дозвонились", async () => {
+  const { outcomes } = await import("../scripts/lead-outcomes.mjs");
+  const L = (o) => ({ type: "irt_facebook", ...o });
+  const o = outcomes([
+    L({ id: 1, result: "result_fail", last_result: "Closed lost" }),
+    L({ id: 2, result: "result_think", last_result: "Closed lost", processed_at: "2026-10-01 10:00:00", reject_at: "2026-10-05 10:00:00" }),
+    L({ id: 3, result: "result_no_answer", count_contacts_ago: 3, count_contacts_ago_no_asnwer: 1 }),
+    L({ id: 4, result: "result_no_answer", count_contacts_ago: 2, count_contacts_ago_no_asnwer: 2, last_result: "Closed lost" }),
+    L({ id: 5, result: null }),
+    L({ id: 6, result: "result_deleted" }),
+    { id: 7, type: "download_invoice", result: "result_fail" },
+  ]);
+  assert.equal(o.n, 5);
+  assert.equal(o.processed, 4);
+  assert.equal(o.firstReject, 1);
+  assert.equal(o.laterReject, 2); // думает → отказ и недозвон → отказ
+  assert.equal(o.noAnswerFirst, 2);
+  assert.equal(o.noAnswerReached, 1);
+  assert.equal(o.noAnswerNever, 1);
+  assert.equal(o.noAnswerLost, 1);
+});

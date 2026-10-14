@@ -82,16 +82,32 @@ export const QUALITY_KEYS = [
   ["reject", "Отказ"],
   ["unanswered", "Не дозвонились"],
 ];
+// Судьба лидов (история заявок): доли от обработанных; «дозвонились» — от недозвонов при первой обработке.
+const OUTCOME_KEYS = ["n", "processed", "firstReject", "laterReject", "noAnswerFirst", "noAnswerReached", "noAnswerNever", "noAnswerLost"];
+function outcomeShares(o) {
+  const p = o.processed || 0;
+  return {
+    ...o,
+    firstRejectShare: p ? o.firstReject / p : null,
+    laterRejectShare: p ? o.laterReject / p : null,
+    noAnswerShare: p ? o.noAnswerFirst / p : null,
+    reachedShare: o.noAnswerFirst ? o.noAnswerReached / o.noAnswerFirst : null,
+  };
+}
+
 export function qualityFor(data, user, month) {
   const rows = [];
   const net = { total: 0 };
+  const netO = {};
   for (const b of data.branches) {
     if (b.archived) continue;
     const q = data.months[`${b.id}|${month}`]?.facts?.branch?.quality;
     if (!q) continue;
     net.total += q.total || 0;
     for (const [k] of QUALITY_KEYS) net[k] = (net[k] || 0) + (q[k] || 0);
-    if (canSee(user, b.id)) rows.push({ id: b.id, name: b.name, ...q });
+    const o = data.months[`${b.id}|${month}`]?.facts?.branch?.outcomes;
+    if (o) for (const k of OUTCOME_KEYS) netO[k] = (netO[k] || 0) + (o[k] || 0);
+    if (canSee(user, b.id)) rows.push({ id: b.id, name: b.name, ...q, outcomes: o ? outcomeShares(o) : null });
   }
   if (!net.total) return null;
   const share = (q, k) => (q.total ? (q[k] || 0) / q.total : null);
@@ -102,7 +118,7 @@ export function qualityFor(data, user, month) {
     r.shares = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, share(r, k)]));
     r.flags = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, flag(r.shares[k], netShare[k])]));
   }
-  return { month, keys: QUALITY_KEYS, network: { ...net, shares: netShare }, branches: rows };
+  return { month, keys: QUALITY_KEYS, network: { ...net, shares: netShare, outcomes: netO.processed ? outcomeShares(netO) : null }, branches: rows };
 }
 
 // Расход на рекламу по продуктам за период: только филиалы, доступные пользователю.

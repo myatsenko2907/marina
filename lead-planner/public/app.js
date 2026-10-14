@@ -1254,7 +1254,23 @@ function branchQualityCard(q) {
   <div class="hint">Все интернет-заявки CRM за ${monthName(q.month).toLowerCase()}: ${fmt(r.total)}. Удалённые не входят в лиды и лидобалы; отказы и недозвоны входят (норма конверсии их уже учитывает). Подсвечено, если доля в 1,5 раза выше сети. Недозвоны — текущее состояние: по старым месяцам их меньше, т. к. заявки уже обработаны.</div>
   <div class="tbl-wrap"><table class="spend"><thead><tr><th>Заявки</th><th class="n">Кол-во</th><th class="n">Доля филиала</th><th class="n">Доля сети</th><th class="w-bar">филиал / сеть</th></tr></thead><tbody>
   ${q.keys.map((x) => row(x, ["spam", "dup", "other"].includes(x[0]))).join("")}
-  </tbody></table></div></div>`;
+  </tbody></table></div>
+  ${outcomesBlock(r.outcomes, q.network.outcomes)}</div>`;
+}
+
+/** Что стало с лидами: отказ сразу / позже, недозвон → дозвонились или нет. */
+function outcomesBlock(o, n) {
+  if (!o) return "";
+  const line = (label, cnt, share, netShare, tip) => `<tr><td>${label}${tip ? ` <span class="muted" style="font-size:12px">${tip}</span>` : ""}</td><td class="n">${fmt(cnt)}</td><td class="n"><b>${pct(share, 0)}</b></td><td class="n">${pct(netShare, 0)}</td></tr>`;
+  return `<h3 class="mt" style="margin-bottom:4px">Что стало с лидами</h3>
+  <div class="hint">По истории заявок CRM: результат первой обработки и итог. Доли — от обработанных заявок (${fmt(o.processed)}), «потом дозвонились» — от недозвонов.</div>
+  <div class="tbl-wrap"><table class="spend"><thead><tr><th>Исход</th><th class="n">Кол-во</th><th class="n">Филиал</th><th class="n">Сеть</th></tr></thead><tbody>
+  ${line("Отказ сразу", o.firstReject, o.firstRejectShare, n?.firstRejectShare, "— при первом разговоре")}
+  ${line("Отказ позже", o.laterReject, o.laterRejectShare, n?.laterRejectShare, `— после недозвона, «думает», «перезвонить»${o.laterRejectDays != null ? `; в среднем через ${fmt(o.laterRejectDays, 1)} дн.` : ""}`)}
+  ${line("Не дозвонились при первой обработке", o.noAnswerFirst, o.noAnswerShare, n?.noAnswerShare)}
+  <tr class="qsub"><td>· потом дозвонились</td><td class="n">${fmt(o.noAnswerReached)}</td><td class="n"><b>${pct(o.reachedShare, 0)}</b></td><td class="n">${pct(n?.reachedShare, 0)}</td></tr>
+  <tr class="qsub"><td>· так и не дозвонились</td><td class="n">${fmt(o.noAnswerNever)}</td><td class="n">${pct(o.noAnswerFirst ? o.noAnswerNever / o.noAnswerFirst : null, 0)}</td><td class="n">${pct(n?.noAnswerFirst ? n.noAnswerNever / n.noAnswerFirst : null, 0)}</td></tr>
+  </tbody></table></div>`;
 }
 
 /** Главная: качество лидов по филиалам. */
@@ -1266,7 +1282,20 @@ function qualityOverviewCard(q) {
   ${q.branches
     .map((r) => `<tr class="click" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td><td class="n">${fmt(r.total)}</td>${main.map(([k]) => `<td class="n">${qCell(r.shares[k], r.flags[k])} <span class="muted">${fmt(r[k])}</span></td>`).join("")}<td class="n muted">${fmt(r.spam)} / ${fmt(r.dup)} / ${fmt(r.other)}</td></tr>`)
     .join("")}
-  </tbody><tfoot><tr><td>Сеть</td><td class="n">${fmt(q.network.total)}</td>${main.map(([k]) => `<td class="n">${pct(q.network.shares[k], 0)} <span class="muted">${fmt(q.network[k])}</span></td>`).join("")}<td class="n muted">${fmt(q.network.spam)} / ${fmt(q.network.dup)} / ${fmt(q.network.other)}</td></tr></tfoot></table></div></div>`;
+  </tbody><tfoot><tr><td>Сеть</td><td class="n">${fmt(q.network.total)}</td>${main.map(([k]) => `<td class="n">${pct(q.network.shares[k], 0)} <span class="muted">${fmt(q.network[k])}</span></td>`).join("")}<td class="n muted">${fmt(q.network.spam)} / ${fmt(q.network.dup)} / ${fmt(q.network.other)}</td></tr></tfoot></table></div>
+  ${q.branches.some((r) => r.outcomes) ? `<h3 class="mt" style="margin-bottom:4px">Что стало с лидами</h3><div class="hint">По истории заявок: отказ при первом разговоре или позже (после недозвона, «думает», «перезвонить»); из тех, кому не дозвонились при первой обработке, — скольким дозвонились потом. Доли — от обработанных заявок.</div>
+  <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th class="n">Обработано</th><th class="n">Отказ сразу</th><th class="n">Отказ позже</th><th class="n">Не дозвонились сначала</th><th class="n">→ потом дозвонились</th><th class="n">→ так и не</th></tr></thead><tbody>
+  ${q.branches
+    .filter((r) => r.outcomes)
+    .map((r) => {
+      const o = r.outcomes;
+      const n = q.network.outcomes;
+      const hi = (v, nv) => (v != null && nv != null && v >= nv * 1.5 && v - nv >= 0.05 ? "q-warn" : "");
+      const lo = (v, nv) => (v != null && nv != null && v <= nv * 0.75 && nv - v >= 0.1 ? "q-warn" : "");
+      return `<tr class="click" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td><td class="n">${fmt(o.processed)}</td><td class="n"><span class="${hi(o.firstRejectShare, n.firstRejectShare)}">${pct(o.firstRejectShare, 0)}</span> <span class="muted">${fmt(o.firstReject)}</span></td><td class="n"><span class="${hi(o.laterRejectShare, n.laterRejectShare)}">${pct(o.laterRejectShare, 0)}</span> <span class="muted">${fmt(o.laterReject)}</span></td><td class="n"><span class="${hi(o.noAnswerShare, n.noAnswerShare)}">${pct(o.noAnswerShare, 0)}</span> <span class="muted">${fmt(o.noAnswerFirst)}</span></td><td class="n"><span class="${lo(o.reachedShare, n.reachedShare)}">${pct(o.reachedShare, 0)}</span> <span class="muted">${fmt(o.noAnswerReached)}</span></td><td class="n">${fmt(o.noAnswerNever)}</td></tr>`;
+    })
+    .join("")}
+  </tbody><tfoot><tr><td>Сеть</td><td class="n">${fmt(q.network.outcomes?.processed)}</td><td class="n">${pct(q.network.outcomes?.firstRejectShare, 0)}</td><td class="n">${pct(q.network.outcomes?.laterRejectShare, 0)}</td><td class="n">${pct(q.network.outcomes?.noAnswerShare, 0)}</td><td class="n">${pct(q.network.outcomes?.reachedShare, 0)}</td><td class="n">${fmt(q.network.outcomes?.noAnswerNever)}</td></tr></tfoot></table></div>` : ""}</div>`;
 }
 
 // ---------- router ----------

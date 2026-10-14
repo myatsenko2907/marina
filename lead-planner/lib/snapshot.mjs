@@ -8,6 +8,8 @@
 //             (crm_internet_requests); факт лидобалов филиала = заявки × норма типа
 //   quality:  { alias: { "YYYY-MM": { total, deleted, spam, dup, other, reject, unanswered, contracts } } }
 //             — качество лидов: строка ALL отчёта по интернет-заявкам
+//   outcomes: { alias: { "YYYY-MM": { n, processed, firstReject, laterReject, laterRejectDays, noAnswerFirst, noAnswerReached, noAnswerNever } } }
+//             — судьба лидов по истории заявок (scripts/lead-outcomes.mjs)
 import { seasonOf } from "./planner.mjs";
 
 export function applySnapshot(store, snap, seasonMonth = new Date().toISOString().slice(0, 7)) {
@@ -50,7 +52,7 @@ export function applySnapshot(store, snap, seasonMonth = new Date().toISOString(
         requests[type] = { net, contracts, typeId: map[type] || null };
         if (map[type]) leads[map[type]] = (leads[map[type]] || 0) + net;
       }
-      rec.facts.branch = { leads, requests, source: "crm_requests", quality: rec.facts.branch?.quality };
+      rec.facts.branch = { leads, requests, source: "crm_requests", quality: rec.facts.branch?.quality, outcomes: rec.facts.branch?.outcomes };
       n++;
     }
   }
@@ -58,6 +60,13 @@ export function applySnapshot(store, snap, seasonMonth = new Date().toISOString(
     for (const [m, q] of Object.entries(months)) {
       const rec = store.ensureMonth(id, m);
       rec.facts.branch = { ...(rec.facts.branch || {}), quality: { ...q, fetchedAt: snap.fetchedAt || new Date().toISOString() } };
+      n++;
+    }
+  }
+  for (const [id, months] of Object.entries(snap.outcomes || {})) {
+    for (const [m, o] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      rec.facts.branch = { ...(rec.facts.branch || {}), outcomes: { ...o, fetchedAt: snap.fetchedAt || new Date().toISOString() } };
       n++;
     }
   }
