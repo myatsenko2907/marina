@@ -241,6 +241,7 @@ async function handleApi(req, res, url) {
   }
 
   if (p === "/api/overview") return send(res, 200, overview(user, month));
+  if (p === "/api/spend") return send(res, 200, service.spendFor(store.data, user, url.searchParams.get("from"), url.searchParams.get("to")));
 
   if (p === "/api/settings") {
     if (method === "GET") return send(res, 200, store.data.settings);

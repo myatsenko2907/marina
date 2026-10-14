@@ -31,6 +31,10 @@ const addMonths = (m, n) => {
   const d = new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5)) - 1 + n, 1));
   return d.toISOString().slice(0, 7);
 };
+const seasonOfMonth = (m) => {
+  const h2 = Number(m.slice(5)) >= 7;
+  return { label: h2 ? "II" : "I", from: `${m.slice(0, 4)}-${h2 ? "07" : "01"}` };
+};
 const SERIES = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)", "var(--s6)", "var(--s7)", "var(--s8)"];
 const typeColor = (id) => SERIES[Math.max(0, S.settings.leadTypes.findIndex((t) => t.id === id)) % SERIES.length];
 const typeName = (id) => S.settings.leadTypes.find((t) => t.id === id)?.name || id;
@@ -276,6 +280,7 @@ function shell(active, inner) {
   const isAdmin = S.me.role === "admin";
   const links = [
     ["#/", isAdmin ? "Все филиалы" : "Мои филиалы", "home"],
+    ["#/spend", "Расход на рекламу", "spend"],
     ...(isAdmin
       ? [
           ...(window.LOCAL_MODE ? [] : [["#/admin/import", "Импорт", "import"]]),
@@ -526,7 +531,7 @@ async function renderBranch(id, tab = "dash") {
   ].join(" · ");
 
   let body = "";
-  if (tab === "dash") body = branchDash(r, season, cur);
+  if (tab === "dash") body = branchDash(r, season, cur) + branchSpendCard(data.spend, data.spendUntil);
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
   if (tab === "season") body = branchSeason(season, inputs);
@@ -882,6 +887,7 @@ async function renderBranches() {
 
 async function renderSettings() {
   const s = S.settings;
+  const spendRules = s.spendRules?.length ? s.spendRules : (await api("/api/spend")).ruleDefs || [];
   shell(
     "settings",
     `<div class="head"><div><h1>Настройки расчёта</h1><div class="sub">Нормы конверсии (лидобалы за лид), примерные цены лида, пороги статусов</div></div></div>
@@ -902,6 +908,10 @@ async function renderSettings() {
   <div class="card mt"><h2>Продукты и кампании FB</h2><div class="hint">Регулярное выражение по названию кампании (без учёта регистра). Кампании ивентов: <input type="text" name="eventCampaignPattern" value="${esc(s.eventCampaignPattern)}" style="max-width:420px"></div>
   <table><thead><tr><th>Код CRM</th><th>Название</th><th>Шаблон кампаний</th></tr></thead><tbody>
   ${s.products.map((p) => `<tr><td><span class="chip">${esc(p.id)}</span></td><td><input type="text" name="pr.${p.id}.name" value="${esc(p.name)}"></td><td><input type="text" name="pr.${p.id}.campaignPattern" value="${esc(p.campaignPattern || "")}"></td></tr>`).join("")}
+  </tbody></table></div>
+  <div class="card mt"><h2>Расход на рекламу: продукт по названию кампании</h2><div class="hint">Правила проверяются сверху вниз, побеждает первое совпадение. Ключи через запятую, без учёта регистра: ключ до 3 букв (шс, мка, ai) ищется как целое слово, длиннее — как часть названия. Пустое название — правило удаляется; в последней строке можно добавить новое.</div>
+  <table><thead><tr><th style="width:220px">Продукт</th><th>Ключевые слова в названии кампании</th></tr></thead><tbody>
+  ${[...spendRules, { name: "", keys: "" }].map((r, i) => `<tr><td><input type="text" name="sr.${i}.name" value="${esc(r.name)}" placeholder="Новый продукт"></td><td><input type="text" name="sr.${i}.keys" value="${esc(r.keys)}"></td></tr>`).join("")}
   </tbody></table></div>
   <div class="row-actions mt"><button class="btn primary">Сохранить настройки</button></div></form>`,
   );
@@ -928,6 +938,11 @@ async function renderSettings() {
         if (g(`cap.${t.id}`).value === "") delete next.mixCaps[t.id];
         else next.mixCaps[t.id] = Number(g(`cap.${t.id}`).value) / 100;
       }
+    }
+    next.spendRules = [];
+    for (let i = 0; g(`sr.${i}.name`); i++) {
+      const name = g(`sr.${i}.name`).value.trim();
+      if (name) next.spendRules.push({ name, keys: g(`sr.${i}.keys`).value });
     }
     for (const p of next.products) {
       p.name = g(`pr.${p.id}.name`).value;
@@ -981,6 +996,175 @@ async function renderImport() {
   };
 }
 
+
+// ---------- расход на рекламу ----------
+const PROD_COLORS = ["#8a8f98", "#2a78d6", "#eb6834", "#1baf7a", "#4a3aa7", "#eda100", "#e87ba4", "#008300", "#0f9fb5", "#e34948", "#7a5c3e", "#b06fd8", "#c9ccd1"];
+const prodColor = (rules, name) => PROD_COLORS[Math.max(0, rules.indexOf(name)) % PROD_COLORS.length];
+const lsGet = (k, d) => {
+  try {
+    return localStorage.getItem(k) || d;
+  } catch {
+    return d;
+  }
+};
+const lsSet = (k, v) => {
+  try {
+    localStorage.setItem(k, v);
+  } catch {}
+};
+
+/** Таблица «продукт — расход — % от всех затрат». */
+function spendTable(g, rules, cur, { campaigns = true, totalLabel = "Всего" } = {}) {
+  if (!g.total) return '<div class="empty">Нет расхода за период</div>';
+  return `<div class="tbl-wrap"><table class="spend"><thead><tr><th>Продукт</th><th class="n">Расход</th><th class="n">% от всех затрат</th><th class="w-bar"></th></tr></thead><tbody>
+  ${g.products
+    .map(
+      (p) => `<tr><td>${campaigns ? `<details class="camp"><summary><i class="dot" style="background:${prodColor(rules, p.name)}"></i>${esc(p.name)} <span class="muted">· ${p.campaigns.length} камп.</span></summary>
+        <ul>${p.campaigns.map((c) => `<li><span>${esc(c.name)}</span><b>${money(c.spend, cur)}</b></li>`).join("")}</ul></details>` : `<i class="dot" style="background:${prodColor(rules, p.name)}"></i>${esc(p.name)}`}</td>
+      <td class="n">${money(p.spend, cur)}</td><td class="n"><b>${pct(p.share, 1)}</b></td>
+      <td class="w-bar"><div class="bar-mini"><i style="width:${(p.share / g.products[0].share) * 100}%;background:${prodColor(rules, p.name)}"></i></div></td></tr>`,
+    )
+    .join("")}
+  </tbody><tfoot><tr><td>${totalLabel}</td><td class="n">${money(g.total, cur)}</td><td class="n">100%</td><td></td></tr></tfoot></table></div>`;
+}
+
+/** Структура расходов филиалов: 100%-полосы по продуктам. */
+function spendStack(branches, rules) {
+  const rows = branches.filter((b) => b.total > 0);
+  if (!rows.length) return "";
+  return `<div class="sstack">${rows
+    .map(
+      (b) => `<a class="sstack-row" href="#/spend" data-jump="${b.id}"><span class="sstack-name">${esc(b.name)}</span>
+      <span class="sstack-bar">${b.products.map((p) => `<i style="width:${p.share * 100}%;background:${prodColor(rules, p.name)}" data-tip="${esc(`${b.name} · ${p.name}: ${money(p.spend, b.currency)} (${pct(p.share, 1)})`)}"></i>`).join("")}</span>
+      <span class="sstack-sum">${money(b.total, b.currency)}</span></a>`,
+    )
+    .join("")}</div>
+  <div class="legend">${rules
+    .filter((r) => rows.some((b) => b.products.some((p) => p.name === r)))
+    .map((r) => `<span><i class="dot" style="background:${prodColor(rules, r)}"></i>${esc(r)}</span>`)
+    .join("")}</div>`;
+}
+
+const periodName = (from, to) => (from === to ? monthName(from) : `${monthShort(from)} ${from.slice(0, 4) !== to.slice(0, 4) ? from.slice(0, 4) + " " : ""}– ${monthShort(to)} ${to.slice(0, 4)}`);
+
+async function renderSpend() {
+  shell("spend", '<div class="empty">Загрузка…</div>');
+  const base = await api("/api/spend");
+  const months = base.months;
+  if (!months.length) {
+    shell("spend", `<div class="head"><div><h1>Расход на рекламу</h1></div></div><div class="card"><div class="empty">Данных о расходе пока нет. Загрузите расход кампаний: <code>node scripts/load-spend.mjs</code></div></div>`);
+    return;
+  }
+  const last = months.at(-1);
+  let from = lsGet("lp.spend.from", last);
+  let to = lsGet("lp.spend.to", last);
+  if (!months.includes(from)) from = last;
+  if (!months.includes(to)) to = last;
+  const r = from === base.from && to === base.to ? base : await api(`/api/spend?from=${from}&to=${to}`);
+  const rules = r.rules;
+  const season = seasonOfMonth(to);
+  const presets = [
+    ["Текущий месяц", last, last],
+    ["Прошлый месяц", addMonths(last, -1), addMonths(last, -1)],
+    ["3 месяца", addMonths(last, -2), last],
+    [`Набор ${season.label}`, season.from, last],
+    ["Всё время", months[0], last],
+  ].map(([n, a, b]) => [n, months.includes(a) ? a : months[0], months.includes(b) ? b : last]);
+  const partial = r.until && r.until.slice(0, 7) === r.to ? ` · ${monthName(r.to).toLowerCase()} — по ${r.until.slice(8, 10)}.${r.until.slice(5, 7)}` : "";
+  const cur = r.branches[0]?.currency || "USD";
+  const net = r.network;
+  const top = net.products.filter((p) => p.name !== "Не определено")[0];
+  const isAdmin = S.me.role === "admin";
+  const avg = r.branches.filter((b) => b.total > 0);
+  const opt = (sel) => months.map((m) => `<option value="${m}" ${m === sel ? "selected" : ""}>${monthName(m)}</option>`).join("");
+
+  const inner = `
+  <div class="head"><div><div class="crumbs">${esc(periodName(r.from, r.to))}${esc(partial)}</div><h1>Расход на рекламу</h1>
+    <div class="sub">Сколько ушло на рекламу каждого продукта и какая это доля от всех затрат филиала. Источник — кампании FB${r.until ? `, данные по ${r.until.slice(8, 10)}.${r.until.slice(5, 7)}.${r.until.slice(0, 4)}` : ""}.</div></div></div>
+
+  <div class="card period">
+    <div class="presets">${presets.map(([n, a, b]) => `<button class="btn sm ${a === r.from && b === r.to ? "on" : ""}" data-from="${a}" data-to="${b}">${esc(n)}</button>`).join("")}</div>
+    <span class="spacer"></span>
+    <label class="f inline">С <select id="spFrom">${opt(r.from)}</select></label>
+    <label class="f inline">по <select id="spTo">${opt(r.to)}</select></label>
+  </div>
+
+  <div class="grid kpis">
+    <div class="card kpi"><div class="label">${isAdmin ? "Расход сети" : "Расход"} за период</div><div class="value">${money(net.total, cur)}</div>
+      <div class="foot">${avg.length} фил. · ${esc(periodName(r.from, r.to))}</div></div>
+    <div class="card kpi"><div class="label">Больше всего тратим на</div><div class="value">${top ? esc(top.name) : "—"}</div>
+      <div class="foot">${top ? `${money(top.spend, cur)} · ${pct(top.share, 1)} всех затрат` : ""}</div></div>
+    ${avg.length > 1 ? `<div class="card kpi"><div class="label">Средний расход филиала</div><div class="value">${money(net.total / avg.length, cur)}</div>
+      <div class="foot">max ${esc(avg[0].name)} ${money(avg[0].total, cur)}</div></div>` : ""}
+    <div class="card kpi"><div class="label">Не определено</div><div class="value">${pct(net.products.find((p) => p.name === "Не определено")?.share || 0, 1)}</div>
+      <div class="foot">кампании без продукта в названии${isAdmin ? ' · <a href="#/admin/settings">правила</a>' : ""}</div></div>
+  </div>
+
+  ${
+    r.branches.length > 1
+      ? `<div class="grid cols-2">
+    <div class="card"><h2>${isAdmin ? "Сеть" : "Все мои филиалы"}: продукт — расход — %</h2><div class="hint">% — доля продукта во всех затратах на рекламу за период</div>${spendTable(net, rules, cur, { campaigns: false })}</div>
+    <div class="card"><h2>Структура расходов филиалов</h2><div class="hint">Длина цвета — доля продукта в затратах филиала. Нажмите на филиал, чтобы перейти к его таблице</div>${spendStack(r.branches, rules)}</div>
+  </div>
+  <div class="card mt"><h2>Продукты × филиалы</h2><div class="hint">Расход и доля продукта от всех затрат филиала</div>${spendMatrix(r, rules)}</div>`
+      : ""
+  }
+
+  <div class="grid cols-2 mt">${r.branches
+    .map(
+      (b) => `<div class="card" id="sp-${b.id}"><div class="card-head"><h2>${esc(b.name)}</h2><span class="spacer"></span><b>${money(b.total, b.currency)}</b>${net.total && r.branches.length > 1 ? `<span class="chip" data-tip="Доля филиала в расходе сети">${pct(b.total / net.total, 0)} сети</span>` : ""}</div>
+      <div class="hint">${Object.keys(b.byMonth).length > 1 ? Object.entries(b.byMonth).map(([m, v]) => `${monthShort(m)} ${money(v, b.currency)}`).join(" · ") : "Нажмите на продукт, чтобы увидеть кампании"}</div>
+      ${b.hasData ? spendTable(b, rules, b.currency) : '<div class="empty">Нет данных о расходе по этому филиалу</div>'}</div>`,
+    )
+    .join("")}</div>`;
+  shell("spend", inner);
+  const go = (a, b) => {
+    if (a > b) [a, b] = [b, a];
+    lsSet("lp.spend.from", a);
+    lsSet("lp.spend.to", b);
+    renderSpend();
+  };
+  document.querySelectorAll(".presets button").forEach((x) => (x.onclick = () => go(x.dataset.from, x.dataset.to)));
+  document.getElementById("spFrom").onchange = (e) => go(e.target.value, document.getElementById("spTo").value);
+  document.getElementById("spTo").onchange = (e) => go(document.getElementById("spFrom").value, e.target.value);
+  document.querySelectorAll("[data-jump]").forEach(
+    (a) =>
+      (a.onclick = (e) => {
+        e.preventDefault();
+        document.getElementById(`sp-${a.dataset.jump}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }),
+  );
+}
+
+/** Матрица: строки — продукты, колонки — филиалы, в ячейке расход и % от затрат филиала. */
+function spendMatrix(r, rules) {
+  const bs = r.branches.filter((b) => b.total > 0);
+  const names = r.network.products.map((p) => p.name);
+  const max = Math.max(...bs.flatMap((b) => b.products.map((p) => p.share)), 0.01);
+  return `<div class="tbl-wrap"><table class="matrix"><thead><tr><th>Продукт</th>${bs.map((b) => `<th class="n">${esc(b.name)}</th>`).join("")}<th class="n">Сеть</th></tr></thead><tbody>
+  ${names
+    .map((n) => {
+      const np = r.network.products.find((p) => p.name === n);
+      return `<tr><td><i class="dot" style="background:${prodColor(rules, n)}"></i>${esc(n)}</td>${bs
+        .map((b) => {
+          const p = b.products.find((x) => x.name === n);
+          return p ? `<td class="n heat" style="--a:${(p.share / max) * 0.35}" data-tip="${esc(`${b.name} · ${n}: ${money(p.spend, b.currency)}`)}"><b>${pct(p.share, 0)}</b><small>${money(p.spend, b.currency)}</small></td>` : '<td class="n muted">—</td>';
+        })
+        .join("")}<td class="n"><b>${pct(np.share, 0)}</b><small>${money(np.spend)}</small></td></tr>`;
+    })
+    .join("")}
+  </tbody><tfoot><tr><td>Всего</td>${bs.map((b) => `<td class="n">${money(b.total, b.currency)}</td>`).join("")}<td class="n">${money(r.network.total)}</td></tr></tfoot></table></div>`;
+}
+
+/** Блок на дашборде филиала: расход по продуктам за выбранный месяц. */
+function branchSpendCard(spend, until) {
+  if (!spend) return "";
+  const rules = S.settings.spendRules?.map((x) => x.name).concat("Не определено") || spend.products.map((p) => p.name);
+  const partial = until && until.slice(0, 7) === S.month ? ` (по ${until.slice(8, 10)}.${until.slice(5, 7)})` : "";
+  return `<div class="card mt"><div class="card-head"><h2>Расход на рекламу по продуктам</h2><span class="spacer"></span><a class="btn sm" href="#/spend">За другой период →</a></div>
+  <div class="hint">${monthName(S.month)}${partial}: продукт — расход — % от всех затрат филиала. Факт расхода кампаний FB</div>${spendTable(spend, rules, spend.currency)}</div>`;
+}
+
 // ---------- router ----------
 async function route() {
   if (!S.me) return renderLogin();
@@ -988,6 +1172,7 @@ async function route() {
   try {
     let m;
     if ((m = h.match(/^\/b\/([\w-]+)(?:\/(\w+))?/))) return await renderBranch(m[1], m[2] || "dash");
+    if (h === "/spend") return await renderSpend();
     if (S.me.role === "admin") {
       if (h === "/admin/users") return await renderUsers();
       if (h === "/admin/branches") return await renderBranches();

@@ -19,6 +19,8 @@ const data = {
   seasons: store.seasons,
   events: store.events,
   fb: {},
+  spend: store.spend || {},
+  spendMeta: store.spendMeta || null,
   updatedAt: [store.lastRefresh?.at, store.imports?.at(-1)?.at].filter(Boolean).sort().at(-1) || new Date().toISOString(),
 };
 
@@ -38,6 +40,7 @@ const strip = (file) =>
     .replace(/^import[\s\S]*?from\s+"[^"]+";\s*$/gm, "")
     .replace(/^export\s+(?=(const|function|async function|class|let)\b)/gm, "");
 const planner = strip("lib/planner.mjs");
+const spend = strip("lib/spend.mjs");
 const service = strip("lib/service.mjs").replace(/service\./g, "");
 const localapi = strip("lib/localapi.mjs").replace(/service\./g, "");
 const app = fs.readFileSync(path.join(ROOT, "public/app.js"), "utf8");
@@ -81,6 +84,7 @@ const html = `<title>План лидобалов</title>
 <script>
 (() => {
 ${planner}
+${spend}
 ${service}
 ${localapi}
 ${boot}

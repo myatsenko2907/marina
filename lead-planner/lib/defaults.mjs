@@ -1,4 +1,5 @@
 // Настройки по умолчанию. Всё редактируется в админке («Настройки»).
+import { DEFAULT_SPEND_RULES } from "./spend.mjs";
 
 export const DEFAULT_SETTINGS = {
   // План лидобалов = план договоров × коэффициент (минимальная норма маркетинга — 90%).
@@ -70,6 +71,8 @@ export const DEFAULT_SETTINGS = {
   cplLookbackDays: 30,
   eventLookbackDays: 90,
   metaApiVersion: "v21.0",
+  // Расход на рекламу: продукт по названию кампании (первое совпадение; ключ до 3 букв — целое слово).
+  spendRules: DEFAULT_SPEND_RULES,
 };
 
 export const STATUS_LABELS = {

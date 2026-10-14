@@ -1,5 +1,6 @@
 // Общая логика API поверх данных хранилища (store.data). Без I/O — работает и на сервере, и в браузере.
 import { computeSeason, seasonOf, addMonths } from "./planner.mjs";
+import { spendReport } from "./spend.mjs";
 
 export const canSee = (user, branchId) => user.role === "admin" || (user.branches || []).includes(branchId);
 
@@ -60,8 +61,16 @@ export function branchDetail(data, user, branch, month, today = new Date()) {
       seasonPlan: data.seasons[`${branch.id}|${s.season.id}`]?.plan || {},
       events: data.events.filter((e) => e.branchId === branch.id && (e.date || "").slice(0, 7) === month),
     },
+    spend: data.spend?.[branch.id] ? spendReport(data, { from: month, to: month, branchIds: [branch.id] }).branches[0] : null,
+    spendUntil: data.spendMeta?.until || null,
     canEdit: user.role === "admin",
   };
+}
+
+// Расход на рекламу по продуктам за период: только филиалы, доступные пользователю.
+export function spendFor(data, user, from, to) {
+  const ok = (m) => (/^20\d\d-(0[1-9]|1[0-2])$/.test(m || "") ? m : undefined);
+  return spendReport(data, { from: ok(from), to: ok(to), branchIds: data.branches.filter((b) => canSee(user, b.id)).map((b) => b.id) });
 }
 
 export const BRANCH_FIELDS = ["name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note", "cpl"];

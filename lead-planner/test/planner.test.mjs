@@ -188,3 +188,35 @@ test("перенос недостачи выключен по умолчанию
   near(s.month.totals.carryBalls, 0);
   near(s.month.totals.targetBalls, 9);
 });
+
+test("расход на рекламу: продукт по названию кампании и доля от затрат филиала", async () => {
+  const { classifySpend, compileRules, spendReport, UNMATCHED } = await import("../lib/spend.mjs");
+  const rules = compileRules();
+  assert.equal(classifySpend("ШС / Cybersecurity + AI 25.09", rules), "ШС");
+  assert.equal(classifySpend("МіК | 25.08.26 [2]", rules), "ПКО (взрослые)");
+  assert.equal(classifySpend("Event | МКА | Roblox | 11.08.26", rules), "МКА (дети)");
+  assert.equal(classifySpend("Літній табір ДЦР | 31.08.26", rules), "Лагеря");
+  assert.equal(classifySpend("Python+AI для підлітків", rules), "Спецкурсы");
+  assert.equal(classifySpend("Event / Party 04.09", rules), "Ивенты без продукта");
+  assert.equal(classifySpend("Тест ПЗ_01.10", rules), UNMATCHED);
+  assert.equal(classifySpend("Школа програмування", rules), "Школа");
+  assert.equal(classifySpend("Кімната відпочинку", rules), UNMATCHED); // «мк» — только целое слово
+  const data = {
+    settings: {},
+    branches: [{ id: "dp", name: "Днепр" }, { id: "kh", name: "Харьков" }],
+    spend: {
+      dp: { "2026-09": [["МКА 1", 30], ["ШС 1", 10]], "2026-10": [["МКА 2", 60]] },
+      kh: { "2026-10": [["ПКО", 100]] },
+    },
+  };
+  const r = spendReport(data, { from: "2026-10", to: "2026-10" });
+  const dp = r.branches.find((b) => b.id === "dp");
+  near(dp.total, 60);
+  near(dp.products[0].share, 1);
+  near(r.network.total, 160);
+  const all = spendReport(data, { branchIds: ["dp"] });
+  assert.deepEqual([all.from, all.to], ["2026-09", "2026-10"]);
+  near(all.branches[0].products.find((p) => p.name === "МКА (дети)").share, 0.9);
+  assert.equal(all.branches[0].products.find((p) => p.name === "МКА (дети)").campaigns.length, 2);
+  assert.equal(all.branches.length, 1);
+});

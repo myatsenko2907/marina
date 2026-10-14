@@ -12,6 +12,8 @@ const EMPTY = () => ({
   fb: {}, // branchId → { fetchedAt, cpl, events, mtd }
   users: [],
   imports: [],
+  spend: {}, // branchId → { "2026-10": [[название кампании, расход], …] } — scripts/load-spend.mjs
+  spendMeta: null,
 });
 
 export class Store {

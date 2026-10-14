@@ -44,6 +44,7 @@ export function createLocalApi(data, { persist = () => {}, today = () => new Dat
     if (p === "/api/me") return { ...me, metaConfigured: false };
     if (p === "/api/status") return { updatedAt: data.updatedAt, lastRefresh: null, refreshMinutes: 0, sources: { crm: true }, local: true };
     if (p === "/api/overview") return service.overview(data, me, month, today());
+    if (p === "/api/spend") return service.spendFor(data, me, url.searchParams.get("from"), url.searchParams.get("to"));
     if (p === "/api/settings") {
       if (method === "PUT") {
         needAdmin();
