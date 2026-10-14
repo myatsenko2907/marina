@@ -207,14 +207,3 @@ table.matrix td.heat { background: color-mix(in srgb, var(--accent) calc(var(--a
 .scalebar i { display: block; height: 100%; }
 .alert-row.low { background: var(--low-soft); color: var(--low-ink); }
 
-/* аномальная цена лида */
-.warn-card { border-color: #f2c4c4; }
-td.cplc small, table.matrix td small { display: block; color: var(--ink-2); font-size: 11.5px; }
-td.cplc.high { background: var(--low-soft); }
-td.cplc.high b { color: var(--low-ink); }
-td.cplc.extreme { background: var(--bad-soft); }
-td.cplc.extreme b, td.cplc.extreme small { color: var(--bad-ink); }
-tr.avgrow td { border-bottom: 2px solid var(--line); font-weight: 500; }
-.cmpbar { position: relative; height: 10px; background: var(--idle-soft); border-radius: 5px; }
-.cmpbar i { display: block; height: 100%; border-radius: 5px; }
-.cmpbar u { position: absolute; top: -3px; width: 2px; height: 16px; background: var(--ink); text-decoration: none; }

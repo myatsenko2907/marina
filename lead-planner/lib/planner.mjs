@@ -219,6 +219,7 @@ export function factBallsOf(fact, ctx) {
  */
 export function leadPrice({ settings, branch, typeId, manual, fbCpl, productCpl }) {
   if (num(manual) != null) return { cpl: Number(manual), source: "manual" };
+  if (num(settings.budgetCpl) != null) return { cpl: Number(settings.budgetCpl), source: "budget_avg" };
   if (productCpl?.cpl != null) return { cpl: productCpl.cpl, source: productCpl.branchAvg ? "prev_month_branch" : "prev_month" };
   if (num(branch?.cpl?.[typeId]) != null) return { cpl: Number(branch.cpl[typeId]), source: "branch" };
   if (fbCpl != null) return { cpl: fbCpl, source: "fb" };
@@ -416,7 +417,7 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
       cplSource,
       cplBasis: (() => {
         const b = productCpl?.[prod.id] || productCpl?.__branch;
-        return b ? { spend: b.spend, leads: b.leads, months: b.months, branchAvg: !productCpl?.[prod.id] } : null;
+        return b && byType.some((r) => (r.cplSource || "").startsWith("prev_month")) ? { spend: b.spend, leads: b.leads, months: b.months, branchAvg: !productCpl?.[prod.id] } : null;
       })(),
       fb: fbp ? { spend: fbp.spend, leads: fbp.leads, campaigns: fbp.campaigns } : null,
       spentMtd: mtdp ? mtdp.spend : null,

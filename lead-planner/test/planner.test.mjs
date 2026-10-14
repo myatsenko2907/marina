@@ -4,7 +4,7 @@ import { applyCaps, computeMonth, computeSeason, elapsedShare, seasonOf, classif
 import { DEFAULT_SETTINGS } from "../lib/defaults.mjs";
 import { parseCsv, tableToRecords, toMonth } from "../lib/importer.mjs";
 
-const settings = { ...structuredClone(DEFAULT_SETTINGS), carryOver: true };
+const settings = { ...structuredClone(DEFAULT_SETTINGS), carryOver: true, budgetCpl: null };
 const branch = { id: "dp", name: "Днепр" };
 const near = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
 
@@ -287,20 +287,18 @@ test("цена лида продукта — по расходу и лидам F
   assert.equal(r.products.find((p) => p.id === "form_step").cplSource, "prev_month_branch");
 });
 
-test("аномальная цена лида: сравнение с медианой сети по продукту", async () => {
-  const { cplComparison } = await import("../lib/spend.mjs");
-  const mk = (ma) => ({ "2026-09": [["МКА", ma, 10]] });
-  const data = {
-    settings: {},
-    branches: ["a", "b", "c", "d"].map((id) => ({ id, name: id })),
-    spend: { a: mk(100), b: mk(120), c: mk(160), d: mk(300) }, // цена 10, 12, 16, 30
-  };
-  const r = cplComparison(data, "2026-10");
-  const ma = r.products.find((p) => p.productId === "form_ma");
-  near(ma.median, 14);
-  assert.equal(ma.branches.d.level, "extreme"); // 30 / 14 = 2,1
-  assert.equal(ma.branches.c.level, "ok"); // 16 / 14 = 1,14
-  assert.deepEqual(r.alerts.map((a) => a.branchId), ["d"]);
-  const strict = cplComparison({ ...data, settings: { cplAnomaly: { high: 1.1 } } }, "2026-10");
-  assert.equal(strict.products.find((p) => p.productId === "form_ma").branches.c.level, "high");
+
+test("бюджет плана — по средней цене лида из настроек ($10)", () => {
+  const r = computeMonth({
+    settings: structuredClone(DEFAULT_SETTINGS),
+    branch: { id: "x", name: "X", cpl: { lid_form: 3 } },
+    month: "2026-10",
+    productCpl: { form_ma: { cpl: 44, spend: 440, leads: 10, months: ["2026-09"] } },
+    plan: { products: { form_ma: { plan: 10, mix: { lid_form: 0.5, site: 0.5 } } } },
+    today: new Date("2026-10-11T12:00:00Z"),
+  });
+  const p = r.products[0];
+  near(p.cpl, 10);
+  near(p.budget, (4.5 / 0.05 + 4.5 / 0.15) * 10);
+  assert.equal(p.cplBasis, null);
 });

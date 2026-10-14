@@ -1,6 +1,6 @@
 // Общая логика API поверх данных хранилища (store.data). Без I/O — работает и на сервере, и в браузере.
 import { computeSeason, seasonOf, addMonths } from "./planner.mjs";
-import { spendReport, productCplFor, cplComparison } from "./spend.mjs";
+import { spendReport, productCplFor } from "./spend.mjs";
 
 export const canSee = (user, branchId) => user.role === "admin" || (user.branches || []).includes(branchId);
 
@@ -47,7 +47,7 @@ export function overview(data, user, month, today = new Date()) {
     });
   }
   rows.sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.pace ?? 9) - (b.pace ?? 9));
-  return { month, season: seasonOf(month), branches: rows, cpl: cplFor(data, user, month) };
+  return { month, season: seasonOf(month), branches: rows };
 }
 
 export function branchDetail(data, user, branch, month, today = new Date()) {
@@ -62,22 +62,9 @@ export function branchDetail(data, user, branch, month, today = new Date()) {
       seasonPlan: data.seasons[`${branch.id}|${s.season.id}`]?.plan || {},
       events: data.events.filter((e) => e.branchId === branch.id && (e.date || "").slice(0, 7) === month),
     },
-    cpl: cplFor(data, user, month, branch.id),
     spend: data.spend?.[branch.id] ? spendReport(data, { from: month, to: month, branchIds: [branch.id] }).branches[0] : null,
     spendUntil: data.spendMeta?.until || null,
     canEdit: user.role === "admin",
-  };
-}
-
-// Цена лида филиалов против медианы сети (медиана — по всем филиалам, показываем только доступные).
-export function cplFor(data, user, month, onlyBranch = null) {
-  const c = cplComparison(data, month);
-  const ok = (id) => canSee(user, id) && (!onlyBranch || id === onlyBranch);
-  return {
-    ...c,
-    branches: c.branches.filter((b) => ok(b.id)),
-    alerts: c.alerts.filter((a) => ok(a.branchId)),
-    products: c.products.map((p) => ({ ...p, branches: Object.fromEntries(Object.entries(p.branches).filter(([id]) => ok(id))) })).filter((p) => Object.keys(p.branches).length),
   };
 }
 
