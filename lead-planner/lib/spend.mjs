@@ -42,11 +42,13 @@ export function classifySpend(name, compiled) {
 
 export const spendMonths = (data) => [...new Set(Object.values(data.spend || {}).flatMap((m) => Object.keys(m)))].sort();
 
-function group(rows, compiled) {
+function group(rows, compiled, fallback = null) {
   const by = new Map();
   let total = 0;
-  for (const [name, spend] of rows) {
-    const p = classifySpend(name, compiled);
+  for (const [name, spend, , rowFallback] of rows) {
+    let p = classifySpend(name, compiled);
+    // продукт филиала по умолчанию для кампаний без продукта в названии (например, Unicorn — школа)
+    if (p === UNMATCHED && (rowFallback || fallback)) p = rowFallback || fallback;
     const g = by.get(p) || { name: p, spend: 0, campaigns: new Map() };
     g.spend += spend;
     g.campaigns.set(name, (g.campaigns.get(name) || 0) + spend);
@@ -79,13 +81,13 @@ export function spendReport(data, { from, to, branchIds } = {}) {
     const rows = Object.entries(data.spend?.[b.id] || {})
       .filter(([m]) => m >= from && m <= to)
       .flatMap(([, r]) => r);
-    all.push(...rows);
+    all.push(...rows.map(([name, spend]) => [name, spend, null, b.spendDefault || null]));
     const byMonth = Object.fromEntries(
       Object.entries(data.spend?.[b.id] || {})
         .filter(([m]) => m >= from && m <= to)
         .map(([m, r]) => [m, r.reduce((a, x) => a + x[1], 0)]),
     );
-    branches.push({ id: b.id, name: b.name, currency: b.fbCurrency || "USD", hasData: !!data.spend?.[b.id], byMonth, ...group(rows, compiled) });
+    branches.push({ id: b.id, name: b.name, currency: b.fbCurrency || "USD", hasData: !!data.spend?.[b.id], byMonth, ...group(rows, compiled, b.spendDefault) });
   }
   branches.sort((a, b) => b.total - a.total);
   return { from, to, months, until: data.spendMeta?.until || null, source: data.spendMeta?.source || null, network: group(all, compiled), branches, rules: compiled.map((r) => r.name).concat(UNMATCHED), ruleDefs };
@@ -106,6 +108,7 @@ export function productCplFor(data, branchId, month, { minLeads = 5, maxBack = 3
   const byMonth = data.spend?.[branchId];
   if (!byMonth) return null;
   const settings = data.settings || {};
+  const branch = data.branches?.find((b) => b.id === branchId);
   const compiled = compileRules(settings.spendRules?.length ? settings.spendRules : DEFAULT_SPEND_RULES);
   const ev = settings.eventCampaignPattern ? new RegExp(settings.eventCampaignPattern, "i") : null;
   const out = {};
@@ -116,7 +119,9 @@ export function productCplFor(data, branchId, month, { minLeads = 5, maxBack = 3
     const agg = {};
     for (const [name, spend, leads] of rows) {
       if (ev && ev.test(name)) continue;
-      const rule = compiled.find((r) => r.name === classifySpend(name, compiled));
+      let rn = classifySpend(name, compiled);
+      if (rn === UNMATCHED && branch?.spendDefault) rn = branch.spendDefault;
+      const rule = compiled.find((r) => r.name === rn);
       if (!rule?.productId) continue;
       // по продукту и в среднем по филиалу (для продуктов без своей рекламы)
       for (const key of [rule.productId, "__branch"]) {

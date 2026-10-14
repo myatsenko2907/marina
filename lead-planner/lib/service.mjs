@@ -25,7 +25,7 @@ export function seasonFor(data, branch, month, today = new Date()) {
   });
 }
 
-const ORDER = { fail: 0, low: 1, boost: 2, nodata: 3, branch: 3, good: 4, ok: 5, future: 6 };
+const ORDER = { fail: 0, low: 1, boost: 2, nodata: 3, branch: 3, good: 4, ok: 5, noplan: 6, future: 7 };
 
 export function overview(data, user, month, today = new Date()) {
   const rows = [];
@@ -74,7 +74,7 @@ export function spendFor(data, user, from, to) {
   return spendReport(data, { from: ok(from), to: ok(to), branchIds: data.branches.filter((b) => canSee(user, b.id)).map((b) => b.id) });
 }
 
-export const BRANCH_FIELDS = ["name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note", "cpl"];
+export const BRANCH_FIELDS = ["name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note", "cpl", "spendDefault"];
 export const EVENT_FIELDS = ["name", "date", "productId", "registrationsPlan", "targetBalls", "registrationsFact", "ball", "paidShare", "cprOverride", "fbCampaignPattern", "note"];
 
 export function ensureMonth(data, branchId, month) {

@@ -88,5 +88,6 @@ export const STATUS_LABELS = {
   low: "Недостаточно",
   fail: "Провал",
   nodata: "Нет факта",
+  noplan: "Нет плана",
   future: "Не начался",
 };

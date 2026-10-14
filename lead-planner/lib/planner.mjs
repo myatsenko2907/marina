@@ -502,7 +502,7 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
       planLeadsAll,
       factLeads,
       expectedLeads,
-      status: pace == null && share > 0 ? "nodata" : statusOf(pace, settings, share),
+      status: targetBalls === 0 && share > 0 ? "noplan" : pace == null && share > 0 ? "nodata" : statusOf(pace, settings, share),
       leads: sum(products, "leads"),
       paidLeads: sum(products, "paidLeads"),
       registrations: sum(evs, "registrations"),

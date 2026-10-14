@@ -104,7 +104,7 @@ label.f { display: grid; gap: 4px; font-size: 13px; color: var(--ink-2); }
 .st.boost { background: var(--warn-soft); color: var(--warn-ink); }
 .st.low { background: var(--low-soft); color: var(--low-ink); }
 .st.fail { background: var(--bad-soft); color: var(--bad-ink); }
-.st.nodata, .st.future { background: var(--idle-soft); color: var(--ink-2); }
+.st.nodata, .st.future, .st.noplan { background: var(--idle-soft); color: var(--ink-2); }
 tr.fail td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
 tr.low td:first-child { box-shadow: inset 3px 0 0 var(--low); }
 tr.boost td:first-child { box-shadow: inset 3px 0 0 var(--warn); }

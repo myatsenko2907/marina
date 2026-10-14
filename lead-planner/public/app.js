@@ -45,6 +45,7 @@ const STATUS = {
   low: { label: "Недостаточно", color: "var(--low)", icon: '<path d="M8 3v6M8 12.5v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
   fail: { label: "Провал", color: "var(--bad)", icon: '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
   branch: { label: "По филиалу", color: "var(--idle)", icon: '<path d="M3 13h10M5 10v3M8 6v7M11 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' },
+  noplan: { label: "Нет плана", color: "var(--idle)", icon: '<path d="M4 8h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
   nodata: { label: "Нет факта ЛБ", color: "var(--idle)", icon: '<circle cx="8" cy="8" r="2" fill="currentColor"/>' },
   future: { label: "Не начался", color: "var(--idle)", icon: '<circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.8" fill="none"/>' },
 };
@@ -464,7 +465,7 @@ async function renderOverview() {
     location.hash = `#/b/${rows[0].id}`;
     return;
   }
-  const active = rows.filter((r) => r.status !== "future");
+  const active = rows.filter((r) => r.status !== "future" && r.status !== "noplan");
   const fails = rows.filter((r) => r.status === "fail");
   const lows = rows.filter((r) => r.status === "low");
   const boosts = rows.filter((r) => r.status === "boost");
@@ -585,6 +586,7 @@ async function renderBranch(id, tab = "dash") {
       ${branch.adAccountId && S.me.metaConfigured ? '<button class="btn" id="fbRef">Обновить из FB</button>' : ""}
       ${window.LOCAL_MODE ? "" : `<a class="btn" href="/api/branches/${id}/export.csv?month=${S.month}">Скачать CSV</a>`}</div>
     <nav class="tabs">${tabs.map(([k, n]) => `<a href="#/b/${id}/${k}" class="${k === tab ? "on" : ""}">${n}</a>`).join("")}</nav>
+    ${t.status === "noplan" ? `<div class="alerts"><div class="alert-row info">В CRM нет плана договоров на ${monthName(S.month).toLowerCase()} — без плана лидобалы, лиды, бюджет и оценка не считаются. ${data.canEdit ? `Внесите план на вкладке <a href="#/b/${id}/input">«Ввод данных»</a> или в CRM.` : "Попросите администратора внести план."} Факт договоров и заявок показывается.</div></div>` : ""}
     ${r.warnings.length ? `<div class="alerts">${r.warnings.map((w) => `<div class="alert-row">${esc(w)}</div>`).join("")}</div>` : ""}
     ${body}`,
   );
