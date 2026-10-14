@@ -528,6 +528,8 @@ async function renderOverview() {
       </tbody></table></div></div>
   </div>
 
+  ${qualityOverviewCard(data.quality)}
+
   <div class="card mt"><h2>Сводка по филиалам</h2><div class="hint">Лидобалы, лиды и бюджет на месяц</div>
     <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Ожид. к сегодня</th><th class="n">Факт ЛБ</th><th class="n">Отставание</th><th class="n">Лиды нужно</th><th class="n">Регистрации</th><th class="n">Бюджет</th></tr></thead><tbody>
     ${rows.map((r) => `<tr class="click ${r.status}" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td><td class="n">${fmt(r.planContracts)}</td><td class="n">${fmt(r.factContracts)}</td><td class="n">${fmt(r.targetBalls, 1)}</td><td class="n">${fmt(r.expectedBalls, 1)}</td><td class="n">${fmt(r.factBalls, 1)}</td><td class="n ${r.gapBalls > 0 ? "neg" : ""}">${r.gapBalls ? "−" + fmt(r.gapBalls, 1) : "—"}</td><td class="n">${fmt(r.leads)}</td><td class="n">${fmt(r.registrations)}</td><td class="n">${r.budgetMissing ? '<span class="muted" data-tip="Нет CPL — подключите FB или задайте CPL">—</span>' : money(r.budget, r.currency)}</td></tr>`).join("")}
@@ -572,7 +574,7 @@ async function renderBranch(id, tab = "dash") {
   ].join(" · ");
 
   let body = "";
-  if (tab === "dash") body = branchDash(r, season, cur) + branchSpendCard(data.spend, data.spendUntil);
+  if (tab === "dash") body = branchDash(r, season, cur) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil);
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
   if (tab === "season") body = branchSeason(season, inputs);
@@ -1225,6 +1227,43 @@ function branchSpendCard(spend, until) {
   <div class="hint">${monthName(S.month)}${partial}: продукт — расход — % от всех затрат филиала. Факт расхода кампаний FB</div>${spendTable(spend, rules, spend.currency)}</div>`;
 }
 
+
+// ---------- качество лидов ----------
+const QCOL = { warn: "var(--low)", bad: "var(--bad)" };
+const qCell = (v, flag) => `<span class="${flag ? "q-" + flag : ""}">${pct(v, 0)}</span>`;
+
+/** Страница филиала: качество лидов за месяц против сети. */
+function branchQualityCard(q) {
+  if (!q) return "";
+  const r = q.branch;
+  const main = q.keys.filter(([k]) => !["spam", "dup", "other"].includes(k));
+  const flagged = q.keys.filter(([k]) => r.flags[k]);
+  const max = Math.max(...main.map(([k]) => Math.max(r.shares[k] || 0, q.network.shares[k] || 0)), 0.05);
+  const row = ([k, label], sub = false) => {
+    const v = r.shares[k];
+    const n = q.network.shares[k];
+    const col = r.flags[k] ? QCOL[r.flags[k]] : "var(--s1)";
+    return `<tr class="${sub ? "qsub" : ""} ${r.flags[k] === "bad" ? "fail" : r.flags[k] ? "low" : ""}"><td>${esc(label)}</td><td class="n">${fmt(r[k])}</td><td class="n"><b>${qCell(v, r.flags[k])}</b></td><td class="n">${pct(n, 0)}</td>
+      <td class="w-bar">${sub ? "" : `<div class="cmpbar"><i style="width:${((v || 0) / max) * 100}%;background:${col}"></i><u style="left:${((n || 0) / max) * 100}%"></u></div>`}</td></tr>`;
+  };
+  return `<div class="card mt"><div class="card-head"><h2>Качество лидов</h2><span class="spacer"></span>${flagged.length ? `<span class="chip">выше сети: ${flagged.map(([, l]) => l.replace("· ", "").split(" (")[0].toLowerCase()).join(", ")}</span>` : '<span class="chip">на уровне сети</span>'}</div>
+  <div class="hint">Все интернет-заявки CRM за ${monthName(q.month).toLowerCase()}: ${fmt(r.total)}. Удалённые не входят в лиды и лидобалы; отказы и недозвоны входят (норма конверсии их уже учитывает). Подсвечено, если доля в 1,5 раза выше сети. Недозвоны — текущее состояние: по старым месяцам их меньше, т. к. заявки уже обработаны.</div>
+  <div class="tbl-wrap"><table class="spend"><thead><tr><th>Заявки</th><th class="n">Кол-во</th><th class="n">Доля филиала</th><th class="n">Доля сети</th><th class="w-bar">филиал / сеть</th></tr></thead><tbody>
+  ${q.keys.map((x) => row(x, ["spam", "dup", "other"].includes(x[0]))).join("")}
+  </tbody></table></div></div>`;
+}
+
+/** Главная: качество лидов по филиалам. */
+function qualityOverviewCard(q) {
+  if (!q?.branches?.length) return "";
+  const main = q.keys.filter(([k]) => !["spam", "dup", "other"].includes(k));
+  return `<div class="card mt"><h2>Качество лидов</h2><div class="hint">Доли от всех интернет-заявок CRM за ${monthName(q.month).toLowerCase()}. Подсвечено, если доля в 1,5 раза выше сети: оранжевым — заметно, красным — вдвое. Удалённые не входят в лиды; отказы и недозвоны входят.</div>
+  <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th class="n">Заявок</th>${main.map(([, l]) => `<th class="n">${esc(l.split(" (")[0])}</th>`).join("")}<th class="n">из удалённых: спам / дубли / другое</th></tr></thead><tbody>
+  ${q.branches
+    .map((r) => `<tr class="click" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td><td class="n">${fmt(r.total)}</td>${main.map(([k]) => `<td class="n">${qCell(r.shares[k], r.flags[k])} <span class="muted">${fmt(r[k])}</span></td>`).join("")}<td class="n muted">${fmt(r.spam)} / ${fmt(r.dup)} / ${fmt(r.other)}</td></tr>`)
+    .join("")}
+  </tbody><tfoot><tr><td>Сеть</td><td class="n">${fmt(q.network.total)}</td>${main.map(([k]) => `<td class="n">${pct(q.network.shares[k], 0)} <span class="muted">${fmt(q.network[k])}</span></td>`).join("")}<td class="n muted">${fmt(q.network.spam)} / ${fmt(q.network.dup)} / ${fmt(q.network.other)}</td></tr></tfoot></table></div></div>`;
+}
 
 // ---------- router ----------
 async function route() {

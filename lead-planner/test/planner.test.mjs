@@ -302,3 +302,21 @@ test("бюджет плана — по средней цене лида из н�
   near(p.budget, (4.5 / 0.05 + 4.5 / 0.15) * 14);
   assert.equal(p.cplBasis, null);
 });
+
+test("качество лидов: доли от всех заявок и подсветка против сети", async () => {
+  const { qualityFor } = await import("../lib/service.mjs");
+  const q = (total, deleted, reject, unanswered) => ({ facts: { branch: { quality: { total, deleted, spam: deleted, dup: 0, other: 0, reject, unanswered } } } });
+  const data = {
+    branches: [{ id: "a", name: "A" }, { id: "b", name: "B" }, { id: "c", name: "C" }],
+    months: { "a|2026-10": q(100, 5, 10, 10), "b|2026-10": q(100, 5, 10, 10), "c|2026-10": q(100, 40, 10, 10) },
+  };
+  const r = qualityFor(data, { role: "admin" }, "2026-10");
+  near(r.network.shares.deleted, 50 / 300);
+  const c = r.branches.find((x) => x.id === "c");
+  near(c.shares.deleted, 0.4);
+  assert.equal(c.flags.deleted, "bad"); // 40% против 16,7%
+  assert.equal(c.flags.reject, null);
+  const m = qualityFor(data, { role: "marketer", branches: ["a"] }, "2026-10");
+  assert.deepEqual(m.branches.map((x) => x.id), ["a"]);
+  near(m.network.total, 300); // сеть считается по всем филиалам
+});

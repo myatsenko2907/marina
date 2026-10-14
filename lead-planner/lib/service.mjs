@@ -47,7 +47,7 @@ export function overview(data, user, month, today = new Date()) {
     });
   }
   rows.sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.pace ?? 9) - (b.pace ?? 9));
-  return { month, season: seasonOf(month), branches: rows };
+  return { month, season: seasonOf(month), branches: rows, quality: qualityFor(data, user, month) };
 }
 
 export function branchDetail(data, user, branch, month, today = new Date()) {
@@ -64,8 +64,45 @@ export function branchDetail(data, user, branch, month, today = new Date()) {
     },
     spend: data.spend?.[branch.id] ? spendReport(data, { from: month, to: month, branchIds: [branch.id] }).branches[0] : null,
     spendUntil: data.spendMeta?.until || null,
+    quality: (() => {
+      const q = qualityFor(data, user, month);
+      const mine = q?.branches.find((x) => x.id === branch.id);
+      return mine ? { ...q, branch: mine } : null;
+    })(),
     canEdit: user.role === "admin",
   };
+}
+
+// Качество лидов за месяц: доли удалённых (спам, дубли, другое), отказов и недозвонов — по филиалу и по сети.
+export const QUALITY_KEYS = [
+  ["deleted", "Удалены (спам, дубли, другое)"],
+  ["spam", "· спам"],
+  ["dup", "· дубли"],
+  ["other", "· удалены по другой причине"],
+  ["reject", "Отказ"],
+  ["unanswered", "Не дозвонились"],
+];
+export function qualityFor(data, user, month) {
+  const rows = [];
+  const net = { total: 0 };
+  for (const b of data.branches) {
+    if (b.archived) continue;
+    const q = data.months[`${b.id}|${month}`]?.facts?.branch?.quality;
+    if (!q) continue;
+    net.total += q.total || 0;
+    for (const [k] of QUALITY_KEYS) net[k] = (net[k] || 0) + (q[k] || 0);
+    if (canSee(user, b.id)) rows.push({ id: b.id, name: b.name, ...q });
+  }
+  if (!net.total) return null;
+  const share = (q, k) => (q.total ? (q[k] || 0) / q.total : null);
+  const netShare = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, share(net, k)]));
+  // подсветка: доля выше сети в 1,5 раза и минимум на 5 п.п.
+  const flag = (v, n) => (v != null && n != null && v >= n * 1.5 && v - n >= 0.05 ? (v >= n * 2 && v - n >= 0.1 ? "bad" : "warn") : null);
+  for (const r of rows) {
+    r.shares = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, share(r, k)]));
+    r.flags = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, flag(r.shares[k], netShare[k])]));
+  }
+  return { month, keys: QUALITY_KEYS, network: { ...net, shares: netShare }, branches: rows };
 }
 
 // Расход на рекламу по продуктам за период: только филиалы, доступные пользователю.

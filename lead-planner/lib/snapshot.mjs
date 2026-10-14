@@ -6,6 +6,8 @@
 //   balls:    { alias: { "YYYY-MM": { form: факт лидобалов } } }  — отчёт «Маркетинг → Лидобалы» (необязательно)
 //   requests: { alias: { "YYYY-MM": { type_request: [всего, удалено, договоров] } } } — заявки CRM по типам
 //             (crm_internet_requests); факт лидобалов филиала = заявки × норма типа
+//   quality:  { alias: { "YYYY-MM": { total, deleted, spam, dup, other, reject, unanswered, contracts } } }
+//             — качество лидов: строка ALL отчёта по интернет-заявкам
 import { seasonOf } from "./planner.mjs";
 
 export function applySnapshot(store, snap, seasonMonth = new Date().toISOString().slice(0, 7)) {
@@ -48,7 +50,14 @@ export function applySnapshot(store, snap, seasonMonth = new Date().toISOString(
         requests[type] = { net, contracts, typeId: map[type] || null };
         if (map[type]) leads[map[type]] = (leads[map[type]] || 0) + net;
       }
-      rec.facts.branch = { leads, requests, source: "crm_requests" };
+      rec.facts.branch = { leads, requests, source: "crm_requests", quality: rec.facts.branch?.quality };
+      n++;
+    }
+  }
+  for (const [id, months] of Object.entries(snap.quality || {})) {
+    for (const [m, q] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      rec.facts.branch = { ...(rec.facts.branch || {}), quality: { ...q, fetchedAt: snap.fetchedAt || new Date().toISOString() } };
       n++;
     }
   }
