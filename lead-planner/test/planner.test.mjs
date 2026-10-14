@@ -298,7 +298,7 @@ test("бюджет плана — по средней цене лида из н�
     today: new Date("2026-10-11T12:00:00Z"),
   });
   const p = r.products[0];
-  near(p.cpl, 10);
-  near(p.budget, (4.5 / 0.05 + 4.5 / 0.15) * 10);
+  near(p.cpl, 14);
+  near(p.budget, (4.5 / 0.05 + 4.5 / 0.15) * 14);
   assert.equal(p.cplBasis, null);
 });
