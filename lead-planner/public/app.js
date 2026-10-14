@@ -39,13 +39,37 @@ const SERIES = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)",
 const typeColor = (id) => SERIES[Math.max(0, S.settings.leadTypes.findIndex((t) => t.id === id)) % SERIES.length];
 const typeName = (id) => S.settings.leadTypes.find((t) => t.id === id)?.name || id;
 const STATUS = {
-  ok: { label: "В плане", color: "var(--good)", icon: '<path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
-  risk: { label: "Риск", color: "var(--warn)", icon: '<path d="M8 3v6M8 12.5v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
+  ok: { label: "Выше плана", color: "var(--good)", icon: '<path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+  good: { label: "Неплохо", color: "var(--good-2)", icon: '<path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+  boost: { label: "Нужно усилиться", color: "var(--warn)", icon: '<path d="M8 13V3M4 7l4-4 4 4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+  low: { label: "Недостаточно", color: "var(--low)", icon: '<path d="M8 3v6M8 12.5v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
   fail: { label: "Провал", color: "var(--bad)", icon: '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
   branch: { label: "По филиалу", color: "var(--idle)", icon: '<path d="M3 13h10M5 10v3M8 6v7M11 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' },
   nodata: { label: "Нет факта ЛБ", color: "var(--idle)", icon: '<circle cx="8" cy="8" r="2" fill="currentColor"/>' },
   future: { label: "Не начался", color: "var(--idle)", icon: '<circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.8" fill="none"/>' },
 };
+// Шкала оценки: < 30% провал · 30–60% недостаточно · 61–81% нужно усилиться · 82–100% неплохо · > 100% выше плана.
+const SCALE_DEF = { low: 0.3, boost: 0.61, good: 0.82, ok: 1.01 };
+const scale = () => (S.settings.thresholds?.boost != null ? { ...SCALE_DEF, ...S.settings.thresholds } : SCALE_DEF);
+const pctInt = (v) => Math.round(v * 100);
+const statusFor = (pace) => {
+  if (pace == null) return "nodata";
+  const p = Math.round(pace * 100);
+  const th = scale();
+  return p >= pctInt(th.ok) ? "ok" : p >= pctInt(th.good) ? "good" : p >= pctInt(th.boost) ? "boost" : p >= pctInt(th.low) ? "low" : "fail";
+};
+const scaleRanges = () => {
+  const th = scale();
+  return [
+    ["fail", `< ${pctInt(th.low)}%`],
+    ["low", `${pctInt(th.low)}–${pctInt(th.boost) - 1}%`],
+    ["boost", `${pctInt(th.boost)}–${pctInt(th.good) - 1}%`],
+    ["good", `${pctInt(th.good)}–${pctInt(th.ok) - 1}%`],
+    ["ok", `> ${pctInt(th.ok) - 1}%`],
+  ];
+};
+const scaleLegend = () => scaleRanges().map(([k, r]) => `<span>${pill(k)} ${r}</span>`).join("");
+const basisName = (t) => (t?.paceBasis === "balls" ? "лидобалам" : "лидам");
 const pill = (st) => `<span class="st ${st}"><svg viewBox="0 0 16 16">${STATUS[st].icon}</svg>${STATUS[st].label}</span>`;
 const SRC = {
   branch: "цена лида филиала (FB, 3 мес.)",
@@ -163,7 +187,7 @@ document.addEventListener("mousemove", (e) => {
 /** Горизонтальные бары темпа (% от ожидаемого к сегодня) с опорными линиями. */
 function paceChart(rows, { onClickHref } = {}) {
   if (!rows.length) return '<div class="empty">Нет данных</div>';
-  const th = S.settings.thresholds;
+  const th = scale();
   const labelW = 150;
   const valW = 64;
   const W = 760;
@@ -180,7 +204,7 @@ function paceChart(rows, { onClickHref } = {}) {
     const st = r.status;
     const v = r.pace ?? 0;
     const w = Math.max(0, x(v) - labelW);
-    const tip = `<b>${esc(r.name)}</b><br>Темп: ${pct(r.pace)} · ${STATUS[st].label}<br>Факт: ${fmt(r.factBalls, 1)} из ожидаемых ${fmt(r.expectedBalls, 1)}<br>План месяца: ${fmt(r.targetBalls, 1)} лидобалов`;
+    const tip = `<b>${esc(r.name)}</b><br>Темп по ${basisName(r)}: ${pct(r.pace)} · ${STATUS[st].label}` + (r.leadsPace != null ? `<br>Лиды: ${fmt(r.factLeads)} из ожидаемых ${fmt(r.expectedLeads)} (план месяца ${fmt(r.planLeadsAll)})` : "") + `<br>Лидобалы: ${fmt(r.factBalls, 1)} из ожидаемых ${fmt(r.expectedBalls, 1)} (темп ${pct(r.ballsPace)})`;
     g += `<g class="row" data-tip="${esc(tip)}" ${onClickHref ? `onclick="location.hash='${onClickHref(r)}'" style="cursor:pointer"` : ""}>
       <rect class="hit" x="0" y="${y - 3}" width="${W}" height="${rowH}"/>
       <text x="${labelW - 10}" y="${y + 15}" text-anchor="end">${esc(r.name)}</text>
@@ -188,10 +212,10 @@ function paceChart(rows, { onClickHref } = {}) {
       <text x="${W - 4}" y="${y + 15}" text-anchor="end" style="font-weight:600;fill:var(--ink)">${pct(r.pace)}</text>
     </g>`;
   });
-  g += `<line class="ref" x1="${x(th.risk)}" x2="${x(th.risk)}" y1="0" y2="${H - 22}"/><line class="ref" x1="${x(th.ok)}" x2="${x(th.ok)}" y1="0" y2="${H - 22}" style="opacity:.9"/>`;
+  for (const v of [th.low, th.boost, th.good, 1]) g += `<line class="ref" x1="${x(v)}" x2="${x(v)}" y1="0" y2="${H - 22}"${v === 1 ? ' style="opacity:.9"' : ""}/>`;
   g += `<line class="base" x1="${labelW}" x2="${labelW}" y1="0" y2="${H - 22}"/>`;
   return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Темп выполнения плана лидобалов">${g}</svg></div>
-  <div class="legend"><span>${pill("ok")} ≥ ${pct(th.ok)}</span><span>${pill("risk")} ${pct(th.risk)}–${pct(th.ok)}</span><span>${pill("fail")} &lt; ${pct(th.risk)}</span><span class="muted">пунктир — пороги; темп = факт ÷ (план × прошедшая часть месяца)</span></div>`;
+  <div class="legend">${scaleLegend()}<span class="muted">пунктир — границы уровней; темп = факт ÷ (план × прошедшая часть месяца)</span></div>`;
 }
 
 /** План vs факт лидобалов по продуктам: дорожка = план месяца, заливка = факт, засечка = ожидаемо к сегодня. */
@@ -272,7 +296,7 @@ function seasonChart(months, current) {
   });
   g += `<line class="base" x1="${left}" x2="${W}" y1="${y(0)}" y2="${y(0)}"/>`;
   return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="План и факт лидобалов по месяцам набора">${g}</svg></div>
-  <div class="legend"><span><i class="dot" style="background:var(--s1)"></i>план месяца (договоры × норма)</span>${S.settings.carryOver ? '<span><i class="dot" style="background:var(--s2)"></i>перенос недостачи</span>' : ""}<span><i class="dot" style="background:var(--good)"></i><i class="dot" style="background:var(--warn)"></i><i class="dot" style="background:var(--bad)"></i>факт лидобалов (цвет = статус)</span><span><svg width="16" height="10"><line x1="1" x2="15" y1="5" y2="5" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/></svg> факт договоров (CRM)</span></div>`;
+  <div class="legend"><span><i class="dot" style="background:var(--s1)"></i>план месяца (договоры × норма)</span>${S.settings.carryOver ? '<span><i class="dot" style="background:var(--s2)"></i>перенос недостачи</span>' : ""}<span>${["ok", "good", "boost", "low", "fail"].map((k) => `<i class="dot" style="background:${STATUS[k].color}"></i>`).join("")}факт лидобалов (цвет = оценка месяца)</span><span><svg width="16" height="10"><line x1="1" x2="15" y1="5" y2="5" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/></svg> факт договоров (CRM)</span></div>`;
 }
 
 // ---------- shell ----------
@@ -439,7 +463,12 @@ async function renderOverview() {
   }
   const active = rows.filter((r) => r.status !== "future");
   const fails = rows.filter((r) => r.status === "fail");
-  const risks = rows.filter((r) => r.status === "risk");
+  const lows = rows.filter((r) => r.status === "low");
+  const boosts = rows.filter((r) => r.status === "boost");
+  const fineCount = rows.filter((r) => r.status === "good" || r.status === "ok").length;
+  const leadsFact = rows.reduce((a, r) => a + (r.factLeads || 0), 0);
+  const leadsExp = rows.filter((r) => r.factLeads != null).reduce((a, r) => a + (r.expectedLeads || 0), 0);
+  const netLeadsPace = leadsExp > 0 ? leadsFact / leadsExp : null;
   const nodata = rows.filter((r) => r.status === "nodata" || r.status === "branch");
   const sum = (k) => rows.reduce((a, r) => a + (r[k] || 0), 0);
   const fact = sum("factBalls");
@@ -454,18 +483,22 @@ async function renderOverview() {
 
   const inner = `
   <div class="head"><div><div class="crumbs">${esc(data.season.name)}</div><h1>${S.me.role === "admin" ? "Все филиалы" : "Мои филиалы"}</h1>
-    <div class="sub">Темп выполнения плана по лидобалам на сегодня. Провальные филиалы — сверху.</div></div>
+    <div class="sub">Оценка филиалов по темпу выполнения плана по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"} на сегодня. Слабые филиалы — сверху.</div></div>
     <span class="spacer"></span>${monthNav()}
     ${S.me.role === "admin" && S.me.metaConfigured ? '<button class="btn" id="fbAll">Обновить FB по всем</button>' : ""}</div>
 
   <div class="grid kpis">
     <div class="card kpi ${fails.length ? "alert" : ""}"><div class="label">Филиалы в провале</div>
       <div class="value" style="color:${fails.length ? "var(--bad-ink)" : "inherit"}">${fails.length} <small>из ${active.length}</small></div>
-      <div class="foot">${risks.length} в зоне риска · ${nodata.length} без факта</div></div>
+      <div class="foot">${lows.length} недостаточно · ${boosts.length} нужно усилиться · ${fineCount} неплохо и выше${nodata.length ? ` · ${nodata.length} без факта` : ""}</div>
+      <div class="scalebar">${["fail", "low", "boost", "good", "ok"].map((k) => { const n = rows.filter((r) => r.status === k).length; return n ? `<i style="flex:${n};background:${STATUS[k].color}" data-tip="${esc(STATUS[k].label)}: ${n}"></i>` : ""; }).join("")}</div></div>
+    <div class="card kpi"><div class="label">Лиды сети: факт / ожидаемо</div>
+      <div class="value">${fmt(leadsFact)} <small>/ ${fmt(leadsExp)}</small></div>
+      <div class="foot">${pill(statusFor(netLeadsPace))} ${pct(netLeadsPace)} · заявки CRM без спама и дублей</div></div>
     <div class="card kpi"><div class="label">Лидобалы сети: факт / ожидаемо</div>
       <div class="value">${nodata.length === active.length ? "—" : fmt(fact)} <small>/ ${nodata.length === active.length ? "—" : fmt(expected)}</small></div>
       <div class="foot">Темп сети ${pct(netPace)} · план месяца ${fmt(sum("targetBalls"))}</div>
-      <div class="bar-mini"><i style="width:${Math.min(100, (netPace || 0) * 100)}%;background:${netPace == null ? "var(--idle)" : netPace >= S.settings.thresholds.ok ? "var(--good)" : netPace >= S.settings.thresholds.risk ? "var(--warn)" : "var(--bad)"}"></i></div></div>
+      <div class="bar-mini"><i style="width:${Math.min(100, (netPace || 0) * 100)}%;background:${netPace == null ? "var(--idle)" : STATUS[statusFor(netPace)].color}"></i></div></div>
     <div class="card kpi"><div class="label">План договоров месяца</div>
       <div class="value">${fmt(sum("planContracts"))}</div>
       <div class="foot">${S.settings.carryOver ? `Перенос недостачи: +${fmt(sum("carryBalls"))} лидобалов` : `${fmt(sum("targetBalls"))} лидобалов = ${pct(S.settings.ballsPlanFactor)} плана`}</div></div>
@@ -477,16 +510,16 @@ async function renderOverview() {
   </div>
 
   ${nodata.length && !rows.some((r) => r.factSource) ? `<div class="alerts"><div class="alert-row info">Нет факта лидобалов за ${monthName(S.month).toLowerCase()} по ${nodata.length} фил. — ${S.me.role === "admin" ? '<a href="#/admin/import">загрузите выгрузку отчёта CRM «Маркетинг → Лидобалы»</a>' : "администратор загрузит отчёт CRM «Маркетинг → Лидобалы»"}. Без факта статус и перенос недостачи не считаются.</div></div>` : ""}
-  ${fails.length ? `<div class="alerts">${fails.map((r) => `<a class="alert-row bad" href="#/b/${r.id}"><b>${esc(r.name)}</b> — провал по лидобалам: ${fmt(r.factBalls, 1)} из ожидаемых ${fmt(r.expectedBalls, 1)} (темп ${pct(r.pace)}), не хватает ${fmt(r.gapBalls, 1)} лидобалов.</a>`).join("")}</div>` : ""}
+  ${fails.length || lows.length ? `<div class="alerts">${[...fails, ...lows].map((r) => `<a class="alert-row ${r.status === "fail" ? "bad" : "low"}" href="#/b/${r.id}"><b>${esc(r.name)}</b> — ${STATUS[r.status].label.toLowerCase()}: ${r.paceBasis === "leads" ? `${fmt(r.factLeads)} лидов из ожидаемых ${fmt(r.expectedLeads)}` : `${fmt(r.factBalls, 1)} лидобалов из ожидаемых ${fmt(r.expectedBalls, 1)}`} (темп ${pct(r.pace)}).</a>`).join("")}</div>` : ""}
 
   <div class="grid cols-2">
-    <div class="card"><h2>Темп по лидобалам</h2><div class="hint">Нажмите на филиал, чтобы открыть детальный план</div>
+    <div class="card"><h2>Темп по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"}</h2><div class="hint">Нажмите на филиал, чтобы открыть детальный план</div>
       ${paceChart(active, { onClickHref: (r) => `#/b/${r.id}` })}</div>
     <div class="card"><h2>Филиалы</h2><div class="hint">Месяцы набора: цвет — статус месяца</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th>Статус</th><th class="n">План ЛБ</th><th class="n">Факт</th><th class="n">Темп</th><th>Набор</th></tr></thead><tbody>
+      <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th>Оценка</th><th class="n">Лиды факт / ожид.</th><th class="n">Темп лидов</th><th class="n">Темп ЛБ</th><th>Набор</th></tr></thead><tbody>
       ${rows.map((r) => `<tr class="click ${r.status}" onclick="location.hash='#/b/${r.id}'"><td><b>${esc(r.name)}</b>${r.warnings ? ` <span class="chip" data-tip="Есть предупреждения — откройте филиал">!</span>` : ""}</td>
-        <td>${pill(r.status)}</td><td class="n">${fmt(r.targetBalls)}${r.carryBalls ? `<div class="muted" style="font-size:12px">+${fmt(r.carryBalls)} перенос</div>` : ""}</td>
-        <td class="n">${fmt(r.factBalls, 1)}</td><td class="n"><b>${pct(r.pace)}</b></td>
+        <td>${pill(r.status)}</td><td class="n">${fmt(r.factLeads)} <span class="muted">/ ${fmt(r.expectedLeads)}</span></td>
+        <td class="n">${r.paceBasis === "leads" ? `<b>${pct(r.leadsPace)}</b>` : pct(r.leadsPace)}</td><td class="n">${r.paceBasis === "balls" ? `<b>${pct(r.ballsPace)}</b>` : pct(r.ballsPace)}</td>
         <td><div class="months">${r.seasonMonths.map((m) => `<i class="${m.status} ${m.month === S.month ? "cur" : ""}" data-tip="${esc(`${monthName(m.month)}: ${STATUS[m.status].label}${m.pace != null ? ", темп " + pct(m.pace) : ""}`)}"></i>`).join("")}</div></td></tr>`).join("")}
       </tbody></table></div></div>
   </div>
@@ -583,9 +616,11 @@ function branchDash(r, season, cur) {
   <div class="grid kpis">
     <div class="card kpi"><div class="label">План лидобалов на месяц</div><div class="value">${fmt(t.targetBalls, 1)}</div>
       <div class="foot">${fmt(t.planContracts)} дог. × ${pct(S.settings.ballsPlanFactor)}${t.carryBalls ? ` + перенос ${fmt(t.carryBalls, 1)}` : ""}</div></div>
-    <div class="card kpi ${st === "fail" ? "alert" : ""}"><div class="label">Факт лидобалов</div><div class="value">${fmt(t.factBalls, 1)} <small>/ ${fmt(t.expectedBalls, 1)} ожид.</small></div>
-      <div class="foot">${pill(st)} темп ${pct(t.pace)}${t.factSource === "crm_requests" ? " · по заявкам CRM" : ""}</div>
-      <div class="bar-mini"><i style="width:${Math.min(100, ((t.factBalls || 0) / (t.targetBalls || 1)) * 100)}%;background:${STATUS[st].color}"></i></div></div>
+    <div class="card kpi ${st === "fail" ? "alert" : ""}"><div class="label">Оценка: темп по ${basisName(t)}</div><div class="value">${pct(t.pace)}</div>
+      <div class="foot">${pill(st)} ${t.paceBasis === "leads" ? `${fmt(t.factLeads)} лидов из ожидаемых ${fmt(t.expectedLeads)}` : `${fmt(t.factBalls, 1)} ЛБ из ожидаемых ${fmt(t.expectedBalls, 1)}`}</div>
+      <div class="bar-mini"><i style="width:${Math.min(100, (t.pace || 0) * 100)}%;background:${STATUS[st].color}"></i></div></div>
+    <div class="card kpi"><div class="label">Факт лидобалов</div><div class="value">${fmt(t.factBalls, 1)} <small>/ ${fmt(t.expectedBalls, 1)} ожид.</small></div>
+      <div class="foot">${t.ballsPace != null ? `${pill(statusFor(t.ballsPace))} темп ${pct(t.ballsPace)}` : "нет факта"}${t.factSource === "crm_requests" ? " · по заявкам CRM" : ""}</div></div>
     <div class="card kpi"><div class="label">Нужно в день до конца месяца</div><div class="value">${fmt(needPerDay, 1)}</div>
       <div class="foot">лидобалов · осталось ${r.daysLeft} дн.</div></div>
     <div class="card kpi"><div class="label">Бюджет на месяц (прогноз)</div><div class="value">${money(t.budget, cur)}</div>
@@ -616,7 +651,7 @@ function sourcesCard(r) {
     .map((x) => {
       const t = S.settings.leadTypes.find((y) => y.id === x.typeId);
       const pace = x.expectedBalls > 0 && x.factBalls != null ? x.factBalls / x.expectedBalls : null;
-      const st = pace == null ? "nodata" : pace >= S.settings.thresholds.ok ? "ok" : pace >= S.settings.thresholds.risk ? "risk" : "fail";
+      const st = statusFor(pace);
       return `<tr><td><i class="dot" style="background:${typeColor(x.typeId)}"></i>${esc(t?.name || x.typeId)}</td><td class="n">${fmt(t?.ball, 2)}</td><td class="n">${fmt(x.planLeads)}</td><td class="n">${fmt(x.factLeads)}</td><td class="n">${fmt(x.planBalls, 1)}</td><td class="n">${fmt(x.expectedBalls, 1)}</td><td class="n">${fmt(x.factBalls, 1)}</td><td class="n">${pace == null ? "—" : `<span class="${st === "fail" ? "neg" : st === "ok" ? "pos" : ""}">${pct(pace)}</span>`}</td></tr>`;
     })
     .join("")}
@@ -899,8 +934,11 @@ async function renderSettings() {
   <div class="grid cols-2">
   <div class="card"><h2>План и статусы</h2><div class="form-grid">
     <label class="f">Норма лидобалов от плана договоров<input type="number" step="0.01" name="ballsPlanFactor" value="${s.ballsPlanFactor}"></label>
-    <label class="f">«В плане» — темп от<input type="number" step="0.01" name="th.ok" value="${s.thresholds.ok}"></label>
-    <label class="f">«Риск» — темп от (ниже — провал)<input type="number" step="0.01" name="th.risk" value="${s.thresholds.risk}"></label>
+    <label class="f">Оценивать филиалы по<select name="statusBasis"><option value="leads" ${s.statusBasis !== "balls" ? "selected" : ""}>лидам (заявки CRM)</option><option value="balls" ${s.statusBasis === "balls" ? "selected" : ""}>лидобалам</option></select></label>
+    <label class="f">«Недостаточно» — темп от, % (ниже — провал)<input type="number" step="1" name="th.low" value="${pctInt(scale().low)}"></label>
+    <label class="f">«Нужно усилиться» — от, %<input type="number" step="1" name="th.boost" value="${pctInt(scale().boost)}"></label>
+    <label class="f">«Неплохо» — от, %<input type="number" step="1" name="th.good" value="${pctInt(scale().good)}"></label>
+    <label class="f">«Выше плана» — от, %<input type="number" step="1" name="th.ok" value="${pctInt(scale().ok)}"></label>
     <label class="f">Окно CPL, дней<input type="number" name="cplLookbackDays" value="${s.cplLookbackDays}"></label>
     <label class="f">Окно цены ивента, дней<input type="number" name="eventLookbackDays" value="${s.eventLookbackDays}"></label>
     <label class="f" style="align-self:end"><span><input type="checkbox" name="carryOver" ${s.carryOver !== false ? "checked" : ""}> Переносить недостачу в следующий месяц</span></label>
@@ -925,7 +963,8 @@ async function renderSettings() {
     const g = (n) => f.elements[n];
     const next = structuredClone(s);
     next.ballsPlanFactor = Number(g("ballsPlanFactor").value);
-    next.thresholds = { ok: Number(g("th.ok").value), risk: Number(g("th.risk").value) };
+    next.thresholds = Object.fromEntries(["low", "boost", "good", "ok"].map((k) => [k, Number(g(`th.${k}`).value) / 100]));
+    next.statusBasis = g("statusBasis").value;
     next.cplLookbackDays = Number(g("cplLookbackDays").value);
     next.eventLookbackDays = Number(g("eventLookbackDays").value);
     next.carryOver = g("carryOver").checked;

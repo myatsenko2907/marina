@@ -24,6 +24,8 @@ export class Store {
       this.data = { ...EMPTY(), ...JSON.parse(fs.readFileSync(file, "utf8")) };
       // новые ключи настроек подтягиваем из дефолтов
       this.data.settings = { ...structuredClone(DEFAULT_SETTINGS), ...this.data.settings };
+      // старая шкала {ok, risk} → новая пятиуровневая
+      if (this.data.settings.thresholds?.boost == null) this.data.settings.thresholds = structuredClone(DEFAULT_SETTINGS.thresholds);
     } else {
       this.data = EMPTY();
     }

@@ -24,7 +24,7 @@ export function seasonFor(data, branch, month, today = new Date()) {
   });
 }
 
-const ORDER = { fail: 0, risk: 1, nodata: 2, branch: 2, ok: 3, future: 4 };
+const ORDER = { fail: 0, low: 1, boost: 2, nodata: 3, branch: 3, good: 4, ok: 5, future: 6 };
 
 export function overview(data, user, month, today = new Date()) {
   const rows = [];

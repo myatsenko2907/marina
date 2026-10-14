@@ -20,6 +20,11 @@
   --bad: #d03b3b;
   --bad-ink: #b02a2a;
   --bad-soft: #fdeaea;
+  --good-2: #7cc242;
+  --good-2-soft: #eef7e4;
+  --low: #ef7d2d;
+  --low-ink: #a84a0c;
+  --low-soft: #fdeee2;
   --idle: #898781;
   --idle-soft: #f0efec;
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
@@ -95,11 +100,14 @@ label.f { display: grid; gap: 4px; font-size: 13px; color: var(--ink-2); }
 .st { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 7px; border-radius: 99px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
 .st svg { width: 13px; height: 13px; }
 .st.ok { background: var(--good-soft); color: var(--good-ink); }
-.st.risk { background: var(--warn-soft); color: var(--warn-ink); }
+.st.good { background: var(--good-2-soft); color: var(--good-ink); }
+.st.boost { background: var(--warn-soft); color: var(--warn-ink); }
+.st.low { background: var(--low-soft); color: var(--low-ink); }
 .st.fail { background: var(--bad-soft); color: var(--bad-ink); }
 .st.nodata, .st.future { background: var(--idle-soft); color: var(--ink-2); }
 tr.fail td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
-tr.risk td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
+tr.low td:first-child { box-shadow: inset 3px 0 0 var(--low); }
+tr.boost td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
 
 /* --- tables --- */
 .tbl-wrap { overflow-x: auto; margin: 0 -18px; padding: 0 18px; }
@@ -118,7 +126,7 @@ tr.total td { font-weight: 650; border-top: 1px solid var(--axis); }
 .chip { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 6px; background: var(--idle-soft); color: var(--ink-2); }
 .months { display: flex; gap: 3px; }
 .months i { width: 14px; height: 14px; border-radius: 4px; background: var(--idle-soft); }
-.months i.ok { background: var(--good); } .months i.risk { background: var(--warn); } .months i.fail { background: var(--bad); }
+.months i.ok { background: var(--good); } .months i.good { background: var(--good-2); } .months i.boost { background: var(--warn); } .months i.low { background: var(--low); } .months i.fail { background: var(--bad); }
 .months i.cur { outline: 2px solid var(--ink); outline-offset: -2px; }
 
 /* --- charts --- */
@@ -193,3 +201,8 @@ details.camp li b { font-weight: 500; white-space: nowrap; color: var(--ink); }
 table.matrix td small { display: block; color: var(--ink-2); font-size: 11.5px; }
 table.matrix td.heat { background: color-mix(in srgb, var(--accent) calc(var(--a) * 100%), transparent); }
 @media (max-width: 560px) { .sstack-row { grid-template-columns: 80px 1fr 64px; } .period .spacer { display: none; } }
+
+/* шкала оценки */
+.scalebar { display: flex; gap: 2px; height: 8px; margin-top: 8px; border-radius: 4px; overflow: hidden; }
+.scalebar i { display: block; height: 100%; }
+.alert-row.low { background: var(--low-soft); color: var(--low-ink); }

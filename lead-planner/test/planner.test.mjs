@@ -92,10 +92,10 @@ test("перенос недостачи закрытого месяца в сл�
   near(by["2026-09"].carryBalls, 4); // 9 − 5
   near(by["2026-09"].targetBalls, 13);
   near(by["2026-10"].carryBalls, 0); // в сентябре перевыполнили
-  assert.equal(by["2026-08"].status, "fail");
-  assert.equal(by["2026-09"].status, "ok");
-  // октябрь: прошло 11/31, ожидаемо 9 × 11/31 ≈ 3.19, факт 1 → провал
-  assert.equal(s.month.totals.status, "fail");
+  assert.equal(by["2026-08"].status, "low"); // 5 из 9 = 56%
+  assert.equal(by["2026-09"].status, "ok"); // 20 из 13 = 154%
+  // октябрь: прошло 11/31, ожидаемо 9 × 11/31 ≈ 3.19, факт 1 → 31% — недостаточно
+  assert.equal(s.month.totals.status, "low");
 });
 
 test("перенос копится, пока недовыполняют, и не уходит за пределы набора", () => {
@@ -229,4 +229,28 @@ test("ежедневное обновление в 08:00 по Киеву", async
   assert.equal(nextDailyRun("08:00", "Europe/Kyiv", new Date("2026-10-14T05:00:00Z")).toISOString(), "2026-10-15T05:00:00.000Z");
   // зимнее время (UTC+2): 08:00 = 06:00 UTC
   assert.equal(nextDailyRun("08:00", "Europe/Kyiv", new Date("2026-11-20T10:00:00Z")).toISOString(), "2026-11-21T06:00:00.000Z");
+});
+
+test("оценка: <30% провал, 30–60 недостаточно, 61–81 усилиться, 82–100 неплохо, >100 выше плана", async () => {
+  const { statusOf } = await import("../lib/planner.mjs");
+  const st = (p) => statusOf(p, {}, 0.5);
+  assert.deepEqual([0.29, 0.3, 0.6, 0.61, 0.81, 0.82, 1, 1.01, 0.995].map(st), ["fail", "low", "low", "boost", "boost", "good", "good", "ok", "good"]);
+  assert.equal(statusOf(0.5, { thresholds: { ok: 1, risk: 0.85 } }, 0.5), "low"); // старые настройки → новая шкала
+});
+
+test("оценка филиала по лидам: заявки CRM ÷ ожидаемые лиды", () => {
+  const r = computeMonth({
+    settings: structuredClone(DEFAULT_SETTINGS),
+    branch,
+    month: "2026-10",
+    plan: { products: { form_ma: { plan: 20, mix: { site: 0.5, lid_form: 0.5 } } } },
+    facts: { branch: { leads: { site: 10, lid_form: 30 } } },
+    today: new Date("2026-10-16T12:00:00Z"), // прошло 16/31
+  });
+  const t = r.totals;
+  near(t.planLeadsAll, 9 / 0.15 + 9 / 0.05); // 60 + 180
+  near(t.expectedLeads, 240 * (16 / 31));
+  near(t.leadsPace, 40 / (240 * (16 / 31)));
+  assert.equal(t.paceBasis, "leads");
+  assert.equal(t.status, "low"); // 40 / 123,9 = 32% → недостаточно
 });

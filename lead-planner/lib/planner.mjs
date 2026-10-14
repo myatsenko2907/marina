@@ -164,12 +164,23 @@ function normalize(weights, ids) {
   return out;
 }
 
-/** Статус по темпу: pace = факт / (план × прошедшая доля месяца). */
+// Шкала оценки (нижние границы, доля от ожидаемого к сегодняшнему дню):
+// < 30% — провал, 30–60% — недостаточно, 61–81% — нужно усилиться, 82–100% — неплохо, > 100% — выше плана.
+export const DEFAULT_SCALE = { low: 0.3, boost: 0.61, good: 0.82, ok: 1.01 };
+export const scaleOf = (settings) => {
+  const th = settings?.thresholds;
+  return th && th.boost != null ? { ...DEFAULT_SCALE, ...th } : DEFAULT_SCALE; // старый формат {ok, risk} не используем
+};
+
+/** Статус по темпу: pace = факт / (план × прошедшая доля месяца). Сравнение по целым процентам. */
 export function statusOf(pace, settings, share) {
   if (!share || pace == null) return "future";
-  const th = settings.thresholds || { ok: 1, risk: 0.85 };
-  if (pace >= th.ok) return "ok";
-  if (pace >= th.risk) return "risk";
+  const th = scaleOf(settings);
+  const p = Math.round(pace * 100);
+  if (p >= Math.round(th.ok * 100)) return "ok";
+  if (p >= Math.round(th.good * 100)) return "good";
+  if (p >= Math.round(th.boost * 100)) return "boost";
+  if (p >= Math.round(th.low * 100)) return "low";
   return "fail";
 }
 
@@ -429,7 +440,14 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
   const factBalls = known.length ? sum(products, "factBalls") : branchFact;
   const factSource = known.length ? "products" : branchLeads ? "crm_requests" : null;
   const expectedBalls = targetBalls * share;
-  const pace = expectedBalls > 0 && factBalls != null ? factBalls / expectedBalls : null;
+  const ballsPace = expectedBalls > 0 && factBalls != null ? factBalls / expectedBalls : null;
+  // Темп по лидам: заявки CRM всех типов (без спама и дублей) ÷ план лидов × прошедшая часть месяца.
+  const planLeadsAll = sources.reduce((a, x) => a + x.planLeads, 0);
+  const factLeads = branchLeads ? sources.reduce((a, x) => a + (x.factLeads || 0), 0) : null;
+  const expectedLeads = planLeadsAll * share;
+  const leadsPace = expectedLeads > 0 && factLeads != null ? factLeads / expectedLeads : null;
+  const byLeads = (settings.statusBasis || "leads") === "leads" && leadsPace != null;
+  const pace = byLeads ? leadsPace : ballsPace;
   const productBudget = products.some((p) => p.budget == null && p.paidLeads > 0) ? null : sum(products, "budget");
   const eventBudget = sum(evs, "budget");
   const budget = productBudget == null ? null : productBudget + eventBudget;
@@ -472,7 +490,13 @@ export function computeMonth({ settings, branch, month, plan = {}, facts = {}, e
       expectedBalls,
       gapBalls: factBalls == null ? null : Math.max(0, expectedBalls - factBalls),
       pace,
-      status: factBalls == null && share > 0 ? "nodata" : statusOf(pace, settings, share),
+      paceBasis: byLeads ? "leads" : "balls",
+      ballsPace,
+      leadsPace,
+      planLeadsAll,
+      factLeads,
+      expectedLeads,
+      status: pace == null && share > 0 ? "nodata" : statusOf(pace, settings, share),
       leads: sum(products, "leads"),
       paidLeads: sum(products, "paidLeads"),
       registrations: sum(evs, "registrations"),
