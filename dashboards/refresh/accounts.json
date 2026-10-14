@@ -690,6 +690,13 @@
      "fixed": null,
      "id": "917642658589574",
      "label": "Хмарна філія"
+    },
+    {
+     "cur": null,
+     "fb": "ITS-AAA-cloud-ED-EU (Tech4You)",
+     "fixed": null,
+     "id": "598510015537518",
+     "label": "TecDo cloud EU"
     }
    ],
    "alias": "virt",
