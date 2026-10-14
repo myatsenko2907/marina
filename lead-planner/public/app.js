@@ -327,7 +327,7 @@ function shell(active, inner) {
     <span class="who"><span class="uname">${esc(S.me.name)}</span> <span class="chip">${isAdmin ? "админ" : "маркетолог"}</span>
     ${window.LOCAL_MODE ? "" : '<button class="btn ghost sm" id="pw">Пароль</button>'}<button class="btn ghost sm" id="logout">${window.LOCAL_MODE ? "Сменить роль" : "Выйти"}</button></span>
   </div></header>
-  <main>${inner}</main>`;
+  <main><div class="updbar" id="updbar" hidden></div>${inner}</main>`;
   document.getElementById("logout").onclick = async () => {
     await api("/api/logout", { method: "POST" });
     S.me = null;
@@ -360,6 +360,14 @@ async function showStatus() {
     ].filter(Boolean).map(esc).join("<br>");
     el.innerHTML = `<i class="live ${today ? "on" : ""}"></i>Данные: ${esc(label)}${S.me.role === "admin" && !window.LOCAL_MODE ? ' <button class="btn ghost sm" id="refreshNow" title="Обновить сейчас">↻</button>' : ""}`;
     el.setAttribute("data-tip", tip);
+    // строка вверху страницы: когда обновлены данные и когда обновятся снова
+    const bar = document.getElementById("updbar");
+    if (bar) {
+      const full = t ? t.toLocaleString("ru-RU", { ...KYIV, day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "нет данных";
+      const next = st.nextRefresh ? new Date(st.nextRefresh).toLocaleString("ru-RU", { ...KYIV, day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : null;
+      bar.innerHTML = `<i class="live ${today ? "on" : ""}"></i><span>Данные обновлены: <b>${esc(full)}</b> (Киев)</span>${st.refreshAt ? `<span class="muted">· обновление раз в сутки в ${esc(st.refreshAt)}${next ? `, следующее — ${esc(next)}` : ""}</span>` : ""}`;
+      bar.hidden = false;
+    }
     const rb = document.getElementById("refreshNow");
     if (rb)
       rb.onclick = async () => {
@@ -528,13 +536,14 @@ async function renderOverview() {
       </tbody></table></div></div>
   </div>
 
-  ${qualityOverviewCard(data.quality)}
+  <div id="qcard">${qualityOverviewCard(data.quality)}</div>
 
   <div class="card mt"><h2>Сводка по филиалам</h2><div class="hint">Лидобалы, лиды и бюджет на месяц</div>
     <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Ожид. к сегодня</th><th class="n">Факт ЛБ</th><th class="n">Отставание</th><th class="n">Лиды нужно</th><th class="n">Регистрации</th><th class="n">Бюджет</th></tr></thead><tbody>
     ${rows.map((r) => `<tr class="click ${r.status}" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td><td class="n">${fmt(r.planContracts)}</td><td class="n">${fmt(r.factContracts)}</td><td class="n">${fmt(r.targetBalls, 1)}</td><td class="n">${fmt(r.expectedBalls, 1)}</td><td class="n">${fmt(r.factBalls, 1)}</td><td class="n ${r.gapBalls > 0 ? "neg" : ""}">${r.gapBalls ? "−" + fmt(r.gapBalls, 1) : "—"}</td><td class="n">${fmt(r.leads)}</td><td class="n">${fmt(r.registrations)}</td><td class="n">${r.budgetMissing ? '<span class="muted" data-tip="Нет CPL — подключите FB или задайте CPL">—</span>' : money(r.budget, r.currency)}</td></tr>`).join("")}
     </tbody></table></div></div>`;
   shell("home", inner);
+  bindQuality(data.quality);
   bindMonthNav();
   const fb = document.getElementById("fbAll");
   if (fb)
@@ -1283,7 +1292,11 @@ function qualityOverviewCard(q) {
   const cell = (share, cnt, cls = "") => `<td class="n"><span class="${cls}">${pct(share, 0)}</span> <span class="muted">${fmt(cnt)}</span></td>`;
   const dash = `<td class="n muted">—</td>`;
   const delTip = (r) => `спам ${fmt(r.spam || 0)} · дубли ${fmt(r.dup || 0)} · другое ${fmt(r.other || 0)}`;
-  const toLeads = (r) => (r.outcomes ? r.outcomes.n - r.outcomes.firstReject : (r.total || 0) - (r.deleted || 0));
+  const toLeads = (r) => r.toLeads ?? (r.outcomes ? r.outcomes.n - r.outcomes.firstReject : (r.total || 0) - (r.deleted || 0));
+  // история заявок есть не за все месяцы периода — подписываем, за какие считается «что стало с лидами»
+  const om = q.outcomeMonths || [];
+  const inP = (q.months || []).filter((m) => m >= q.from && m <= q.to);
+  const oNote = om.length && om.length < inP.length ? ` <span class="muted">(${esc(periodName(om[0], om.at(-1)).toLowerCase())})</span>` : "";
   const row = (r, o, net) => {
     const del = `<td class="n" data-tip="${esc(delTip(r))}">${net ? pct(r.shares.deleted, 0) : qCell(r.shares.deleted, r.flags.deleted)} <span class="muted">${fmt(r.deleted)}</span></td>`;
     const out = o
@@ -1292,12 +1305,38 @@ function qualityOverviewCard(q) {
     return `<td class="n">${fmt(r.total)}</td>${del}<td class="n"><b>${fmt(toLeads(r))}</b></td>${out}`;
   };
   const netRow = { ...q.network, outcomes: q.network.outcomes };
-  return `<div class="card mt"><h2>Качество лидов</h2><div class="hint">Интернет-заявки CRM за ${monthName(q.month).toLowerCase()}. <b>В лиды</b> = заявки − удалённые (спам, дубли, другое — в подсказке) − отказы сразу; отказы позже и недозвоны в лидах остаются. Судьба лидов — по истории заявок, доли от обработанных; «потом дозвонились» — от недозвонов. Подсвечено, если заметно хуже сети: оранжевым — в 1,5 раза, красным — вдвое.</div>
+  const months = q.months || [q.from];
+  const opt = (sel) => months.map((m) => `<option value="${m}" ${m === sel ? "selected" : ""}>${monthName(m)}</option>`).join("");
+  const last = months.at(-1);
+  const presets = [["Этот месяц", last, last], months.length > 1 && ["Прошлый", months.at(-2), months.at(-2)], months.length > 1 && ["Все месяцы", months[0], last]].filter(Boolean);
+  const period = `<div class="qperiod">${presets.map(([t, a, b]) => `<button class="btn sm ${a === q.from && b === q.to ? "on" : ""}" data-qfrom="${a}" data-qto="${b}">${esc(t)}</button>`).join("")}
+    <label class="f inline">С <select id="qFrom">${opt(q.from)}</select></label><label class="f inline">по <select id="qTo">${opt(q.to)}</select></label></div>`;
+  return `<div class="card mt"><div class="card-head"><h2>Качество лидов</h2><span class="spacer"></span>${period}</div><div class="hint">Интернет-заявки CRM за ${esc(periodName(q.from, q.to).toLowerCase())}. <b>В лиды</b> = заявки − удалённые (спам, дубли, другое — в подсказке) − отказы сразу; отказы позже и недозвоны в лидах остаются. Судьба лидов — по истории заявок, доли от обработанных; «дозвонились» — от недозвонов при первой обработке. ${oNote ? "История заявок загружена не за все месяцы периода: «Что стало с лидами» и вычет отказов сразу — только за " + esc(periodName(om[0], om.at(-1)).toLowerCase()) + ". " : ""}Подсвечено, если заметно хуже сети: оранжевым — в 1,5 раза, красным — вдвое.</div>
   <div class="tbl-wrap"><table class="qtbl"><thead>
-  <tr class="grp"><th></th><th colspan="3">Заявки</th><th colspan="6">Что стало с лидами</th></tr>
-  <tr><th>Филиал</th><th class="n">Всего</th><th class="n">Удалены</th><th class="n">В лиды</th><th class="n gs">Обработано</th><th class="n">Отказ сразу</th><th class="n">Отказ позже</th><th class="n">Не дозвонились сначала</th><th class="n">→ потом дозвонились</th><th class="n">→ так и не</th></tr></thead><tbody>
+  <tr class="grp"><th></th><th colspan="3">Заявки</th><th colspan="6">Что стало с лидами${oNote}</th></tr>
+  <tr><th>Филиал</th><th class="n">Всего</th><th class="n">Удалены</th><th class="n">В лиды</th><th class="n gs">Обработано</th><th class="n">Отказ сразу</th><th class="n">Отказ позже</th><th class="n">Не дозвонились сначала</th><th class="n">→ дозвонились</th><th class="n">→ нет</th></tr></thead><tbody>
   ${q.branches.map((r) => `<tr class="click" onclick="location.hash='#/b/${r.id}'"><td>${esc(r.name)}</td>${row(r, r.outcomes)}</tr>`).join("")}
   </tbody><tfoot><tr><td>Сеть</td>${row(netRow, q.network.outcomes, true)}</tr></tfoot></table></div></div>`;
+}
+
+// Период отчёта «Качество лидов» — перерисовываем только карточку.
+function bindQuality(q) {
+  const box = document.getElementById("qcard");
+  if (!box || !q) return;
+  const go = async (from, to) => {
+    if (from > to) [from, to] = [to, from];
+    try {
+      const r = await api(`/api/quality?from=${from}&to=${to}`);
+      box.innerHTML = qualityOverviewCard(r) || '<div class="card mt"><div class="empty">Нет данных за период</div></div>';
+      bindQuality(r);
+    } catch (e) {
+      toast(e.message, true);
+    }
+  };
+  box.querySelectorAll("[data-qfrom]").forEach((b) => (b.onclick = () => go(b.dataset.qfrom, b.dataset.qto)));
+  const f = document.getElementById("qFrom"), t = document.getElementById("qTo");
+  if (f) f.onchange = () => go(f.value, t.value);
+  if (t) t.onchange = () => go(f.value, t.value);
 }
 
 // ---------- router ----------

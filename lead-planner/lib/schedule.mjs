@@ -1,4 +1,4 @@
-// Ежедневное расписание в часовом поясе: следующий запуск «каждый день в HH:MM» (по умолчанию 08:00 по Киеву).
+// Ежедневное расписание в часовом поясе: следующий запуск «каждый день в HH:MM» (по умолчанию 10:00 по Киеву).
 
 // Смещение часового пояса (мс) в момент t: локальное время пояса − UTC.
 function tzOffset(t, tz) {
@@ -6,7 +6,7 @@ function tzOffset(t, tz) {
   return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(t.getTime() / 1000) * 1000;
 }
 
-export function nextDailyRun(hhmm = "08:00", tz = "Europe/Kyiv", from = new Date()) {
+export function nextDailyRun(hhmm = "10:00", tz = "Europe/Kyiv", from = new Date()) {
   const [h, m] = hhmm.split(":").map(Number);
   const local = new Date(from.getTime() + tzOffset(from, tz));
   for (let add = 0; add < 3; add++) {

@@ -221,14 +221,14 @@ test("расход на рекламу: продукт по названию к�
   assert.equal(all.branches.length, 1);
 });
 
-test("ежедневное обновление в 08:00 по Киеву", async () => {
+test("ежедневное обновление в 10:00 по Киеву", async () => {
   const { nextDailyRun } = await import("../lib/schedule.mjs");
-  // 14.10.2026 07:30 Киев (UTC+3) → сегодня 08:00 = 05:00 UTC
-  assert.equal(nextDailyRun("08:00", "Europe/Kyiv", new Date("2026-10-14T04:30:00Z")).toISOString(), "2026-10-14T05:00:00.000Z");
-  // уже после 8:00 → завтра
-  assert.equal(nextDailyRun("08:00", "Europe/Kyiv", new Date("2026-10-14T05:00:00Z")).toISOString(), "2026-10-15T05:00:00.000Z");
-  // зимнее время (UTC+2): 08:00 = 06:00 UTC
-  assert.equal(nextDailyRun("08:00", "Europe/Kyiv", new Date("2026-11-20T10:00:00Z")).toISOString(), "2026-11-21T06:00:00.000Z");
+  // 14.10.2026 09:30 Киев (UTC+3) → сегодня 10:00 = 07:00 UTC
+  assert.equal(nextDailyRun("10:00", "Europe/Kyiv", new Date("2026-10-14T06:30:00Z")).toISOString(), "2026-10-14T07:00:00.000Z");
+  // уже после 10:00 → завтра
+  assert.equal(nextDailyRun("10:00", "Europe/Kyiv", new Date("2026-10-14T07:00:00Z")).toISOString(), "2026-10-15T07:00:00.000Z");
+  // зимнее время (UTC+2): 10:00 = 08:00 UTC
+  assert.equal(nextDailyRun("10:00", "Europe/Kyiv", new Date("2026-11-20T10:00:00Z")).toISOString(), "2026-11-21T08:00:00.000Z");
 });
 
 test("оценка: <30% провал, 30–60 недостаточно, 61–81 усилиться, 82–100 неплохо, >100 выше плана", async () => {
@@ -319,6 +319,17 @@ test("качество лидов: доли от всех заявок и под
   const m = qualityFor(data, { role: "marketer", branches: ["a"] }, "2026-10");
   assert.deepEqual(m.branches.map((x) => x.id), ["a"]);
   near(m.network.total, 300); // сеть считается по всем филиалам
+  // период: суммы по месяцам, вместе с судьбой лидов
+  data.months["a|2026-09"] = q(50, 5, 0, 0);
+  data.months["a|2026-09"].facts.branch.outcomes = { n: 45, processed: 40, firstReject: 4, laterReject: 2, noAnswerFirst: 10, noAnswerReached: 5, noAnswerNever: 5, noAnswerLost: 1 };
+  data.months["a|2026-10"].facts.branch.outcomes = { n: 95, processed: 60, firstReject: 6, laterReject: 3, noAnswerFirst: 10, noAnswerReached: 7, noAnswerNever: 3, noAnswerLost: 0 };
+  const p = qualityFor(data, { role: "admin" }, "2026-10", "2026-09");
+  assert.deepEqual([p.from, p.to, p.months], ["2026-09", "2026-10", ["2026-09", "2026-10"]]);
+  const a = p.branches.find((x) => x.id === "a");
+  assert.equal(a.total, 150);
+  assert.equal(a.outcomes.firstReject, 10);
+  near(a.outcomes.firstRejectShare, 0.1);
+  near(a.outcomes.reachedShare, 0.6);
 });
 
 test("расход по продуктам: договоры CRM формы за период и расход на договор", async () => {

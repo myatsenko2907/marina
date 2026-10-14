@@ -19,8 +19,8 @@ const store = new Store(process.env.DATA_FILE || path.join(ROOT, "data", "store.
 const META_TOKEN = process.env.META_ACCESS_TOKEN || "";
 const API_TOKEN = process.env.API_TOKEN || ""; // для автоматической загрузки данных из CRM-скриптов
 // Автообновление: FB по всем городам + снимок CRM по URL (если задан).
-// Обновление данных — раз в день в REFRESH_AT по часовому поясу REFRESH_TZ (по умолчанию 08:00 по Киеву); REFRESH_AT=off — выключить.
-const REFRESH_AT = /^\d\d:\d\d$/.test(process.env.REFRESH_AT ?? "08:00") ? process.env.REFRESH_AT ?? "08:00" : null;
+// Обновление данных — раз в день в REFRESH_AT по часовому поясу REFRESH_TZ (по умолчанию 10:00 по Киеву); REFRESH_AT=off — выключить.
+const REFRESH_AT = /^\d\d:\d\d$/.test(process.env.REFRESH_AT ?? "10:00") ? process.env.REFRESH_AT ?? "10:00" : null;
 const REFRESH_TZ = process.env.REFRESH_TZ || "Europe/Kyiv";
 const CRM_SNAPSHOT_URL = process.env.CRM_SNAPSHOT_URL || "";
 const CRM_SNAPSHOT_TOKEN = process.env.CRM_SNAPSHOT_TOKEN || "";
@@ -256,6 +256,7 @@ async function handleApi(req, res, url) {
   }
 
   if (p === "/api/overview") return send(res, 200, overview(user, month));
+  if (p === "/api/quality") return send(res, 200, service.qualityFor(store.data, user, url.searchParams.get("from") || month, url.searchParams.get("to") || url.searchParams.get("from") || month));
   if (p === "/api/spend") return send(res, 200, service.spendFor(store.data, user, url.searchParams.get("from"), url.searchParams.get("to")));
 
   if (p === "/api/settings") {

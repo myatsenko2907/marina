@@ -21,7 +21,7 @@ const data = {
   fb: {},
   spend: store.spend || {},
   spendMeta: store.spendMeta || null,
-  refreshAt: process.env.REFRESH_AT ?? "08:00", // страница по ссылке пересобирается ежедневно в это время (Киев)
+  refreshAt: process.env.REFRESH_AT ?? "10:00", // страница по ссылке пересобирается ежедневно в это время (Киев)
   updatedAt: [store.lastRefresh?.at, store.imports?.at(-1)?.at, store.spendMeta?.loadedAt].filter(Boolean).sort().at(-1) || new Date().toISOString(),
 };
 

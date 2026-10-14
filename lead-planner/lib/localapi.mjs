@@ -45,6 +45,7 @@ export function createLocalApi(data, { persist = () => {}, today = () => new Dat
     if (p === "/api/me") return { ...me, metaConfigured: false };
     if (p === "/api/status") return { updatedAt: data.updatedAt, lastRefresh: null, refreshAt: data.refreshAt || null, refreshTz: "Europe/Kyiv", nextRefresh: data.refreshAt ? nextDailyRun(data.refreshAt, "Europe/Kyiv", today()) : null, sources: { crm: true }, local: true };
     if (p === "/api/overview") return service.overview(data, me, month, today());
+    if (p === "/api/quality") return service.qualityFor(data, me, url.searchParams.get("from") || month, url.searchParams.get("to") || url.searchParams.get("from") || month);
     if (p === "/api/spend") return service.spendFor(data, me, url.searchParams.get("from"), url.searchParams.get("to"));
     if (p === "/api/settings") {
       if (method === "PUT") {

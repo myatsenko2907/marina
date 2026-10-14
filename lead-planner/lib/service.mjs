@@ -95,17 +95,37 @@ function outcomeShares(o) {
   };
 }
 
-export function qualityFor(data, user, month) {
+// Месяцы, за которые есть данные о качестве лидов.
+export const qualityMonths = (data) => [...new Set(Object.entries(data.months || {}).filter(([, r]) => r.facts?.branch?.quality).map(([k]) => k.slice(-7)))].sort();
+
+// Качество лидов за месяц или период [month, to]: суммы по месяцам периода.
+export function qualityFor(data, user, month, to = month) {
+  if (to < month) [month, to] = [to, month];
   const rows = [];
   const net = { total: 0 };
   const netO = {};
+  const inPeriod = qualityMonths(data).filter((m) => m >= month && m <= to);
+  const outcomeMonths = new Set();
+  // в лиды: заявки − удалённые − отказы сразу (если по месяцу есть история заявок)
+  const toLeadsOf = (f) => (f.outcomes ? f.outcomes.n - f.outcomes.firstReject : (f.quality.total || 0) - (f.quality.deleted || 0));
   for (const b of data.branches) {
     if (b.archived) continue;
-    const q = data.months[`${b.id}|${month}`]?.facts?.branch?.quality;
-    if (!q) continue;
+    const recs = inPeriod.map((m) => data.months[`${b.id}|${m}`]?.facts?.branch).filter((f) => f?.quality);
+    if (!recs.length) continue;
+    const q = {};
+    for (const [k] of QUALITY_KEYS.concat([["total"], ["contracts"]])) q[k] = recs.reduce((a, f) => a + (f.quality[k] || 0), 0);
+    q.toLeads = recs.reduce((a, f) => a + toLeadsOf(f), 0);
+    for (const m of inPeriod) if (data.months[`${b.id}|${m}`]?.facts?.branch?.outcomes) outcomeMonths.add(m);
+    const os = recs.map((f) => f.outcomes).filter(Boolean);
+    let o = null;
+    if (os.length === 1 && recs.length === 1) o = os[0];
+    else if (os.length) {
+      o = { laterRejectDays: null, partial: os.length < recs.length };
+      for (const k of OUTCOME_KEYS) o[k] = os.reduce((a, x) => a + (x[k] || 0), 0);
+    }
     net.total += q.total || 0;
+    net.toLeads = (net.toLeads || 0) + q.toLeads;
     for (const [k] of QUALITY_KEYS) net[k] = (net[k] || 0) + (q[k] || 0);
-    const o = data.months[`${b.id}|${month}`]?.facts?.branch?.outcomes;
     if (o) for (const k of OUTCOME_KEYS) netO[k] = (netO[k] || 0) + (o[k] || 0);
     if (canSee(user, b.id)) rows.push({ id: b.id, name: b.name, ...q, outcomes: o ? outcomeShares(o) : null });
   }
@@ -118,7 +138,7 @@ export function qualityFor(data, user, month) {
     r.shares = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, share(r, k)]));
     r.flags = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, flag(r.shares[k], netShare[k])]));
   }
-  return { month, keys: QUALITY_KEYS, network: { ...net, shares: netShare, outcomes: netO.processed ? outcomeShares(netO) : null }, branches: rows };
+  return { month, from: month, to, months: qualityMonths(data), outcomeMonths: [...outcomeMonths].sort(), keys: QUALITY_KEYS, network: { ...net, shares: netShare, outcomes: netO.processed ? outcomeShares(netO) : null }, branches: rows };
 }
 
 // Расход на рекламу по продуктам за период: только филиалы, доступные пользователю.
