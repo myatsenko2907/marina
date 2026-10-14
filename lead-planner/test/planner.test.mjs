@@ -220,3 +220,13 @@ test("расход на рекламу: продукт по названию к�
   assert.equal(all.branches[0].products.find((p) => p.name === "МКА (дети)").campaigns.length, 2);
   assert.equal(all.branches.length, 1);
 });
+
+test("ежедневное обновление в 08:00 по Киеву", async () => {
+  const { nextDailyRun } = await import("../lib/schedule.mjs");
+  // 14.10.2026 07:30 Киев (UTC+3) → сегодня 08:00 = 05:00 UTC
+  assert.equal(nextDailyRun("08:00", "Europe/Kyiv", new Date("2026-10-14T04:30:00Z")).toISOString(), "2026-10-14T05:00:00.000Z");
+  // уже после 8:00 → завтра
+  assert.equal(nextDailyRun("08:00", "Europe/Kyiv", new Date("2026-10-14T05:00:00Z")).toISOString(), "2026-10-15T05:00:00.000Z");
+  // зимнее время (UTC+2): 08:00 = 06:00 UTC
+  assert.equal(nextDailyRun("08:00", "Europe/Kyiv", new Date("2026-11-20T10:00:00Z")).toISOString(), "2026-11-21T06:00:00.000Z");
+});

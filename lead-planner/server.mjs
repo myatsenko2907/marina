@@ -9,6 +9,7 @@ import { seasonOf } from "./lib/planner.mjs";
 import { fetchBranchFb } from "./lib/meta.mjs";
 import { readTable, tableToRecords } from "./lib/importer.mjs";
 import { applySnapshot } from "./lib/snapshot.mjs";
+import { nextDailyRun } from "./lib/schedule.mjs";
 import * as service from "./lib/service.mjs";
 import * as auth from "./lib/auth.mjs";
 
@@ -18,7 +19,9 @@ const store = new Store(process.env.DATA_FILE || path.join(ROOT, "data", "store.
 const META_TOKEN = process.env.META_ACCESS_TOKEN || "";
 const API_TOKEN = process.env.API_TOKEN || ""; // для автоматической загрузки данных из CRM-скриптов
 // Автообновление: FB по всем городам + снимок CRM по URL (если задан).
-const REFRESH_MINUTES = Number(process.env.REFRESH_MINUTES || 600); // по умолчанию раз в 10 часов
+// Обновление данных — раз в день в REFRESH_AT по часовому поясу REFRESH_TZ (по умолчанию 08:00 по Киеву); REFRESH_AT=off — выключить.
+const REFRESH_AT = /^\d\d:\d\d$/.test(process.env.REFRESH_AT ?? "08:00") ? process.env.REFRESH_AT ?? "08:00" : null;
+const REFRESH_TZ = process.env.REFRESH_TZ || "Europe/Kyiv";
 const CRM_SNAPSHOT_URL = process.env.CRM_SNAPSHOT_URL || "";
 const CRM_SNAPSHOT_TOKEN = process.env.CRM_SNAPSHOT_TOKEN || "";
 
@@ -78,10 +81,20 @@ function dataUpdatedAt() {
   return times.sort().at(-1) || null;
 }
 
-if (REFRESH_MINUTES > 0 && (META_TOKEN || CRM_SNAPSHOT_URL)) {
+const autoRefresh = REFRESH_AT && (META_TOKEN || CRM_SNAPSHOT_URL);
+function scheduleDaily() {
+  const next = nextDailyRun(REFRESH_AT, REFRESH_TZ);
+  // setTimeout не принимает больше ~24,8 дня, а до следующего запуска не больше суток
+  setTimeout(async () => {
+    await refreshAll("schedule").catch(console.error);
+    scheduleDaily();
+  }, next - Date.now());
+  return next;
+}
+if (autoRefresh) {
   setTimeout(() => refreshAll("start").catch(console.error), 5000);
-  setInterval(() => refreshAll("schedule").catch(console.error), REFRESH_MINUTES * 60 * 1000);
-  console.log(`Автообновление данных: каждые ${REFRESH_MINUTES} мин.`);
+  const next = scheduleDaily();
+  console.log(`Автообновление данных: каждый день в ${REFRESH_AT} (${REFRESH_TZ}), следующее — ${next.toISOString()}`);
 }
 
 // ---------- http helpers ----------
@@ -222,7 +235,9 @@ async function handleApi(req, res, url) {
     return send(res, 200, {
       updatedAt: dataUpdatedAt(),
       lastRefresh: store.data.lastRefresh || null,
-      refreshMinutes: META_TOKEN || CRM_SNAPSHOT_URL ? REFRESH_MINUTES : 0,
+      refreshAt: autoRefresh ? REFRESH_AT : null,
+      refreshTz: REFRESH_TZ,
+      nextRefresh: autoRefresh ? nextDailyRun(REFRESH_AT, REFRESH_TZ) : null,
       sources: { meta: !!META_TOKEN, crmUrl: !!CRM_SNAPSHOT_URL, apiImport: !!API_TOKEN },
     });
 

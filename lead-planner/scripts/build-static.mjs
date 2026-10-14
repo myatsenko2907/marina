@@ -21,7 +21,8 @@ const data = {
   fb: {},
   spend: store.spend || {},
   spendMeta: store.spendMeta || null,
-  updatedAt: [store.lastRefresh?.at, store.imports?.at(-1)?.at].filter(Boolean).sort().at(-1) || new Date().toISOString(),
+  refreshAt: process.env.REFRESH_AT ?? "08:00", // страница по ссылке пересобирается ежедневно в это время (Киев)
+  updatedAt: [store.lastRefresh?.at, store.imports?.at(-1)?.at, store.spendMeta?.loadedAt].filter(Boolean).sort().at(-1) || new Date().toISOString(),
 };
 
 // шифрование
@@ -40,6 +41,7 @@ const strip = (file) =>
     .replace(/^import[\s\S]*?from\s+"[^"]+";\s*$/gm, "")
     .replace(/^export\s+(?=(const|function|async function|class|let)\b)/gm, "");
 const planner = strip("lib/planner.mjs");
+const schedule = strip("lib/schedule.mjs");
 const spend = strip("lib/spend.mjs");
 const service = strip("lib/service.mjs").replace(/service\./g, "");
 const localapi = strip("lib/localapi.mjs").replace(/service\./g, "");
@@ -84,6 +86,7 @@ const html = `<title>План лидобалов</title>
 <script>
 (() => {
 ${planner}
+${schedule}
 ${spend}
 ${service}
 ${localapi}

@@ -2,6 +2,7 @@
 // правки сохраняются в браузере пользователя (localStorage).
 import * as service from "./service.mjs";
 import { seasonOf } from "./planner.mjs";
+import { nextDailyRun } from "./schedule.mjs";
 
 const fail = (status, message) => Object.assign(new Error(message), { status });
 
@@ -42,7 +43,7 @@ export function createLocalApi(data, { persist = () => {}, today = () => new Dat
     };
 
     if (p === "/api/me") return { ...me, metaConfigured: false };
-    if (p === "/api/status") return { updatedAt: data.updatedAt, lastRefresh: null, refreshMinutes: 0, sources: { crm: true }, local: true };
+    if (p === "/api/status") return { updatedAt: data.updatedAt, lastRefresh: null, refreshAt: data.refreshAt || null, refreshTz: "Europe/Kyiv", nextRefresh: data.refreshAt ? nextDailyRun(data.refreshAt, "Europe/Kyiv", today()) : null, sources: { crm: true }, local: true };
     if (p === "/api/overview") return service.overview(data, me, month, today());
     if (p === "/api/spend") return service.spendFor(data, me, url.searchParams.get("from"), url.searchParams.get("to"));
     if (p === "/api/settings") {

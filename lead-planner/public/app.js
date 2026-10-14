@@ -316,18 +316,22 @@ async function showStatus() {
   try {
     const st = await api("/api/status");
     S.status = st;
+    // время — по Киеву, у всех смотрящих одинаково
+    const KYIV = { timeZone: "Europe/Kyiv" };
     const t = st.updatedAt ? new Date(st.updatedAt) : null;
-    const today = t && t.toDateString() === new Date().toDateString();
-    const label = t ? (today ? "сегодня " : t.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) + " ") + t.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) : "нет данных";
+    const day = (d) => d.toLocaleDateString("ru-RU", KYIV);
+    const today = t && day(t) === day(new Date());
+    const label = t ? (today ? "сегодня " : t.toLocaleDateString("ru-RU", { ...KYIV, day: "numeric", month: "short" }) + " ") + t.toLocaleTimeString("ru-RU", { ...KYIV, hour: "2-digit", minute: "2-digit" }) : "нет данных";
     const fbErr = Object.entries(st.lastRefresh?.fb || {}).filter(([, v]) => v !== "ok");
     const tip = [
-      st.refreshMinutes ? `Автообновление каждые ${st.refreshMinutes % 60 ? st.refreshMinutes + " мин." : st.refreshMinutes / 60 + " ч."}` : "Автообновление не настроено (нет META_ACCESS_TOKEN / CRM_SNAPSHOT_URL)",
-      st.lastRefresh ? `Последний прогон: ${new Date(st.lastRefresh.at).toLocaleString("ru-RU")}` : "",
+      st.refreshAt ? `Данные обновляются каждый день в ${st.refreshAt} (Киев)` : "Автообновление не настроено (нет META_ACCESS_TOKEN / CRM_SNAPSHOT_URL)",
+      st.nextRefresh ? `Следующее обновление: ${new Date(st.nextRefresh).toLocaleString("ru-RU", { ...KYIV, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : "",
+      st.lastRefresh ? `Последний прогон: ${new Date(st.lastRefresh.at).toLocaleString("ru-RU", KYIV)}` : "",
       st.lastRefresh?.crm ? `CRM: ${st.lastRefresh.crm}` : "",
       fbErr.length ? `Ошибки FB: ${fbErr.map(([k, v]) => `${k}: ${v}`).join("; ")}` : "",
-    ].filter(Boolean).join("<br>");
-    el.innerHTML = `<i class="live ${today ? "on" : ""}"></i>Данные: ${esc(label)}${S.me.role === "admin" ? ' <button class="btn ghost sm" id="refreshNow" title="Обновить сейчас">↻</button>' : ""}`;
-    el.setAttribute("data-tip", esc(tip));
+    ].filter(Boolean).map(esc).join("<br>");
+    el.innerHTML = `<i class="live ${today ? "on" : ""}"></i>Данные: ${esc(label)}${S.me.role === "admin" && !window.LOCAL_MODE ? ' <button class="btn ghost sm" id="refreshNow" title="Обновить сейчас">↻</button>' : ""}`;
+    el.setAttribute("data-tip", tip);
     const rb = document.getElementById("refreshNow");
     if (rb)
       rb.onclick = async () => {
