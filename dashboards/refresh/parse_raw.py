@@ -4,11 +4,14 @@ raw,idsf,out=sys.argv[1:4]
 ids=open(idsf).read().split()
 bad=[];rows=[]
 for a in ids:
-    f=os.path.join(raw,a+'.json')
-    if not os.path.exists(f): bad.append((a,'missing file')); continue
+    # one response per file: <id>.json, or several parts <id>.<part>.json for big accounts fetched in pieces
+    files=sorted(glob.glob(os.path.join(raw,a+'.*.json')))+([os.path.join(raw,a+'.json')] if os.path.exists(os.path.join(raw,a+'.json')) else [])
+    if not files: bad.append((a,'missing file')); continue
+    ents=[]
     try:
-        d=json.load(open(f,encoding='utf-8')); ents=d['ad_entities']
-        ents=json.loads(ents) if isinstance(ents,str) else ents
+        for f in files:
+            d=json.load(open(f,encoding='utf-8')); e=d['ad_entities']
+            ents+=json.loads(e) if isinstance(e,str) else e
     except Exception as e: bad.append((a,'parse '+str(e)[:80])); continue
     for r in ents:
         if str(r.get('account_id'))!=a: bad.append((a,'account_id mismatch '+str(r.get('account_id')))); break
