@@ -7,6 +7,7 @@
   "scripts": {
     "build": "node src/build.mjs",
     "pdf": "python3 scripts/make_pdfs.py",
-    "serve": "python3 -m http.server 8080 -d docs"
+    "serve": "python3 -m http.server 8080 -d docs",
+    "video": "node vivix/generate.mjs"
   }
 }
