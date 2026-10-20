@@ -583,7 +583,7 @@ async function renderBranch(id, tab = "dash") {
   ].join(" · ");
 
   let body = "";
-  if (tab === "dash") body = branchDash(r, season, cur) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil);
+  if (tab === "dash") body = branchDash(r, season, cur) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
   if (tab === "season") body = branchSeason(season, inputs);
@@ -1155,7 +1155,7 @@ async function renderSpend() {
 
   const inner = `
   <div class="head"><div><div class="crumbs">${esc(periodName(r.from, r.to))}${esc(partial)}</div><h1>Расход на рекламу</h1>
-    <div class="sub">Сколько ушло на рекламу каждого продукта и какая это доля от всех затрат филиала. Источник — кампании FB${r.until ? `, данные по ${r.until.slice(8, 10)}.${r.until.slice(5, 7)}.${r.until.slice(0, 4)}` : ""}.</div></div></div>
+    <div class="sub">Сколько ушло на рекламу каждого продукта и какая это доля от всех затрат филиала. Источник — кампании FB${r.google ? " и Google Ads" : ""}${r.until ? `, данные по ${r.until.slice(8, 10)}.${r.until.slice(5, 7)}.${r.until.slice(0, 4)}` : ""}.</div></div></div>
 
   <div class="card period">
     <div class="presets">${presets.map(([n, a, b]) => `<button class="btn sm ${a === r.from && b === r.to ? "on" : ""}" data-from="${a}" data-to="${b}">${esc(n)}</button>`).join("")}</div>
@@ -1175,9 +1175,11 @@ async function renderSpend() {
       <div class="foot">кампании без продукта в названии${isAdmin ? ' · <a href="#/admin/settings">правила</a>' : ""}</div></div>
   </div>
 
+  ${googleNetCard(r, isAdmin)}
+
   ${
     r.branches.length > 1
-      ? `<div class="grid cols-2">
+      ? `<div class="grid cols-2 mt">
     <div class="card"><h2>${isAdmin ? "Сеть" : "Все мои филиалы"}: продукт — расход — %</h2><div class="hint">% — доля продукта во всех затратах на рекламу за период</div>${spendTable(net, rules, cur, { campaigns: false })}</div>
     <div class="card"><h2>Структура расходов филиалов</h2><div class="hint">Длина цвета — доля продукта в затратах филиала. Нажмите на филиал, чтобы перейти к его таблице</div>${spendStack(r.branches, rules)}</div>
   </div>
@@ -1189,7 +1191,8 @@ async function renderSpend() {
     .map(
       (b) => `<div class="card" id="sp-${b.id}"><div class="card-head"><h2>${esc(b.name)}</h2><span class="spacer"></span><b>${money(b.total, b.currency)}</b>${net.total && r.branches.length > 1 ? `<span class="chip" data-tip="Доля филиала в расходе сети">${pct(b.total / net.total, 0)} сети</span>` : ""}</div>
       <div class="hint">${Object.keys(b.byMonth).length > 1 ? Object.entries(b.byMonth).map(([m, v]) => `${monthShort(m)} ${money(v, b.currency)}`).join(" · ") : "Нажмите на продукт, чтобы увидеть кампании"}</div>
-      ${b.hasData ? spendTable(b, rules, b.currency) : '<div class="empty">Нет данных о расходе по этому филиалу</div>'}</div>`,
+      ${b.hasData ? spendTable(b, rules, b.currency) : '<div class="empty">Нет данных о расходе по этому филиалу</div>'}
+      ${googleBranchBlock(r.google?.branches.find((g) => g.id === b.id))}</div>`,
     )
     .join("")}</div>`;
   shell("spend", inner);
@@ -1209,6 +1212,57 @@ async function renderSpend() {
         document.getElementById(`sp-${a.dataset.jump}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
       }),
   );
+}
+
+// ---------- Google Ads ----------
+const gRates = (g) => Object.entries(g.rates || {}).map(([m, v]) => `${monthShort(m)} — ${fmt(v, 2)} грн/$`).join(", ");
+const GOOGLE_NOTE = "Конверсии — по целям, настроенным в кабинетах Google Ads (это не заявки CRM).";
+
+/** FB и Google по филиалам за период: расход, доля Google, конверсии и цена конверсии Google. */
+function googleNetCard(r, isAdmin) {
+  const g = r.google;
+  if (!g) return "";
+  const ids = [...new Set([...r.branches.map((b) => b.id), ...g.branches.map((b) => b.id)])];
+  const rows = ids
+    .map((id) => {
+      const fb = r.branches.find((b) => b.id === id);
+      const gb = g.branches.find((b) => b.id === id);
+      const fbS = fb?.total || 0;
+      const gS = gb?.usd || 0;
+      return { id, name: fb?.name || gb?.name, fbS, gS, all: fbS + gS, conv: gb?.conv ?? null, cpa: gb?.cpa ?? null, has: !!gb };
+    })
+    .sort((a, b) => b.all - a.all);
+  const fbT = r.branches.reduce((a, b) => a + (b.total || 0), 0);
+  const gT = g.network.usd;
+  const td = (x) => `<td class="n">${money(x)}</td>`;
+  return `<div class="card mt"><div class="card-head"><h2>FB + Google Ads по филиалам</h2></div>
+  <div class="hint">Расход за период в $. Google — все кабинеты филиала в MCC (основной, школа, колледж, университет); гривневые кабинеты пересчитаны по курсу НБУ: ${esc(gRates(g))}${g.until ? `, данные Google по ${g.until.slice(8, 10)}.${g.until.slice(5, 7)}` : ""}. ${GOOGLE_NOTE}</div>
+  <div class="tbl-wrap"><table class="spend"><thead><tr><th>Филиал</th><th class="n">FB</th><th class="n">Google Ads</th><th class="n">Всего</th><th class="n">Доля Google</th><th class="n">Конверсии Google</th><th class="n">Цена конверсии Google</th></tr></thead><tbody>
+  ${rows
+    .map(
+      (x) => `<tr><td><a href="#/spend" data-jump="${x.id}">${esc(x.name)}</a></td>${td(x.fbS)}<td class="n">${x.has ? money(x.gS) : '<span class="muted" data-tip="Кабинеты Google Ads филиала не подключены">—</span>'}</td><td class="n"><b>${money(x.all)}</b></td>
+      <td class="n">${x.all ? pct(x.gS / x.all, 0) : "—"}</td><td class="n">${x.has ? fmt(x.conv) : "—"}</td><td class="n">${x.cpa != null ? money(x.cpa) : "—"}</td></tr>`,
+    )
+    .join("")}
+  </tbody>${rows.length > 1 ? `<tfoot><tr><td>${isAdmin ? "Сеть" : "Все мои филиалы"}</td>${td(fbT)}${td(gT)}<td class="n">${money(fbT + gT)}</td><td class="n">${fbT + gT ? pct(gT / (fbT + gT), 0) : "—"}</td><td class="n">${fmt(g.network.conv)}</td><td class="n">${g.network.cpa != null ? money(g.network.cpa) : "—"}</td></tr></tfoot>` : ""}</table></div></div>`;
+}
+
+/** Google Ads филиала: кабинеты → кампании, продукты по правилам расхода. */
+function googleBranchBlock(gb, { title = true } = {}) {
+  if (!gb) return "";
+  if (!gb.usd) return `<div class="gsec"><b>Google Ads</b> <span class="muted">— нет расхода за период</span></div>`;
+  const prods = gb.products.filter((p) => p.usd >= 0.5);
+  return `<div class="gsec">${title ? `<div class="card-head"><b>Google Ads</b><span class="spacer"></span><b>${money(gb.usd)}</b><span class="muted" style="margin-left:6px">${fmt(gb.uah)} грн</span></div>` : ""}
+  <div class="tbl-wrap"><table class="spend"><thead><tr><th>Кабинет</th><th class="n">Расход</th><th class="n">Конверсии</th><th class="n">Цена конверсии</th></tr></thead><tbody>
+  ${gb.accounts
+    .map(
+      (a) => `<tr><td><details class="camp"><summary>${esc(a.name)} <span class="muted">· ${a.campaigns.length} камп.</span></summary>
+      <ul>${a.campaigns.map((c) => `<li><span>${esc(c.name)}</span><b>${money(c.usd)} · ${fmt(c.conv)} конв.</b></li>`).join("")}</ul></details></td>
+      <td class="n">${money(a.usd)}</td><td class="n">${fmt(a.conv)}</td><td class="n">${a.conv > 0 ? money(a.usd / a.conv) : "—"}</td></tr>`,
+    )
+    .join("")}
+  </tbody><tfoot><tr><td>Всего Google</td><td class="n">${money(gb.usd)}</td><td class="n">${fmt(gb.conv)}</td><td class="n">${gb.cpa != null ? money(gb.cpa) : "—"}</td></tr></tfoot></table></div>
+  ${prods.length ? `<div class="hint mt">По продуктам (правила расхода): ${prods.map((p) => `${esc(p.name)} ${money(p.usd)} (${pct(p.share, 0)})`).join(" · ")}</div>` : ""}</div>`;
 }
 
 /** Матрица: строки — продукты, колонки — филиалы, в ячейке расход и % от затрат филиала. */
@@ -1232,12 +1286,13 @@ function spendMatrix(r, rules) {
 }
 
 /** Блок на дашборде филиала: расход по продуктам за выбранный месяц. */
-function branchSpendCard(spend, until) {
-  if (!spend) return "";
+function branchSpendCard(spend, until, google) {
+  if (!spend) return google ? `<div class="card mt"><div class="card-head"><h2>Расход на рекламу</h2><span class="spacer"></span><a class="btn sm" href="#/spend">За другой период →</a></div>${googleBranchBlock(google)}</div>` : "";
   const rules = S.settings.spendRules?.map((x) => x.name).concat("Не определено") || spend.products.map((p) => p.name);
   const partial = until && until.slice(0, 7) === S.month ? ` (по ${until.slice(8, 10)}.${until.slice(5, 7)})` : "";
   return `<div class="card mt"><div class="card-head"><h2>Расход на рекламу по продуктам</h2><span class="spacer"></span><a class="btn sm" href="#/spend">За другой период →</a></div>
-  <div class="hint">${monthName(S.month)}${partial}: продукт — расход — % от всех затрат филиала. Факт расхода кампаний FB</div>${spendTable(spend, rules, spend.currency)}</div>`;
+  <div class="hint">${monthName(S.month)}${partial}: продукт — расход — % от всех затрат филиала. Факт расхода кампаний FB</div>${spendTable(spend, rules, spend.currency)}
+  ${googleBranchBlock(google)}</div>`;
 }
 
 

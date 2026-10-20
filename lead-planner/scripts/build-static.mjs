@@ -21,8 +21,10 @@ const data = {
   fb: {},
   spend: store.spend || {},
   spendMeta: store.spendMeta || null,
+  googleSpend: store.googleSpend || {},
+  googleMeta: store.googleMeta || null,
   refreshAt: process.env.REFRESH_AT ?? "10:00", // страница по ссылке пересобирается ежедневно в это время (Киев)
-  updatedAt: [store.lastRefresh?.at, store.imports?.at(-1)?.at, store.spendMeta?.loadedAt].filter(Boolean).sort().at(-1) || new Date().toISOString(),
+  updatedAt: [store.lastRefresh?.at, store.imports?.at(-1)?.at, store.spendMeta?.loadedAt, store.googleMeta?.loadedAt].filter(Boolean).sort().at(-1) || new Date().toISOString(),
 };
 
 // шифрование
@@ -43,6 +45,7 @@ const strip = (file) =>
 const planner = strip("lib/planner.mjs");
 const schedule = strip("lib/schedule.mjs");
 const spend = strip("lib/spend.mjs");
+const googlespend = strip("lib/googlespend.mjs");
 const service = strip("lib/service.mjs").replace(/service\./g, "");
 const localapi = strip("lib/localapi.mjs").replace(/service\./g, "");
 const app = fs.readFileSync(path.join(ROOT, "public/app.js"), "utf8");
@@ -88,6 +91,7 @@ const html = `<title>План лидобалов</title>
 ${planner}
 ${schedule}
 ${spend}
+${googlespend}
 ${service}
 ${localapi}
 ${boot}

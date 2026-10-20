@@ -1,6 +1,7 @@
 // Общая логика API поверх данных хранилища (store.data). Без I/O — работает и на сервере, и в браузере.
 import { computeSeason, seasonOf, addMonths } from "./planner.mjs";
 import { spendReport, productCplFor } from "./spend.mjs";
+import { googleReport } from "./googlespend.mjs";
 
 export const canSee = (user, branchId) => user.role === "admin" || (user.branches || []).includes(branchId);
 
@@ -64,6 +65,7 @@ export function branchDetail(data, user, branch, month, today = new Date()) {
     },
     spend: data.spend?.[branch.id] ? spendReport(data, { from: month, to: month, branchIds: [branch.id] }).branches[0] : null,
     spendUntil: data.spendMeta?.until || null,
+    google: data.googleSpend?.[branch.id] ? googleReport(data, { from: month, to: month, branchIds: [branch.id] })?.branches[0] || null : null,
     quality: (() => {
       const q = qualityFor(data, user, month);
       const mine = q?.branches.find((x) => x.id === branch.id);
@@ -144,10 +146,12 @@ export function qualityFor(data, user, month, to = month) {
 // Расход на рекламу по продуктам за период: только филиалы, доступные пользователю.
 export function spendFor(data, user, from, to) {
   const ok = (m) => (/^20\d\d-(0[1-9]|1[0-2])$/.test(m || "") ? m : undefined);
-  return spendReport(data, { from: ok(from), to: ok(to), branchIds: data.branches.filter((b) => canSee(user, b.id)).map((b) => b.id) });
+  const branchIds = data.branches.filter((b) => canSee(user, b.id)).map((b) => b.id);
+  const r = spendReport(data, { from: ok(from), to: ok(to), branchIds });
+  return { ...r, google: googleReport(data, { from: r.from, to: r.to, branchIds }) };
 }
 
-export const BRANCH_FIELDS = ["name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note", "cpl", "spendDefault"];
+export const BRANCH_FIELDS = ["name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note", "cpl", "spendDefault", "googleAccounts"];
 export const EVENT_FIELDS = ["name", "date", "productId", "registrationsPlan", "targetBalls", "registrationsFact", "ball", "paidShare", "cprOverride", "fbCampaignPattern", "note"];
 
 export function ensureMonth(data, branchId, month) {

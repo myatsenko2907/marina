@@ -224,3 +224,6 @@ tr.qsub td:first-child { padding-left: 22px; }
 .updbar b { color: var(--ink); }
 .updbar .live { flex: none; }
 .qperiod .btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.gsec { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.gsec .card-head { margin-bottom: 6px; }

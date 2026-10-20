@@ -378,3 +378,32 @@ test("отказы сразу не входят в лиды филиала", asy
   assert.deepEqual(fb.leads, { lid_form: 8, study: 0, site: 4 });
   assert.equal(fb.requests.Facebook.firstReject, 2);
 });
+
+test("Google Ads: гривна по курсу НБУ месяца, кабинеты и FB рядом", async () => {
+  const { googleReport } = await import("../lib/googlespend.mjs");
+  const data = {
+    settings: {},
+    branches: [{ id: "dp", name: "Днепр" }, { id: "kh", name: "Харьков" }],
+    spend: { dp: { "2026-10": [["ШС", 100]] } },
+    googleSpend: {
+      dp: {
+        "2026-09": [["1", "Днепр (Юр.о)", "UAH", "ШС поиск", 4000, 2, 50]],
+        "2026-10": [
+          ["1", "Днепр (Юр.о)", "UAH", "ШС поиск", 4500, 3, 60],
+          ["2", "Днепр школа", "USD", "Школа", 50, 0, 10],
+        ],
+      },
+    },
+    googleMeta: { until: "2026-10-20", rates: { "2026-09": 40, "2026-10": 45 } },
+  };
+  const r = googleReport(data, { from: "2026-10", to: "2026-10" });
+  assert.equal(r.branches.length, 1);
+  const b = r.branches[0];
+  near(b.usd, 4500 / 45 + 50);
+  near(b.uah, 4500 + 50 * 45);
+  assert.equal(b.conv, 3);
+  assert.equal(b.fb, 100);
+  assert.equal(b.accounts[0].name, "Днепр (Юр.о)");
+  assert.equal(b.products.find((p) => p.name === "ШС").usd, 100);
+  near(googleReport(data, { from: "2026-09", to: "2026-10" }).network.usd, 4000 / 40 + 4500 / 45 + 50);
+});

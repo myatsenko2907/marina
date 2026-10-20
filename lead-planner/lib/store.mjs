@@ -14,6 +14,8 @@ const EMPTY = () => ({
   imports: [],
   spend: {}, // branchId → { "2026-10": [[название кампании, расход], …] } — scripts/load-spend.mjs
   spendMeta: null,
+  googleSpend: {}, // branchId → { "2026-10": [[id кабинета, кабинет, валюта, кампания, расход, конверсии, клики], …] } — scripts/load-google-ads.mjs
+  googleMeta: null, // { until, loadedAt, rates: { "2026-10": грн за $ } }
 });
 
 export class Store {
