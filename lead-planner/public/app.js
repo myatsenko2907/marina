@@ -1216,9 +1216,11 @@ async function renderSpend() {
 
 // ---------- Google Ads ----------
 const gRates = (g) => Object.entries(g.rates || {}).map(([m, v]) => `${monthShort(m)} — ${fmt(v, 2)} грн/$`).join(", ");
-const GOOGLE_NOTE = "Конверсии — по целям, настроенным в кабинетах Google Ads (это не заявки CRM).";
+const GOOGLE_NOTE =
+  "Заявки и договоры из Google — по CRM: заявки с меткой Google (utm_source=google или gclid) за период, уникальные клиенты; договор — клиент, у которого такая заявка закончилась договором. Договоры по заявкам последних недель ещё будут добавляться.";
+const cpcCell = (usd, c) => (c == null ? '<span class="muted" data-tip="Нет истории заявок CRM за период">—</span>' : c > 0 ? money(usd / c) : '<span class="muted">0 дог.</span>');
 
-/** FB и Google по филиалам за период: расход, доля Google, конверсии и цена конверсии Google. */
+/** FB и Google по филиалам за период: расход, доля Google, заявки и договоры из Google (CRM), цена договора. */
 function googleNetCard(r, isAdmin) {
   const g = r.google;
   if (!g) return "";
@@ -1229,7 +1231,7 @@ function googleNetCard(r, isAdmin) {
       const gb = g.branches.find((b) => b.id === id);
       const fbS = fb?.total || 0;
       const gS = gb?.usd || 0;
-      return { id, name: fb?.name || gb?.name, fbS, gS, all: fbS + gS, conv: gb?.conv ?? null, cpa: gb?.cpa ?? null, has: !!gb };
+      return { id, name: fb?.name || gb?.name, fbS, gS, all: fbS + gS, leads: gb?.leads ?? null, contracts: gb?.contracts ?? null, has: !!gb };
     })
     .sort((a, b) => b.all - a.all);
   const fbT = r.branches.reduce((a, b) => a + (b.total || 0), 0);
@@ -1237,32 +1239,34 @@ function googleNetCard(r, isAdmin) {
   const td = (x) => `<td class="n">${money(x)}</td>`;
   return `<div class="card mt"><div class="card-head"><h2>FB + Google Ads по филиалам</h2></div>
   <div class="hint">Расход за период в $. Google — все кабинеты филиала в MCC (основной, школа, колледж, университет); гривневые кабинеты пересчитаны по курсу НБУ: ${esc(gRates(g))}${g.until ? `, данные Google по ${g.until.slice(8, 10)}.${g.until.slice(5, 7)}` : ""}. ${GOOGLE_NOTE}</div>
-  <div class="tbl-wrap"><table class="spend"><thead><tr><th>Филиал</th><th class="n">FB</th><th class="n">Google Ads</th><th class="n">Всего</th><th class="n">Доля Google</th><th class="n">Конверсии Google</th><th class="n">Цена конверсии Google</th></tr></thead><tbody>
+  <div class="tbl-wrap"><table class="spend"><thead><tr><th>Филиал</th><th class="n">FB</th><th class="n">Google Ads</th><th class="n">Всего</th><th class="n">Доля Google</th><th class="n" data-tip="Уникальные клиенты с заявкой из Google за период (CRM)">Заявки из Google</th><th class="n" data-tip="Клиенты, у которых заявка из Google закончилась договором (CRM)">Договоры из Google</th><th class="n" data-tip="Расход Google ÷ договоры из Google">Цена договора Google</th></tr></thead><tbody>
   ${rows
     .map(
       (x) => `<tr><td><a href="#/spend" data-jump="${x.id}">${esc(x.name)}</a></td>${td(x.fbS)}<td class="n">${x.has ? money(x.gS) : '<span class="muted" data-tip="Кабинеты Google Ads филиала не подключены">—</span>'}</td><td class="n"><b>${money(x.all)}</b></td>
-      <td class="n">${x.all ? pct(x.gS / x.all, 0) : "—"}</td><td class="n">${x.has ? fmt(x.conv) : "—"}</td><td class="n">${x.cpa != null ? money(x.cpa) : "—"}</td></tr>`,
+      <td class="n">${x.all ? pct(x.gS / x.all, 0) : "—"}</td><td class="n">${x.has ? fmt(x.leads) : "—"}</td><td class="n">${x.has ? `<b>${fmt(x.contracts)}</b>` : "—"}</td><td class="n">${x.has ? cpcCell(x.gS, x.contracts) : "—"}</td></tr>`,
     )
     .join("")}
-  </tbody>${rows.length > 1 ? `<tfoot><tr><td>${isAdmin ? "Сеть" : "Все мои филиалы"}</td>${td(fbT)}${td(gT)}<td class="n">${money(fbT + gT)}</td><td class="n">${fbT + gT ? pct(gT / (fbT + gT), 0) : "—"}</td><td class="n">${fmt(g.network.conv)}</td><td class="n">${g.network.cpa != null ? money(g.network.cpa) : "—"}</td></tr></tfoot>` : ""}</table></div></div>`;
+  </tbody>${rows.length > 1 ? `<tfoot><tr><td>${isAdmin ? "Сеть" : "Все мои филиалы"}</td>${td(fbT)}${td(gT)}<td class="n">${money(fbT + gT)}</td><td class="n">${fbT + gT ? pct(gT / (fbT + gT), 0) : "—"}</td><td class="n">${fmt(g.network.leads)}</td><td class="n">${fmt(g.network.contracts)}</td><td class="n">${g.network.cpc != null ? money(g.network.cpc) : "—"}</td></tr></tfoot>` : ""}</table></div></div>`;
 }
 
-/** Google Ads филиала: кабинеты → кампании, продукты по правилам расхода. */
-function googleBranchBlock(gb, { title = true } = {}) {
+/** Google Ads филиала: кабинеты → кампании с договорами из CRM, продукты по правилам расхода. */
+function googleBranchBlock(gb) {
   if (!gb) return "";
-  if (!gb.usd) return `<div class="gsec"><b>Google Ads</b> <span class="muted">— нет расхода за период</span></div>`;
+  if (!gb.usd && !gb.contracts) return `<div class="gsec"><b>Google Ads</b> <span class="muted">— нет расхода за период</span></div>`;
   const prods = gb.products.filter((p) => p.usd >= 0.5);
-  return `<div class="gsec">${title ? `<div class="card-head"><b>Google Ads</b><span class="spacer"></span><b>${money(gb.usd)}</b><span class="muted" style="margin-left:6px">${fmt(gb.uah)} грн</span></div>` : ""}
-  <div class="tbl-wrap"><table class="spend"><thead><tr><th>Кабинет</th><th class="n">Расход</th><th class="n">Конверсии</th><th class="n">Цена конверсии</th></tr></thead><tbody>
+  const oc = gb.otherCampaigns;
+  return `<div class="gsec"><div class="card-head"><b>Google Ads</b><span class="spacer"></span><b>${money(gb.usd)}</b><span class="muted" style="margin-left:6px">${fmt(gb.uah)} грн</span></div>
+  <div class="tbl-wrap"><table class="spend"><thead><tr><th>Кабинет</th><th class="n">Расход</th><th class="n" data-tip="Уникальные клиенты с заявкой из Google (CRM)">Заявки</th><th class="n" data-tip="Клиенты, у которых заявка из Google закончилась договором (CRM)">Договоры</th><th class="n">Цена договора</th></tr></thead><tbody>
   ${gb.accounts
     .map(
       (a) => `<tr><td><details class="camp"><summary>${esc(a.name)} <span class="muted">· ${a.campaigns.length} камп.</span></summary>
-      <ul>${a.campaigns.map((c) => `<li><span>${esc(c.name)}</span><b>${money(c.usd)} · ${fmt(c.conv)} конв.</b></li>`).join("")}</ul></details></td>
-      <td class="n">${money(a.usd)}</td><td class="n">${fmt(a.conv)}</td><td class="n">${a.conv > 0 ? money(a.usd / a.conv) : "—"}</td></tr>`,
+      <ul>${a.campaigns.map((c) => `<li><span>${esc(c.name)}</span><b>${money(c.usd)}${c.contracts != null ? ` · ${fmt(c.leads)} заяв. · ${fmt(c.contracts)} дог.` : ""}</b></li>`).join("")}</ul></details></td>
+      <td class="n">${money(a.usd)}</td><td class="n">${fmt(a.leads)}</td><td class="n"><b>${fmt(a.contracts)}</b></td><td class="n">${cpcCell(a.usd, a.contracts)}</td></tr>`,
     )
     .join("")}
-  </tbody><tfoot><tr><td>Всего Google</td><td class="n">${money(gb.usd)}</td><td class="n">${fmt(gb.conv)}</td><td class="n">${gb.cpa != null ? money(gb.cpa) : "—"}</td></tr></tfoot></table></div>
-  ${prods.length ? `<div class="hint mt">По продуктам (правила расхода): ${prods.map((p) => `${esc(p.name)} ${money(p.usd)} (${pct(p.share, 0)})`).join(" · ")}</div>` : ""}</div>`;
+  ${oc && (oc.leads || oc.contracts) ? `<tr><td class="muted" data-tip="Заявки из Google по кампаниям без расхода в этом периоде (например, договор по прошлой кампании) или без id кампании в заявке">Другие кампании Google</td><td class="n">—</td><td class="n">${fmt(oc.leads)}</td><td class="n"><b>${fmt(oc.contracts)}</b></td><td class="n">—</td></tr>` : ""}
+  </tbody><tfoot><tr><td>Всего Google</td><td class="n">${money(gb.usd)}</td><td class="n">${fmt(gb.leads)}</td><td class="n">${fmt(gb.contracts)}</td><td class="n">${cpcCell(gb.usd, gb.contracts)}</td></tr></tfoot></table></div>
+  ${prods.length ? `<div class="hint mt">Расход по продуктам (правила расхода): ${prods.map((p) => `${esc(p.name)} ${money(p.usd)} (${pct(p.share, 0)})`).join(" · ")}</div>` : ""}</div>`;
 }
 
 /** Матрица: строки — продукты, колонки — филиалы, в ячейке расход и % от затрат филиала. */

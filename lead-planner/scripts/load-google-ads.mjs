@@ -46,7 +46,7 @@ const branches = store.data.branches.filter((b) => !b.archived && b.googleAccoun
 if (!branches.length) throw new Error("Ни у одного филиала не заданы кабинеты Google Ads (--map)");
 
 const query =
-  "SELECT customer.id, customer.descriptive_name, customer.currency_code, segments.month, campaign.name, " +
+  "SELECT customer.id, customer.descriptive_name, customer.currency_code, segments.month, campaign.id, campaign.name, " +
   "metrics.cost_micros, metrics.conversions, metrics.clicks FROM campaign " +
   `WHERE segments.date BETWEEN '${prevStart}' AND '${until}' AND metrics.cost_micros > 0`;
 
@@ -60,7 +60,7 @@ for (const b of branches) {
     try {
       for (const r of await api.search(acc, query)) {
         const m = r.segments.month.slice(0, 7);
-        fresh[m]?.push([String(r.customer.id), r.customer.descriptiveName || String(r.customer.id), r.customer.currencyCode, r.campaign.name, Number(r.metrics.costMicros || 0) / 1e6, Number(r.metrics.conversions || 0), Number(r.metrics.clicks || 0)]);
+        fresh[m]?.push([String(r.customer.id), r.customer.descriptiveName || String(r.customer.id), r.customer.currencyCode, r.campaign.name, Number(r.metrics.costMicros || 0) / 1e6, Number(r.metrics.conversions || 0), Number(r.metrics.clicks || 0), String(r.campaign.id)]);
         rows++;
       }
       ok++;

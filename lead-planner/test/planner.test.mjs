@@ -407,3 +407,18 @@ test("Google Ads: гривна по курсу НБУ месяца, кабине
   assert.equal(b.products.find((p) => p.name === "ШС").usd, 100);
   near(googleReport(data, { from: "2026-09", to: "2026-10" }).network.usd, 4000 / 40 + 4500 / 45 + 50);
 });
+
+test("Google: договоры — уникальные клиенты с заявкой из Google, закончившейся договором", async () => {
+  const { googleOutcomes } = await import("../scripts/lead-outcomes.mjs");
+  const C = (n) => `https://crm.itstep.org/clients/${n}`;
+  const o = googleOutcomes([
+    { id: 1, utm_source: "google", utm_campaign: "111", link_client_history: C(5), created_at: "2026-09-01", last_result: "Singed an agreement" },
+    { id: 2, gclid: "x", utm_campaign: "222", link_client_history: C(5), created_at: "2026-09-02", last_result: "Singed an agreement" }, // тот же клиент
+    { id: 3, utm_source: "google", utm_campaign: "222", link_client_history: C(6), created_at: "2026-09-03", last_result: "Closed lost" },
+    { id: 4, utm_source: "google", utm_campaign: "222", link_client_history: C(7), result: "result_deleted", last_result: "Singed an agreement" },
+    { id: 5, utm_source: "Facebook", link_client_history: C(8), last_result: "Singed an agreement" },
+  ]);
+  assert.equal(o.leads, 2);
+  assert.equal(o.contracts, 1);
+  assert.deepEqual(o.byCampaign, { 111: { leads: 1, contracts: 1 }, 222: { leads: 1, contracts: 0 } });
+});

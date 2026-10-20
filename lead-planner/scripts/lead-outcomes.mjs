@@ -21,6 +21,29 @@ const median = (xs) => {
 
 export const typeKey = (t) => String(t || "").replace(/^irt_/, "").toLowerCase().replace(/-/g, "_");
 
+// Заявки из Google Ads (utm_source=google или gclid) и договоры по ним: уникальные клиенты, у которых заявка из Google
+// закончилась договором («Singed an agreement» в CRM). Кампания — utm_campaign (это id кампании Google).
+const SIGNED = "Singed an agreement";
+const isGoogle = (x) => /google/i.test(x.utm_source || "") || !!x.gclid;
+const clientOf = (x) => String(x.link_client_history || "").match(/clients\/(\d+)/)?.[1] || `r${x.id}`;
+export function googleOutcomes(leads) {
+  const g = leads.filter((x) => isGoogle(x) && x.result !== "result_deleted").sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+  const clients = new Map(); // клиент → { campaign первой заявки, campaign заявки с договором }
+  for (const x of g) {
+    const k = clientOf(x);
+    const camp = String(x.utm_campaign || "").replace(/\D/g, "") || "?";
+    const c = clients.get(k) || { lead: camp, signed: null };
+    if (x.last_result === SIGNED && !c.signed) c.signed = camp;
+    clients.set(k, c);
+  }
+  const byCampaign = {};
+  for (const c of clients.values()) {
+    (byCampaign[c.lead] ||= { leads: 0, contracts: 0 }).leads++;
+    if (c.signed) (byCampaign[c.signed] ||= { leads: 0, contracts: 0 }).contracts++;
+  }
+  return { leads: clients.size, contracts: [...clients.values()].filter((c) => c.signed).length, byCampaign };
+}
+
 export function outcomes(leads) {
   const live = leads.filter((x) => TYPES.has(x.type) && x.result !== "result_deleted");
   const proc = live.filter((x) => x.result);
@@ -43,6 +66,7 @@ export function outcomes(leads) {
     noAnswerNever: na.length - reached.length,
     noAnswerLost: na.filter((x) => x.last_result === "Closed lost").length,
     firstRejectByType,
+    google: googleOutcomes(leads),
   };
 }
 
