@@ -1,8 +1,8 @@
-// Мини-клиент Vivix API: генерация видео W1 (по тексту) и A1 (говорящий аватар).
-// Использование:
+// Tiny Vivix API client: W1 video from text and A1 talking avatar.
+// Usage:
 //   node scripts/vivix.mjs world  <out.mp4> <aspect> <seconds> "<prompt>"
-//   node scripts/vivix.mjs avatar <out.mp4> <first-frame.jpg> "<prompt>" "<реплика>" [voice_id]
-// Ключ: VIVIX_API_KEY (в облачной сессии Claude подставляется прокси автоматически).
+//   node scripts/vivix.mjs avatar <out.mp4> <first-frame.jpg> "<prompt>" "<line to say>" [voice_id]
+// Key: VIVIX_API_KEY
 import { readFile, writeFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 

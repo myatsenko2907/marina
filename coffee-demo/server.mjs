@@ -1,6 +1,6 @@
-// Необязательный сервер: раздаёт демо и включает живую генерацию видео в Vivix.
-// Запуск:  VIVIX_API_KEY=ваш_ключ node server.mjs   → http://localhost:3000
-// Без ключа демо работает и просто как статичная страница (откройте index.html).
+// Optional server: serves the demo and enables live Vivix video generation.
+// Run:  VIVIX_API_KEY=your_key node server.mjs   → http://localhost:3000
+// Without a key the demo still works as a static page (just open index.html).
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
@@ -35,7 +35,7 @@ createServer(async (req, res) => {
       let raw = '';
       for await (const chunk of req) raw += chunk;
       const { prompt } = JSON.parse(raw || '{}');
-      if (!prompt) return send(res, 400, { error: 'пустой запрос' });
+      if (!prompt) return send(res, 400, { error: 'empty prompt' });
       const data = await vivix('/v1/videos/jobs', { model: MODEL, jobs: [{ prompt, aspect_ratio: '16:9', duration: 6 }] });
       return send(res, 200, data.results[0]);
     }
@@ -48,7 +48,7 @@ createServer(async (req, res) => {
     const type = TYPES[extname(file)] || 'application/octet-stream';
     const range = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
     if (!range) return send(res, 200, buf, type);
-    // Range-запросы нужны Safari, чтобы проигрывать mp4
+    // Safari needs Range requests to play mp4
     const start = range[1] ? +range[1] : 0;
     const end = range[2] ? Math.min(+range[2], buf.length - 1) : buf.length - 1;
     res.writeHead(206, { 'Content-Type': type, 'Content-Range': `bytes ${start}-${end}/${buf.length}`, 'Accept-Ranges': 'bytes', 'Content-Length': end - start + 1 });
@@ -57,4 +57,4 @@ createServer(async (req, res) => {
     if (e.code === 'ENOENT') return send(res, 404, 'not found', 'text/plain');
     send(res, 500, { error: e.message });
   }
-}).listen(PORT, () => console.log(`Демо: http://localhost:${PORT}  ·  живая генерация: ${KEY ? 'включена' : 'выключена (нет VIVIX_API_KEY)'}`));
+}).listen(PORT, () => console.log(`Demo: http://localhost:${PORT}  ·  live generation: ${KEY ? 'on' : 'off (no VIVIX_API_KEY)'}`));

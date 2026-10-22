@@ -3,18 +3,57 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  const money = (n) => Math.round(n).toLocaleString('ru-RU') + ' ' + D.currency;
+  const money = (n) => D.currency + Math.round(n).toLocaleString('en-US');
   const short = (n) => {
     const a = Math.abs(n);
-    const s = a >= 1e6 ? (a / 1e6).toFixed(1).replace('.', ',') + ' млн' : a >= 1e3 ? Math.round(a / 1e3) + ' тыс' : Math.round(a) + '';
-    return (n < 0 ? '−' : '') + s + ' ' + D.currency;
+    const s = a >= 1e6 ? (a / 1e6).toFixed(1) + 'M' : a >= 1e3 ? Math.round(a / 1e3) + 'K' : Math.round(a) + '';
+    return (n < 0 ? '−' : '') + D.currency + s;
   };
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const brandName = D.brand.name.split(' ').map((w) => w[0] + w.slice(1).toLowerCase()).join(' ');
 
-  $$('[data-brand]').forEach((e) => (e.textContent = D.brand.name[0] + D.brand.name.slice(1).toLowerCase()));
+  $$('[data-brand]').forEach((e) => (e.textContent = brandName));
   $('#idea').value = D.idea;
 
-  /* ---------- Финмодель ---------- */
+  /* ---------- Location analysis ---------- */
+  const L = D.location;
+  const factorKey = { traffic: 'traffic', rent: 'rentScore', competition: 'competition', night: 'night', students: 'students' };
+  const spots = L.spots.map((s) => ({ ...s, score: Object.entries(L.weights).reduce((t, [f, w]) => t + w * s[factorKey[f]], 0) }))
+    .sort((a, b) => b.score - a.score);
+  const winner = spots[0];
+  $('#loc-winner').textContent = winner.name;
+  $('#loc-title').textContent = `Winner: ${winner.name} · ${winner.street}`;
+  $('#loc-why').innerHTML = L.why.map((w) => `<li>${w}</li>`).join('');
+  $('#loc-rank').innerHTML = spots.map((s, i) => `<div class="row${i === 0 ? ' top' : ''}">
+      <b>${s.name}</b><span>${s.score.toFixed(1)}</span>
+      <div class="bar"><i data-w="${s.score * 10}"></i></div>
+      <small>${s.street} · rent ≈ ${money(s.rent)}/m²</small></div>`).join('');
+  $('#loc-matrix').innerHTML =
+    `<thead><tr><th>Factor</th><th>Weight</th>${spots.map((s, i) => `<th${i === 0 ? ' class="hl"' : ''}>${s.name}</th>`).join('')}</tr></thead><tbody>` +
+    Object.entries(L.weights).map(([f, w]) => `<tr><td>${L.labels[f]}</td><td>${Math.round(w * 100)}%</td>${spots.map((s, i) => `<td${i === 0 ? ' class="hl"' : ''}>${s[factorKey[f]]}</td>`).join('')}</tr>`).join('') +
+    `<tr class="total"><td>Weighted score</td><td></td>${spots.map((s, i) => `<td${i === 0 ? ' class="hl"' : ''}>${s.score.toFixed(1)}</td>`).join('')}</tr></tbody>`;
+  // schematic map: land, Davao Gulf, Samal Island, river, district pins
+  $('#map').innerHTML = `
+    <rect x="0" y="0" width="100" height="100" class="land"/>
+    <path class="sea" d="M84 0 C 80 20, 88 35, 82 50 S 76 80, 80 100 L 100 100 L 100 0 Z"/>
+    <ellipse class="island" cx="95" cy="38" rx="4" ry="11"/>
+    <text class="sea-label" x="91" y="94">Davao Gulf</text>
+    <text class="sea-label" x="95" y="54">Samal</text>
+    <path class="river" d="M10 10 C 30 30, 45 50, 55 62 S 75 80, 81 88"/>
+    <path class="road" d="M15 90 C 35 75, 50 55, 60 40 S 70 20, 78 5"/>
+    ${spots.slice().reverse().map((s) => `<g class="pin${s === winner ? ' win' : ''}" transform="translate(${s.x} ${s.y})">
+        ${s === winner ? '<circle class="pulse" r="4"/>' : ''}
+        <circle r="2.4"/>
+        <text x="4" y="1.4">${s.name} · ${s.score.toFixed(1)}</text></g>`).join('')}`;
+
+  /* ---------- Personas ---------- */
+  $('#personas').innerHTML = D.personas.map((p) => `<div class="card persona reveal">
+      <div class="ph-head"><div class="ava" style="background:${p.color}">${p.name[0]}</div><div><b>${p.name}</b><small>${p.role}</small></div></div>
+      <blockquote>“${p.quote}”</blockquote>
+      <ul>${p.facts.map((f) => `<li>${f}</li>`).join('')}</ul>
+      <div class="hook"><span>How we win them</span>${p.hook}</div></div>`).join('');
+
+  /* ---------- Financial model ---------- */
   const invest = D.plan.investments.reduce((s, [, v]) => s + v, 0);
   const model = { ...D.plan.model };
 
@@ -32,20 +71,19 @@
     }
     return { rows, breakeven, payback, full: rows[23] };
   }
-
-  const monthsWord = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'месяц' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'месяца' : 'месяцев');
+  const ord = (n) => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
 
   function renderFinance() {
     const r = simulate();
-    $('#payback-h').textContent = r.payback ? `${r.payback} ${monthsWord(r.payback)}` : 'более 2 лет';
+    $('#payback-h').textContent = r.payback ? `${r.payback} month${r.payback > 1 ? 's' : ''}` : 'over 2 years';
     $('#o-check').textContent = money(model.avgCheck);
     $('#o-checks').textContent = model.checksPerDay;
     $('#kpis').innerHTML = [
-      ['Вложения', short(invest)],
-      ['Выручка в месяц', short(r.full.revenue)],
-      ['Прибыль в месяц', short(r.full.profit)],
-      ['Безубыточность', r.breakeven ? `${r.breakeven}-й месяц` : '—'],
-      ['Окупаемость', r.payback ? `${r.payback}-й месяц` : '> 24 мес', true],
+      ['Startup budget', short(invest)],
+      ['Monthly revenue', short(r.full.revenue)],
+      ['Monthly profit', short(r.full.profit)],
+      ['Break-even', r.breakeven ? `${ord(r.breakeven)} month` : '—'],
+      ['Payback', r.payback ? `${ord(r.payback)} month` : '> 24 mo', true],
     ].map(([k, v, hl]) => `<div class="kpi${hl ? ' hl' : ''}"><span>${k}</span><b>${v}</b></div>`).join('');
     drawChart(r);
   }
@@ -58,7 +96,7 @@
     c.width = W * dpr; c.height = H * dpr;
     const g = c.getContext('2d');
     g.scale(dpr, dpr);
-    const pad = { l: 64, r: 12, t: 12, b: 28 };
+    const pad = { l: 56, r: 12, t: 12, b: 28 };
     const vals = r.rows.map((x) => x.cum);
     const max = Math.max(...vals, 0), min = Math.min(...vals, 0);
     const x = (i) => pad.l + (i / 23) * (W - pad.l - pad.r);
@@ -68,15 +106,15 @@
     const step = [5e5, 1e6, 2e6, 5e6, 1e7].find((s) => (max - min) / s <= 6) || 2e7;
     for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
       g.beginPath(); g.moveTo(pad.l, y(v)); g.lineTo(W - pad.r, y(v)); g.stroke();
-      g.fillText(v ? short(v).replace(' ' + D.currency, '') : '0', 4, y(v) + 4);
+      g.fillText(v ? short(v) : '0', 4, y(v) + 4);
     }
     g.textAlign = 'center';
-    [1, 6, 12, 18, 24].forEach((m) => g.fillText(m + ' мес', Math.min(x(m - 1), W - 24), H - 8));
+    [1, 6, 12, 18, 24].forEach((m) => g.fillText('mo ' + m, Math.min(x(m - 1), W - 24), H - 8));
     g.textAlign = 'left';
-    // нулевая линия
+    // zero line
     g.strokeStyle = '#8fa37e'; g.setLineDash([5, 5]);
     g.beginPath(); g.moveTo(pad.l, y(0)); g.lineTo(W - pad.r, y(0)); g.stroke(); g.setLineDash([]);
-    // область и линия
+    // area and line
     const grad = g.createLinearGradient(0, pad.t, 0, H);
     grad.addColorStop(0, 'rgba(233,184,114,.45)'); grad.addColorStop(1, 'rgba(233,184,114,0)');
     g.beginPath(); g.moveTo(x(0), y(0));
@@ -88,7 +126,7 @@
       const i = r.payback - 1;
       g.fillStyle = '#e9b872'; g.beginPath(); g.arc(x(i), y(vals[i]), 6, 0, 7); g.fill();
       g.fillStyle = '#f4ebdd'; g.font = '600 13px Inter, sans-serif';
-      g.fillText('окупились', Math.min(x(i) + 10, W - 80), y(vals[i]) - 10);
+      g.fillText('paid back', Math.min(x(i) + 10, W - 80), y(vals[i]) - 10);
     }
   }
 
@@ -98,27 +136,24 @@
   sChecks.oninput = () => { model.checksPerDay = +sChecks.value; renderFinance(); };
   window.addEventListener('resize', () => renderFinance());
 
-  $('#inv').innerHTML = D.plan.investments.map(([k, v]) => `<tr><td>${k}</td><td>${money(v)}</td></tr>`).join('') + `<tr><td>Итого</td><td>${money(invest)}</td></tr>`;
+  $('#inv').innerHTML = D.plan.investments.map(([k, v]) => `<tr><td>${k}</td><td>${money(v)}</td></tr>`).join('') + `<tr><td>Total</td><td>${money(invest)}</td></tr>`;
 
-  // подставляем посчитанные цифры в лог финансиста
-  const base = simulate();
-  D.pipeline[1].log = [`Считаю вложения: ${short(invest)}`, 'Строю модель на 24 месяца', `Окупаемость: ${base.payback}-й месяц`];
-
-  /* ---------- Бизнес-план ---------- */
+  /* ---------- Business plan ---------- */
   $('#aud').innerHTML = D.plan.audience.map((a) => `<div class="row"><b>${a.who}</b><span>${a.share}%</span><div class="bar"><i data-w="${a.share}"></i></div><small>${a.note}</small></div>`).join('');
   $('#swot').innerHTML = Object.entries(D.plan.swot).map(([k, list]) => `<div><b>${k}</b><ul>${list.map((x) => `<li>${x}</li>`).join('')}</ul></div>`).join('');
 
-  /* ---------- Бренд ---------- */
+  /* ---------- Brand ---------- */
   $('#logo').innerHTML = `
     <svg viewBox="0 0 360 300" fill="none">
-      <g class="draw" stroke="#e9b872" stroke-width="5" stroke-linecap="round">
-        <ellipse cx="180" cy="105" rx="58" ry="80" transform="rotate(-28 180 105)"/>
-        <path d="M150 40 C 200 80, 160 130, 210 170"/>
+      <g class="draw" stroke="#e9b872" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M70 170 L140 80 L170 115 L205 60 L290 170"/>
+        <ellipse cx="180" cy="128" rx="30" ry="42" transform="rotate(-28 180 128)"/>
+        <path d="M168 92 C 196 112, 168 140, 194 164"/>
       </g>
-      <text x="180" y="245" text-anchor="middle" fill="#f4ebdd" font-family="Unbounded" font-size="46" font-weight="700" letter-spacing="10">${D.brand.name}</text>
-      <text x="180" y="278" text-anchor="middle" fill="#c8874a" font-family="Inter" font-size="15" letter-spacing="8">${D.brand.descriptor.toUpperCase()}</text>
+      <text x="180" y="240" text-anchor="middle" fill="#f4ebdd" font-family="Unbounded, sans-serif" font-size="40" font-weight="700" letter-spacing="7">${D.brand.name}</text>
+      <text x="180" y="274" text-anchor="middle" fill="#c8874a" font-family="Inter, sans-serif" font-size="14" letter-spacing="7">${D.brand.descriptor.toUpperCase()}</text>
     </svg>`;
-  $('#tagline').textContent = `«${D.brand.tagline}»`;
+  $('#tagline').textContent = `“${D.brand.tagline}”`;
   $('#palette').innerHTML = D.brand.palette.map((p) => {
     const dark = parseInt(p.hex.slice(1, 3), 16) < 120;
     return `<div class="sw" style="background:${p.hex};color:${dark ? '#f4ebdd' : '#2b1b14'}"><b>${p.name}</b>${p.hex}</div>`;
@@ -126,57 +161,76 @@
   $('#fonts').textContent = D.brand.fonts;
   $('#voice').textContent = D.brand.voice;
 
-  /* ---------- Меню ---------- */
+  /* ---------- Menu ---------- */
   let mSum = 0;
   $('#menu').innerHTML = D.menu.map((d) => {
     const margin = Math.round((1 - d.cost / d.price) * 100);
     mSum += margin;
     return `<div class="dish reveal">${d.tag ? `<span class="badge">${d.tag}</span>` : ''}
-      <div class="top"><b>${d.name}</b><span class="price">${d.price} ${D.currency}</span></div>
-      <div class="meta"><span>себестоимость ${d.cost} ${D.currency}</span><span>маржа ${margin}%</span></div>
+      <div class="top"><b>${d.name}</b><span class="price">${money(d.price)}</span></div>
+      <div class="meta"><span>unit cost ${money(d.cost)}</span><span>margin ${margin}%</span></div>
       <div class="m"><i style="width:${margin}%"></i></div></div>`;
   }).join('');
-  $('#avg-margin').textContent = Math.round(mSum / D.menu.length) + '%';
+  const avgMargin = Math.round(mSum / D.menu.length);
+  $('#avg-margin').textContent = avgMargin + '%';
 
-  /* ---------- Видео ---------- */
+  // fill computed numbers into the agent logs
+  const base = simulate();
+  D.pipeline[2].log = [`Startup budget: ${short(invest)}`, 'Building a 24-month model', `Payback: ${ord(base.payback)} month`];
+  D.pipeline[4].log = [D.pipeline[4].log[0], D.pipeline[4].log[1], `Average margin: ${avgMargin}%`];
+
+  /* ---------- Video ---------- */
   $('#videos').innerHTML = D.videos.map((v) => {
     const poster = v.file.replace('video/', 'img/').replace('.mp4', '.jpg');
     return `<div class="vcard reveal">
       <div class="vbox" style="aspect-ratio:${v.ratio}">
         <video src="${v.file}" poster="${poster}" playsinline loop muted preload="metadata"></video>
       </div>
-      <div class="vmeta"><b>${v.title}</b><span class="pill">${v.model}</span> <span class="pill">🔊 клик — со звуком</span><code>${v.prompt}</code></div></div>`;
-  }).join('');
-  // нет файла — показываем заглушку с подсказкой
+      <div class="vmeta"><b>${v.title}</b><span class="pill">${v.model}</span> <span class="pill">🔊 click for sound</span><code>${v.prompt}</code></div></div>`;
+  }).join('') + `<div class="card howto reveal"><h3>How it was made</h3><ol>
+      <li><b>The AI writes the prompt</b>scene, camera, light and sound in one paragraph</li>
+      <li><b>Vivix W1 renders the clip</b>8–10 seconds of video with sound in about a minute</li>
+      <li><b>Vivix A1 brings Mika to life</b>one photo plus a script becomes a talking barista</li></ol>
+      <div class="stat"><b>${D.videos.length}</b> videos · <b>0</b> cameras · <b>0</b> actors</div></div>`;
+  // missing file → show a placeholder with a hint
   $$('#videos video').forEach((v) => v.addEventListener('error', () => {
     const img = new Image();
-    img.onerror = () => v.replaceWith(el('div', 'ph', 'Видео ещё не сгенерировано<br>см. README → «Видео»'));
+    img.onerror = () => v.replaceWith(el('div', 'ph', 'Video not generated yet<br>see README → Video'));
     img.src = v.poster;
   }));
-  // клик по видео — включить звук и проиграть с начала
+  // click a video to unmute it and play from the start
   $$('#videos video').forEach((v) => v.addEventListener('click', () => {
     const on = v.muted;
     $$('#videos video').forEach((o) => (o.muted = true));
     v.muted = !on; if (on) { v.currentTime = 0; v.play(); }
   }));
 
-  /* ---------- Креативы ---------- */
+  /* ---------- Creatives ---------- */
   $('#creatives').innerHTML = D.creatives.map((c) => {
     const bg = !c.bg ? '' : c.bg.endsWith('.mp4')
       ? `<video class="bg" src="${c.bg}" autoplay muted loop playsinline></video>`
       : `<img class="bg" src="${c.bg}" alt="">`;
     return `<div class="cr ${c.kind}${c.color ? ' colorful' : ''} reveal">${bg}<div class="lg">${D.brand.name}</div>
       <div class="k">${c.kicker}</div>
-      ${c.price ? `<div class="t">${c.title}</div><div class="bigprice">${c.price} ${D.currency}</div>` : `<div class="t">${c.title}</div>`}
+      ${c.price ? `<div class="t">${c.title}</div><div class="bigprice">${money(c.price)}</div>` : `<div class="t">${c.title}</div>`}
       <div class="c">${c.cta}</div></div>`;
   }).join('');
-  const best = D.ads.reduce((b, a, i) => (parseFloat(a.ctr.replace(',', '.')) > parseFloat(D.ads[b].ctr.replace(',', '.')) ? i : b), 0);
-  $('#ads').innerHTML = D.ads.map((a, i) => `<div class="ad reveal${i === best ? ' best' : ''}"><b>${a.h}</b><p>${a.t}</p><div class="ctr">Прогноз CTR: ${a.ctr}${i === best ? ' · победитель A/B' : ''}</div></div>`).join('');
+  const best = D.ads.reduce((b, a, i) => (parseFloat(a.ctr) > parseFloat(D.ads[b].ctr) ? i : b), 0);
+  $('#ads').innerHTML = D.ads.map((a, i) => `<div class="ad reveal${i === best ? ' best' : ''}"><b>${a.h}</b><p>${a.t}</p><div class="ctr">Forecast CTR: ${a.ctr}${i === best ? ' · A/B winner' : ''}</div></div>`).join('');
   $('#cplan').innerHTML = D.contentPlan.map(([d, t]) => `<div><b>${d}</b>${t}</div>`).join('');
+  $('#listing').innerHTML = `<div class="lhead"><div class="lav">☕</div><div><b>${D.delivery.title}</b><small>★ 4.9 · 15–25 min · ${D.currency}${D.currency}</small></div></div>
+    <p>${D.delivery.text}</p><div class="tags">${D.delivery.tags.map((t) => `<span>${t}</span>`).join('')}</div>`;
 
-  /* ---------- Чат-бот ---------- */
+  /* ---------- Launch plan ---------- */
+  $('#roadmap').innerHTML = D.roadmap.map((r) => `<li><span>${r.when}</span><b>${r.what}</b><small>${r.detail}</small></li>`).join('');
+  const H = D.hiring;
+  $('#job').innerHTML = `<div><h3>Job post written by AI</h3><div class="jtitle">${H.title}</div><p>${H.text}</p>
+      <div class="tags">${H.perks.map((p) => `<span>${p}</span>`).join('')}</div></div>
+    <div><h3>Interview questions</h3><ol class="qs">${H.questions.map((q) => `<li>${q}</li>`).join('')}</ol></div>`;
+
+  /* ---------- Chatbot ---------- */
   const msgs = $('#msgs');
-  const push = (cls, text) => { const m = el('div', 'msg ' + cls, text); msgs.append(m); msgs.scrollTop = msgs.scrollHeight; return m; };
+  const push = (cls, text) => { const m = el('div', 'msg ' + cls); m.textContent = text; msgs.append(m); msgs.scrollTop = msgs.scrollHeight; return m; };
   let botStarted = false;
   async function ask(q) {
     if (!q.trim()) return;
@@ -195,8 +249,8 @@
   $$('#chips button').forEach((b) => (b.onclick = () => ask(b.textContent)));
   $('#compose').onsubmit = (e) => { e.preventDefault(); const i = $('#ask'); ask(i.value); i.value = ''; };
 
-  /* ---------- Итог ---------- */
-  const dl = (o) => `<div><dt>Время</dt><dd>${o.time}</dd></div><div><dt>Стоимость</dt><dd>${o.cost}</dd></div><div><dt>Кто делал</dt><dd style="font-size:clamp(14px,1.6vw,18px)">${o.people}</dd></div>`;
+  /* ---------- Summary ---------- */
+  const dl = (o) => `<div><dt>Time</dt><dd>${o.time}</dd></div><div><dt>Cost</dt><dd>${o.cost}</dd></div><div><dt>Who did it</dt><dd style="font-size:clamp(14px,1.6vw,18px)">${o.people}</dd></div>`;
   $('#vs-ai').innerHTML = dl(D.compare.ai);
   $('#vs-old').innerHTML = dl(D.compare.old);
 
@@ -213,14 +267,15 @@
     }
   }
 
-  /* ---------- Появление слайдов ---------- */
+  /* ---------- Slide reveal ---------- */
   const slides = $$('.slide');
   const seen = new Set();
   async function typeText(node, text) {
     node.textContent = '';
-    for (let i = 1; i <= text.length; i++) { node.textContent = text.slice(0, i); await sleep(14); }
+    for (let i = 1; i <= text.length; i++) { node.textContent = text.slice(0, i); await sleep(12); }
     node.classList.add('finished');
   }
+  const fillBars = (s) => setTimeout(() => $$('.bar i', s).forEach((b) => (b.style.width = b.dataset.w + '%')), 300);
   function onEnter(s) {
     s.classList.add('in');
     const i = slides.indexOf(s);
@@ -228,12 +283,13 @@
     $$('video', s).forEach((v) => v.play().catch(() => {}));
     if (seen.has(s)) return;
     seen.add(s);
-    if (i === 0) { typeText($('#summary'), D.plan.summary); setTimeout(() => $$('#aud i').forEach((b) => (b.style.width = b.dataset.w + '%')), 300); }
-    if (i === 1) renderFinance();
-    if (s.dataset.title === 'ИИ-бариста' && !botStarted) { botStarted = true; setTimeout(() => push('b', D.bot.hello), 400); }
+    fillBars(s);
+    if (s.dataset.title === 'Business plan') typeText($('#summary'), D.plan.summary);
+    if (s.dataset.title === 'Financials') renderFinance();
+    if (s.dataset.title === 'AI barista' && !botStarted) { botStarted = true; setTimeout(() => push('b', D.bot.hello), 400); }
     if (s.classList.contains('final')) confetti();
   }
-  const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && onEnter(e.target)), { threshold: 0.45 });
+  const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && onEnter(e.target)), { threshold: 0.35 });
   slides.forEach((s) => io.observe(s));
 
   $('#dots').innerHTML = slides.map((s) => `<button title="${s.dataset.title}"></button>`).join('');
@@ -250,9 +306,9 @@
     slides[cur].scrollIntoView({ behavior: 'smooth' });
   }
 
-  /* ---------- Запуск конвейера ---------- */
+  /* ---------- Agent pipeline ---------- */
   let phase = 'start';
-  const STEP = 1700; // мс на агента — меняйте, чтобы ускорить/замедлить показ
+  const STEP = 1500; // ms per agent: change to speed up or slow down the show
   async function runPipeline() {
     if (phase !== 'start') return;
     phase = 'run';
@@ -260,18 +316,20 @@
     $('#run').classList.remove('hidden');
     window.scrollTo(0, 0);
     const box = $('#agents');
-    box.innerHTML = D.pipeline.map((a) => `<div class="agent"><div class="head"><span class="ico">${a.icon}</span>${a.name}<span class="state">ожидает</span></div><ul></ul><div class="bar"></div></div>`).join('');
+    box.innerHTML = D.pipeline.map((a) => `<div class="agent"><div class="head"><span class="ico">${a.icon}</span>${a.name}<span class="state">waiting</span></div><ul></ul><div class="bar"></div></div>`).join('');
     const cards = $$('.agent', box);
     const t0 = Date.now();
+    const total = STEP * cards.length;
     const timer = setInterval(() => {
-      // «ускоренное» время: секунда показа = минута работы
-      const s = Math.round((Date.now() - t0) / 1000) * 60 / 7;
-      $('#timer').textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.round(s % 60)).padStart(2, '0')}`;
-    }, 200);
+      // "accelerated" clock: the show squeezes ~15 minutes of AI work into a few seconds
+      const sec = Math.min(1, (Date.now() - t0) / total) * 15 * 60;
+      $('#timer').textContent = `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
+    }, 100);
     for (let i = 0; i < cards.length; i++) {
+      if (phase !== 'run') break;
       const c = cards[i];
       c.classList.add('active');
-      $('.state', c).textContent = 'работает…';
+      $('.state', c).textContent = 'working…';
       const bar = $('.bar', c);
       bar.style.transition = `width ${STEP}ms linear`;
       requestAnimationFrame(() => (bar.style.width = '100%'));
@@ -280,12 +338,13 @@
         await sleep(STEP / D.pipeline[i].log.length);
       }
       c.classList.remove('active'); c.classList.add('done');
-      $('.state', c).textContent = '✓ готово';
+      $('.state', c).textContent = '✓ done';
       const pct = Math.round(((i + 1) / cards.length) * 100);
       $('#pct').textContent = pct + '%';
       $('#fill').style.width = pct + '%';
     }
     clearInterval(timer);
+    if (phase !== 'run') return;
     await sleep(700);
     showResults();
   }
@@ -307,7 +366,7 @@
     msgs.innerHTML = '';
     slides.forEach((s) => s.classList.remove('in'));
     $('#summary').classList.remove('finished');
-    $$('#aud i').forEach((b) => (b.style.width = 0));
+    $$('.slide .bar i').forEach((b) => (b.style.width = 0));
     $('#results').classList.add('hidden');
     $('#dots').classList.add('hidden');
     $('#run').classList.add('hidden');
@@ -316,11 +375,11 @@
     window.scrollTo(0, 0);
   }
 
-  /* ---------- Автопоказ ---------- */
+  /* ---------- Autoplay ---------- */
   let auto = null;
-  function stopAuto() { clearInterval(auto); auto = null; $('#btn-auto').textContent = '▶ Автопоказ'; }
-  async function startAuto() {
-    $('#btn-auto').textContent = '⏸ Пауза';
+  function stopAuto() { clearInterval(auto); auto = null; $('#btn-auto').textContent = '▶ Autoplay'; }
+  function startAuto() {
+    $('#btn-auto').textContent = '⏸ Pause';
     auto = setInterval(() => {
       if (phase !== 'results') return;
       const i = current();
@@ -331,7 +390,7 @@
   }
   $('#btn-auto').onclick = () => (auto ? stopAuto() : startAuto());
 
-  /* ---------- Управление ---------- */
+  /* ---------- Controls ---------- */
   $('#btn-go').onclick = runPipeline;
   $('#btn-reset').onclick = reset;
   const fullscreen = () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}));
@@ -341,19 +400,19 @@
     const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
     if (phase === 'start' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); return runPipeline(); }
     if (typing) return;
-    if (e.key === 'f' || e.key === 'а') fullscreen();
-    if (e.key === 'r' || e.key === 'к') reset();
+    if (e.key === 'f') fullscreen();
+    if (e.key === 'r') reset();
     if (phase === 'start' && e.key === ' ') { e.preventDefault(); runPipeline(); }
-    if (phase === 'run' && (e.key === ' ' || e.key === 'ArrowRight')) { e.preventDefault(); showResults(); } // пропустить анимацию
+    if (phase === 'run' && (e.key === ' ' || e.key === 'ArrowRight')) { e.preventDefault(); showResults(); } // skip the animation
     if (phase !== 'results') return;
     if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(current() + 1); }
     if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(current() - 1); }
   });
 
-  // ссылка вида index.html#results сразу открывает готовые результаты
+  // index.html#results opens the finished results right away
   if (location.hash === '#results') showResults();
 
-  /* ---------- Живая генерация (только при запуске через server.mjs) ---------- */
+  /* ---------- Live generation (only when served by server.mjs) ---------- */
   fetch('api/status').then((r) => r.json()).then((s) => {
     if (!s.live) return;
     $('#live').classList.remove('hidden');
@@ -361,7 +420,7 @@
       const prompt = $('#live-prompt').value.trim();
       if (!prompt) return;
       const st = $('#live-status');
-      st.textContent = 'Отправляю задание в Vivix…';
+      st.textContent = 'Sending the job to Vivix…';
       try {
         const job = await (await fetch('api/video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) })).json();
         if (job.error) throw new Error(job.error);
@@ -369,17 +428,17 @@
         for (;;) {
           await sleep(4000);
           const j = await (await fetch('api/video/' + job.job_id)).json();
-          st.textContent = `Vivix генерирует видео… ${Math.round((Date.now() - t0) / 1000)} с (${j.status})`;
+          st.textContent = `Vivix is generating your video… ${Math.round((Date.now() - t0) / 1000)} s (${j.status})`;
           if (j.status === 'succeeded') {
-            st.textContent = 'Готово! Видео сгенерировано за ' + Math.round((Date.now() - t0) / 1000) + ' с';
-            const card = el('div', 'vcard', `<div class="vbox" style="aspect-ratio:16/9"><video src="${j.video_url}" autoplay controls playsinline></video></div><div class="vmeta"><b>Только что</b><span class="pill">Vivix W1 · live</span><code></code></div>`);
+            st.textContent = 'Done! Generated in ' + Math.round((Date.now() - t0) / 1000) + ' s';
+            const card = el('div', 'vcard', `<div class="vbox" style="aspect-ratio:16/9"><video src="${j.video_url}" autoplay controls playsinline></video></div><div class="vmeta"><b>Just now</b><span class="pill">Vivix W1 · live</span><code></code></div>`);
             $('code', card).textContent = prompt;
             $('#videos').prepend(card);
             break;
           }
-          if (j.status === 'failed' || j.error) throw new Error(j.error?.message || j.error || 'ошибка генерации');
+          if (j.status === 'failed' || j.error) throw new Error(j.error?.message || j.error || 'generation failed');
         }
-      } catch (err) { st.textContent = 'Не получилось: ' + err.message; }
+      } catch (err) { st.textContent = 'That didn’t work: ' + err.message; }
     };
   }).catch(() => {});
 })();
