@@ -43,3 +43,7 @@ npm run serve   # preview at http://localhost:8080
 ## Hosting
 
 `docs/` is a ready static site: enable GitHub Pages → *Deploy from branch* → folder `/docs`, or upload the folder to any hosting.
+
+## Демо для презентации курса «ИИ с нуля до про»
+
+Папка [`coffee-demo/`](coffee-demo/README.md) — интерактивное демо «ИИ-студия: кофейня»: бизнес-план, финмодель, бренд, меню, видео Vivix, креативы и чат-бот. Откройте `coffee-demo/index.html` в браузере.

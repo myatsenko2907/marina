@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ИИ-студия: кофейня</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="course">ИИ <b>с нуля до про</b> · живое демо</div>
+    <div class="tools">
+      <button class="tool" id="btn-auto" title="Автопоказ: слайды листаются сами">▶ Автопоказ</button>
+      <button class="tool" id="btn-full" title="Полный экран (F)">⛶</button>
+      <button class="tool" id="btn-reset" title="Начать заново (R)">↺</button>
+    </div>
+  </header>
+
+  <!-- 1. Старт -->
+  <section class="screen start" id="start">
+    <span class="eyebrow">ИИ-команда из 7 агентов</span>
+    <h1>Бизнес <em>за 15 минут</em> вместо месяца</h1>
+    <p class="lead">Опишите идею одной фразой — ИИ сделает бизнес-план, финмодель, бренд, меню, видеорекламу, креативы и чат-бота.</p>
+    <div class="idea">
+      <textarea id="idea" rows="3" aria-label="Идея бизнеса"></textarea>
+      <button class="go" id="btn-go">Запустить ИИ ✨</button>
+    </div>
+    <div class="hint">Пробел или <kbd>Enter</kbd> — запуск · <kbd>→</kbd> <kbd>←</kbd> — листать слайды · <kbd>F</kbd> — полный экран</div>
+  </section>
+
+  <!-- 2. Конвейер агентов -->
+  <section class="screen run hidden" id="run">
+    <h2>ИИ-команда работает над «<span data-brand></span>»</h2>
+    <p class="sub">Каждый агент делает работу целого специалиста</p>
+    <div class="agents" id="agents"></div>
+    <div class="progress"><span id="pct">0%</span><div class="track"><div class="fill" id="fill"></div></div><span id="timer">00:00</span></div>
+  </section>
+
+  <!-- 3. Результаты -->
+  <main id="results" class="hidden">
+    <section class="slide" data-title="Бизнес-план">
+      <div class="inner">
+        <div class="num">01 · Бизнес-план</div>
+        <h2>Кофейня «<span data-brand></span>»</h2>
+        <div class="card reveal" style="margin-bottom:16px"><div class="typed" id="summary"></div></div>
+        <div class="grid g2">
+          <div class="card reveal"><h3>Целевая аудитория</h3><div class="aud" id="aud"></div></div>
+          <div class="card reveal"><h3>SWOT-анализ</h3><div class="swot" id="swot"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Финмодель">
+      <div class="inner">
+        <div class="num">02 · Финансовая модель</div>
+        <h2>Окупаемость за <span id="payback-h">—</span></h2>
+        <div class="kpis reveal" id="kpis"></div>
+        <div class="grid fin">
+          <div class="card reveal">
+            <h3>Деньги нарастающим итогом, 24 месяца</h3>
+            <canvas class="chart" id="chart"></canvas>
+          </div>
+          <div class="card reveal">
+            <h3>Двигайте — модель пересчитается</h3>
+            <div class="sliders">
+              <label>Средний чек <output id="o-check"></output><input type="range" id="s-check" min="250" max="600" step="10"></label>
+              <label>Чеков в день <output id="o-checks"></output><input type="range" id="s-checks" min="80" max="400" step="10"></label>
+            </div>
+            <h3 style="margin-top:22px">Стартовые вложения</h3>
+            <table class="inv" id="inv"></table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Бренд">
+      <div class="inner">
+        <div class="num">03 · Бренд</div>
+        <h2>Название, логотип, стиль</h2>
+        <div class="grid brand">
+          <div class="card logo-card reveal" id="logo"></div>
+          <div class="grid">
+            <div class="card reveal"><h3>Слоган</h3><div class="tag-line" id="tagline"></div></div>
+            <div class="card reveal"><h3>Палитра</h3><div class="swatches" id="palette"></div></div>
+            <div class="card reveal"><h3>Шрифты и тон</h3><p id="fonts" style="margin:0 0 8px"></p><p class="muted" id="voice" style="margin:0"></p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Меню">
+      <div class="inner">
+        <div class="num">04 · Меню и юнит-экономика</div>
+        <h2>12 позиций, маржа <span id="avg-margin"></span></h2>
+        <div class="grid menu" id="menu"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Видео Vivix">
+      <div class="inner">
+        <div class="num">05 · Видео · сгенерировано в Vivix</div>
+        <h2>Реклама без съёмочной группы</h2>
+        <div class="videos" id="videos"></div>
+        <div class="live hidden" id="live">
+          <input id="live-prompt" placeholder="Опишите своё видео — Vivix сгенерирует его прямо сейчас">
+          <button class="go" id="live-go">Сгенерировать вживую</button>
+          <div class="live-status" id="live-status"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Креативы">
+      <div class="inner">
+        <div class="num">06 · Креативы и SMM</div>
+        <h2>Готово к публикации</h2>
+        <div class="creatives" id="creatives"></div>
+        <div class="grid g3 ads" id="ads"></div>
+        <div class="card" style="margin-top:16px"><h3>Контент-план на неделю</h3><div class="cplan" id="cplan"></div></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="ИИ-бариста">
+      <div class="inner botwrap">
+        <div>
+          <div class="num">07 · Чат-бот</div>
+          <h2>ИИ-бариста отвечает гостям 24/7</h2>
+          <p class="muted" style="font-size:18px;max-width:44ch">Знает меню, цены, акции и часы работы. Спросите что-нибудь — нажмите на подсказку или напишите свой вопрос.</p>
+        </div>
+        <div class="phone">
+          <div class="bh"><div class="av">☕</div><div><b data-brand></b><small>онлайн</small></div></div>
+          <div class="msgs" id="msgs"></div>
+          <div class="chips" id="chips"></div>
+          <form class="compose" id="compose"><input id="ask" placeholder="Спросить бариста…" autocomplete="off"><button aria-label="Отправить">↑</button></form>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide final" data-title="Итог">
+      <div class="inner">
+        <div class="num">Итог</div>
+        <h2>Всё это сделал ИИ</h2>
+        <div class="vs">
+          <div class="card ai"><h3>С ИИ</h3><dl id="vs-ai"></dl></div>
+          <div class="card old"><h3>Как раньше</h3><dl id="vs-old"></dl></div>
+        </div>
+        <p class="cta-final">Научим так же — на курсе <b style="color:var(--accent)">«ИИ с нуля до про»</b></p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="dots hidden" id="dots"></nav>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
