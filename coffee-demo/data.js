@@ -109,6 +109,22 @@ window.DEMO = {
     { file: 'assets/video/night.mp4', title: 'Open till 2 AM', model: 'Vivix W1', ratio: '9 / 16', prompt: 'Evening on a tropical Davao street: a glowing coffee shop, palm trees, tricycles, office workers in lanyards walk in.' },
   ],
 
+  ad: {
+    file: 'assets/video/ad.mp4',
+    poster: 'assets/img/ad.jpg',
+    voiceover: '“From the slopes of Mount Apo, to your cup. Kape Apo. Mountain-grown, Davao-made. Open till 2 AM.”',
+    music: 'Music: upbeat acoustic guitar · Voice: warm female narrator',
+    // scene start times in seconds, matched to the generated clip
+    shots: [
+      { t: 0, title: 'Sunrise over Mt. Apo', note: 'Origin: where the beans grow' },
+      { t: 3.8, title: 'The espresso pour', note: 'The product, up close' },
+      { t: 7.2, title: 'Mika serves a latte', note: 'Human warmth for the night-shift crowd' },
+      { t: 11.3, title: 'Open till 2 AM', note: 'The shop at night, the call to action' },
+    ],
+    endCard: { at: 12.5, title: 'KAPE APO', line: 'Mountain-grown. Davao-made.', sub: 'J.P. Laurel Ave, Bajada · open till 2 AM' },
+    stats: [['15 s', 'commercial with voice and music'], ['1', 'text prompt + 1 photo of Mika'], ['< 1 min', 'to render in Vivix'], ['0', 'cameras, actors or studio']],
+  },
+
   creatives: [
     { kind: 'story', bg: 'assets/video/reel.mp4', kicker: 'Grand opening · Nov 15', title: 'Your first cup is on us', cta: 'Save this & come by' },
     { kind: 'post', bg: 'assets/img/barista.jpg', kicker: 'Meet Mika', title: 'The best Spanish latte in Bajada', cta: 'J.P. Laurel Ave · open till 2 AM' },

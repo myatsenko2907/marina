@@ -205,6 +205,39 @@
     v.muted = !on; if (on) { v.currentTime = 0; v.play(); }
   }));
 
+  /* ---------- 15-second ad ---------- */
+  const AD = D.ad;
+  if (AD) {
+    const v = $('#advideo'), player = $('#adplayer');
+    v.src = AD.file; v.poster = AD.poster;
+    const fmt = (t) => '0:' + String(Math.floor(t)).padStart(2, '0');
+    $('#shots').innerHTML = AD.shots.map((sh, i) => `<li><button type="button" data-i="${i}"><span class="tc">${fmt(sh.t)}</span><b>${sh.title}</b><small>${sh.note}</small></button></li>`).join('');
+    $('#vo').textContent = AD.voiceover;
+    $('#admusic').textContent = AD.music;
+    $('#adstats').innerHTML = AD.stats.map(([k, t]) => `<div><b>${k}</b>${t}</div>`).join('');
+    $('#endcard').innerHTML = `<b>${AD.endCard.title}</b><span>${AD.endCard.line}</span><small>${AD.endCard.sub}</small>`;
+    const play = (from) => {
+      $$('video').forEach((o) => o !== v && (o.muted = true));
+      if (from != null) v.currentTime = from;
+      v.muted = false;
+      v.play().catch(() => {});
+    };
+    $('#adplay').onclick = () => play(v.ended ? 0 : null);
+    v.onclick = () => (v.paused ? play(null) : v.pause());
+    v.onplay = () => player.classList.add('playing');
+    v.onpause = () => player.classList.remove('playing');
+    v.onended = () => { player.classList.remove('playing'); $('#adplay').textContent = '↺ Watch again'; };
+    v.onloadedmetadata = () => { $('#admarks').innerHTML = AD.shots.slice(1).map((sh) => `<span style="left:${(sh.t / v.duration) * 100}%"></span>`).join(''); };
+    v.ontimeupdate = () => {
+      const t = v.currentTime;
+      $('#adprogress').style.width = (t / (v.duration || 15)) * 100 + '%';
+      $('#endcard').classList.toggle('on', t >= AD.endCard.at);
+      const cur = AD.shots.reduce((c, sh, i) => (t >= sh.t ? i : c), 0);
+      $$('#shots button').forEach((b, i) => b.classList.toggle('on', i === cur));
+    };
+    $$('#shots button').forEach((b) => (b.onclick = () => play(AD.shots[+b.dataset.i].t)));
+  }
+
   /* ---------- Creatives ---------- */
   $('#creatives').innerHTML = D.creatives.map((c) => {
     const bg = !c.bg ? '' : c.bg.endsWith('.mp4')
@@ -280,7 +313,7 @@
     s.classList.add('in');
     const i = slides.indexOf(s);
     $$('#dots button').forEach((b, k) => b.classList.toggle('on', k === i));
-    $$('video', s).forEach((v) => v.play().catch(() => {}));
+    $$('video', s).forEach((v) => v.id !== 'advideo' && v.play().catch(() => {}));
     if (seen.has(s)) return;
     seen.add(s);
     fillBars(s);

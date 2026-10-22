@@ -1,6 +1,6 @@
 // Tiny Vivix API client: W1 video from text and A1 talking avatar.
 // Usage:
-//   node scripts/vivix.mjs world  <out.mp4> <aspect> <seconds> "<prompt>"
+//   node scripts/vivix.mjs world  <out.mp4> <aspect> <seconds> "<prompt>" [reference-image.jpg]
 //   node scripts/vivix.mjs avatar <out.mp4> <first-frame.jpg> "<prompt>" "<line to say>" [voice_id]
 // Key: VIVIX_API_KEY
 import { readFile, writeFile } from 'node:fs/promises';
@@ -34,8 +34,10 @@ async function uploadImage(file) {
   return (await call('/v1/files/images', { method: 'POST', body: form })).url;
 }
 
-async function world(out, aspect, seconds, prompt, model = process.env.W1_MODEL || 'vivix-w1-fast') {
-  const data = await call('/v1/videos/jobs', json({ model, jobs: [{ prompt, aspect_ratio: aspect, duration: Number(seconds) }] }));
+async function world(out, aspect, seconds, prompt, refImage, model = process.env.W1_MODEL || 'vivix-w1-fast') {
+  const job = { prompt, aspect_ratio: aspect, duration: Number(seconds) };
+  if (refImage) job.ref_images = [{ url: await uploadImage(refImage) }];
+  const data = await call('/v1/videos/jobs', json({ model, jobs: [job] }));
   const id = data.results[0].job_id;
   console.log('job', id);
   for (;;) {
