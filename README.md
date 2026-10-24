@@ -53,3 +53,5 @@ npm run serve   # preview at http://localhost:8080
 Папка [`pharmacy-demo/`](pharmacy-demo/README.md) — вариант 3: аптека из Toril (Давао) открывает второе отделение — анализ локации, финмодель филиала, видео Vivix и чат-бот.
 
 Папка [`tshirt-demo/`](tshirt-demo/README.md) — вариант 4: студия печати на футболках Tatak Prints в Давао.
+
+Папка [`tuktuk-demo/`](tuktuk-demo/README.md) — вариант 5 (на русском): сервис туктуков в Киеве, в два раза дешевле такси.
