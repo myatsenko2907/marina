@@ -51,3 +51,5 @@ npm run serve   # preview at http://localhost:8080
 Папка [`studio-live/`](studio-live/README.md) — версия 2: вписываете любой бизнес, и ИИ пишет полное решение в реальном времени (работает как опубликованная страница claude.ai).
 
 Папка [`pharmacy-demo/`](pharmacy-demo/README.md) — вариант 3: аптека из Toril (Давао) открывает второе отделение — анализ локации, финмодель филиала, видео Vivix и чат-бот.
+
+Папка [`tshirt-demo/`](tshirt-demo/README.md) — вариант 4: студия печати на футболках Tatak Prints в Давао.
