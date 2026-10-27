@@ -41,8 +41,19 @@ for (const b of branches) {
       const cur = live.sort((x, y) => String(y.approvedStartDateTime).localeCompare(String(x.approvedStartDateTime)))[0];
       const days = Object.fromEntries(daily.map((r) => [r.segments.date, micros(r.metrics.costMicros)]));
       // последний «нормальный» день: расход не меньше 10% от максимального дня за 30 дней (копейки после остановки не в счёт)
+      // «настоящий» день с расходом: от 10% максимального дня за 30 дней и не копейки (≥ 100 грн / $3)
+      const floor = info.customer.currencyCode === "UAH" ? 100 : 3;
+      const real = (v, max) => v >= Math.max(floor, max * 0.1);
       const max = Math.max(0, ...Object.values(days));
-      const lastSpend = Object.keys(days).filter((d) => days[d] >= Math.max(1, max * 0.1)).sort().at(-1) || null;
+      const lastSpend = Object.keys(days).filter((d) => real(days[d], max)).sort().at(-1) || null;
+      // за 30 дней расхода не было — ищем последний месяц с расходом за год
+      let lastMonth = null;
+      if (!lastSpend) {
+        const months = await api.search(acc, `SELECT segments.month, metrics.cost_micros FROM customer WHERE segments.date BETWEEN '${day(until, -365)}' AND '${until}'`);
+        lastMonth = months.filter((r) => micros(r.metrics.costMicros) >= floor * 10).map((r) => r.segments.month.slice(0, 7)).sort().at(-1) || null;
+      }
+      const recent = Object.entries(days).filter(([d, v]) => d > day(until, -14) && d < until && real(v, max)).map(([, v]) => v);
+      const avgDay = recent.length ? recent.reduce((s2, v) => s2 + v, 0) / recent.length : 0;
       accounts.push({
         id: acc,
         name: info.customer.descriptiveName || acc,
@@ -51,6 +62,8 @@ for (const b of branches) {
         served: cur ? micros(cur.amountServedMicros) : null,
         days,
         lastSpend,
+        lastMonth,
+        avgDay,
       });
       const q = (since, to) =>
         api.search(

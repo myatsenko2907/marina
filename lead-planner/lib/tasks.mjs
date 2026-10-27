@@ -30,6 +30,7 @@ const EVENT_RX = /event|ивент|івент|вебинар|вебінар|webi
 export const TASK_RULES = {
   zeroLeadsMinSpend: 25, // $ за 7 дней без единого лида → остановить/пересобрать
   cplJump: 1.5, // CPL вырос в 1,5 раза к прошлой неделе
+  cplExpensive: 3, // CPL в 3 раза выше среднего по кабинету
   freqMax: 3, // частота за 7 дней
   ctrMin: 0.008, // CTR ниже 0,8%
   minImpr: 2000,
@@ -37,6 +38,8 @@ export const TASK_RULES = {
   spendDrop: 0.25, // расход FB упал на 25%+ при отставании
   productMinShare: 0.1, // продукт с планом от 10% договоров филиала — должен рекламироваться
   noAnswerMin: 15,
+  unprocessedMin: 20, // необработанных заявок месяца
+  unprocessedShare: 0.15,
   fbRejectMin: 10,
 };
 
@@ -80,7 +83,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
     if (dead.length) {
       const enabled = g.campaigns.filter((c) => dead.some((a) => a.id === c.acc));
       const lostDays = dead.map((a) => {
-        const vals = Object.entries(a.days || {}).filter(([d]) => !a.lastSpend || d <= a.lastSpend).map(([, v]) => v).filter((v) => v > 0);
+        const vals = Object.entries(a.days || {}).filter(([d]) => a.lastSpend && d <= a.lastSpend).sort().map(([, v]) => v).filter((v) => v > 0);
         const avg = vals.length ? vals.slice(-14).reduce((s, v) => s + v, 0) / Math.min(14, vals.length) : 0;
         const days = a.lastSpend ? Math.round((Date.parse(asOf) - Date.parse(a.lastSpend)) / DAY_MS) : null;
         return { a, avg: gUsd(avg, a.currency), days };
@@ -95,7 +98,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
         area: "Google Ads",
         title: `Пополнить бюджет аккаунта Google — реклама стоит${dead.length > 1 ? ` в ${dead.length} кабинетах` : ""}`,
         why: lostDays
-          .map(({ a, days }) => `«${a.name}»: лимит ${Math.round(a.limit).toLocaleString("ru-RU")} ${a.currency} исчерпан (потрачено ${Math.round(a.served).toLocaleString("ru-RU")}), показов нет${a.lastSpend ? ` с ${dm(addDays(a.lastSpend, 1))} — ${days} дн.` : ""}`)
+          .map(({ a, days }) => `«${a.name}»: лимит ${Math.round(a.limit).toLocaleString("ru-RU")} ${a.currency} исчерпан (потрачено ${Math.round(a.served).toLocaleString("ru-RU")}), показов нет${a.lastSpend ? ` с ${dm(addDays(a.lastSpend, 1))} — ${days} дн.` : a.lastMonth ? ` больше 30 дней (последний месяц с расходом — ${monthLow(a.lastMonth)} ${a.lastMonth.slice(0, 4)})` : " больше 30 дней"}`)
           .join("; "),
         steps: [
           "Google Ads → Инструменты → Оплата → Бюджеты аккаунта: увеличить лимит текущего бюджета или добавить новый (если оплата по счёту — передать счёт бухгалтерии сегодня).",
@@ -103,11 +106,16 @@ export function marketerTasks(data, branch, r, today = new Date()) {
         ],
         impact: [
           gCrm?.leads ? `За ${monthLow(r.month)} Google дал ${plural(gCrm.leads, REQS)} и ${plural(gCrm.contracts, CONTR)}` + (best.length ? ` (лучшие: ${best.slice(0, 2).map((x) => `«${x.name}» — ${x.contracts} дог. из ${plural(x.leads, REQS)}`).join(", ")})` : "") : null,
-          `до остановки Google тратил ≈ ${usd(lostDays.reduce((s, x) => s + x.avg, 0))}/день — эти показы сейчас теряются`,
+          lostDays.some((x) => x.avg > 1) ? `до остановки Google тратил ≈ ${usd(lostDays.reduce((s, x) => s + x.avg, 0))}/день — эти показы сейчас теряются` : null,
         ]
           .filter(Boolean)
           .join("; "),
       });
+    }
+    for (const a of g.accounts.filter((a) => !dead.includes(a) && a.limit != null && a.avgDay > 0)) {
+      const left = (a.limit - a.served) / a.avgDay;
+      if (left < 7)
+        add({ id: `g-soon-${a.id}`, prio: left < 3 ? 1 : 2, area: "Google Ads", title: `Бюджет аккаунта Google «${a.name}» закончится через ${plural(Math.max(0, Math.floor(left)), ["день", "дня", "дней"])}`, why: `Осталось ${Math.round(a.limit - a.served).toLocaleString("ru-RU")} ${a.currency} из лимита ${Math.round(a.limit).toLocaleString("ru-RU")} при расходе ≈ ${Math.round(a.avgDay).toLocaleString("ru-RU")} ${a.currency}/день — после этого показы остановятся.`, steps: ["Google Ads → Оплата → Бюджеты аккаунта: заранее увеличить лимит или передать счёт на оплату."] });
     }
     const deadIds = new Set(dead.map((a) => a.id));
     for (const c of g.campaigns.filter((c) => !deadIds.has(c.acc))) {
@@ -182,6 +190,8 @@ export function marketerTasks(data, branch, r, today = new Date()) {
       const pc7 = prev[c.id];
       if (c.leads === 0 && c.spend >= Math.max(TASK_RULES.zeroLeadsMinSpend, 2 * (avgCpl || 0)))
         add({ id: `fb-zero-${c.id}`, prio: 2, area: "Facebook", title: `«${c.name}»: ${usd(c.spend)} за 7 дней и ни одного лида`, why: `При средней цене лида филиала ${avgCpl ? usd(avgCpl) : "—"} кампания уже должна была дать ${avgCpl ? plural(Math.floor(c.spend / avgCpl), LEADS) : "несколько лидов"}. CTR ${c.ctr != null ? (c.ctr * 100).toFixed(2) + "%" : "—"}.`, steps: ["Проверить форму/страницу и пиксель (доходят ли заявки), если всё работает — остановить и перенести бюджет на кампании из блока «масштабировать».", c.ctr != null && c.ctr < TASK_RULES.ctrMin ? "CTR низкий — заменить креатив и первый экран объявления." : "CTR нормальный — проблема после клика: посадочная, форма, оффер."] });
+      else if (c.leads > 0 && avgCpl && cpl(c) > avgCpl * TASK_RULES.cplExpensive && c.spend >= 50 && !(pc7?.leads > 0 && cpl(c) > cpl(pc7) * TASK_RULES.cplJump))
+        add({ id: `fb-exp-${c.id}`, prio: 2, area: "Facebook", title: `«${c.name}»: лид по ${usd(cpl(c))} — в ${n1(cpl(c) / avgCpl)} раза дороже среднего`, why: `${usd(c.spend)} за 7 дней → ${plural(c.leads, LEADS)}; средняя цена лида по кабинету ${usd(avgCpl)}. CTR ${c.ctr != null ? (c.ctr * 100).toFixed(2) + "%" : "—"}.`, steps: ["Если кампания новая (меньше 3–4 дней) — дать ей закончить обучение; иначе снизить бюджет вдвое и заменить креатив/оффер.", "Сэкономленный бюджет перенести на кампании из блока «масштабировать»."] });
       else if (pc7?.leads > 0 && c.leads > 0 && cpl(c) > cpl(pc7) * TASK_RULES.cplJump && c.spend >= 30)
         add({ id: `fb-cpl-${c.id}`, prio: 2, area: "Facebook", title: `«${c.name}»: цена лида выросла с ${usd(cpl(pc7))} до ${usd(cpl(c))}`, why: `Прошлая неделя: ${usd(pc7.spend)} → ${plural(pc7.leads, LEADS)}; эта: ${usd(c.spend)} → ${plural(c.leads, LEADS)}.`, steps: ["Посмотреть объявления внутри: отключить те, у которых цена лида выше средней в 2 раза; добавить 1–2 новых креатива.", "Если частота растёт — расширить аудиторию."] });
       if (c.frequency >= TASK_RULES.freqMax && (c.impressions || 0) >= TASK_RULES.minImpr)
@@ -234,10 +244,13 @@ export function marketerTasks(data, branch, r, today = new Date()) {
   // ---------- план по типам лидов ----------
   for (const s of r.sources || []) {
     if (s.planLeads >= 20 && !s.factLeads && s.typeId !== "event")
-      add({ id: `plan-type-${s.typeId}`, prio: 2, area: "План", title: `«${typeName[s.typeId] || s.typeId}»: 0 из ${plural(s.planLeads, REQS)} по плану`, why: `В плане на этот тип ${n1(s.planBalls)} ЛБ, факта нет — либо такие заявки не создаются в CRM, либо их не собирают.`, steps: [s.typeId === "demo" ? "Проверить, с каким типом в CRM попадают заявки на пробный урок/демо; запустить кампанию «пробный урок» с формой записи." : "Проверить, что такие заявки заводятся в CRM нужным типом, и запланировать источник (кампанию, ивент, обзвон)."] });
+      add({ id: `plan-type-${s.typeId}`, prio: 2, area: "План", title: `«${typeName[s.typeId] || s.typeId}»: 0 заявок при плане ${Math.round(s.planLeads)}`, why: `В плане на этот тип ${n1(s.planBalls)} ЛБ, факта нет — либо такие заявки не создаются в CRM, либо их не собирают.`, steps: [s.typeId === "demo" ? "Проверить, с каким типом в CRM попадают заявки на пробный урок/демо; запустить кампанию «пробный урок» с формой записи." : "Проверить, что такие заявки заводятся в CRM нужным типом, и запланировать источник (кампанию, ивент, обзвон)."] });
   }
 
   // ---------- продажи: лиды теряются после рекламы ----------
+  const unproc = outcomes ? (outcomes.n || 0) - (outcomes.processed || 0) : 0;
+  if (unproc >= TASK_RULES.unprocessedMin && unproc / outcomes.n >= TASK_RULES.unprocessedShare)
+    add({ id: "sales-unprocessed", prio: 1, area: "Продажи", title: `${plural(unproc, REQS)} месяца ещё не обработаны`, why: `По истории CRM из ${plural(outcomes.n, REQS)} за месяц результат обработки есть только у ${outcomes.processed} (${pc(outcomes.processed / outcomes.n)}). Необработанная заявка остывает за 1–2 дня — реклама уже оплачена, а договора не будет.`, steps: ["Сегодня передать руководителю продаж: разобрать необработанные интернет-заявки, начиная с самых свежих.", "Проверить, что заявки из лид-форм FB и сайта сразу назначаются менеджеру (нет ли «потерянных» без ответственного)."] });
   if (outcomes?.noAnswerNever >= TASK_RULES.noAnswerMin)
     add({ id: "sales-noanswer", prio: 2, area: "Продажи", title: `Не дозвонились по ${plural(outcomes.noAnswerNever, ["заявке", "заявкам", "заявкам"])} — передать на повторный обзвон`, why: `При первой обработке не дозвонились по ${outcomes.noAnswerFirst} из ${plural(outcomes.processed, REQS)} месяца (${pc(outcomes.noAnswerFirst / outcomes.processed)}), по ${outcomes.noAnswerNever} — так и не дозвонились. Это оплаченные рекламой лиды.`, steps: ["Выгрузить из CRM заявки месяца со статусом «недозвон» и передать руководителю продаж на обзвон в другое время суток / написать в мессенджер.", "В лид-формах FB добавить вопрос «удобное время для звонка»."] });
   const fbRej = outcomes?.firstRejectByType?.facebook || 0;
