@@ -275,3 +275,10 @@ tr.qsub td:first-child { padding-left: 22px; }
   .board-tools, .board-tools input { width: 100%; }
   .gsum { display: none; }
 }
+
+/* Сортировка по нажатию на заголовок */
+thead tr:last-child th:not(:empty), .bhead .sortable { cursor: pointer; user-select: none; }
+thead tr:last-child th:not(:empty):hover, .bhead .sortable:hover { color: var(--ink); }
+th.sort-asc::after, th.sort-desc::after, .bhead .sort-asc::after, .bhead .sort-desc::after { color: var(--accent); margin-left: 4px; }
+th.sort-asc::after, .bhead .sort-asc::after { content: "▲"; font-size: 9px; }
+th.sort-desc::after, .bhead .sort-desc::after { content: "▼"; font-size: 9px; }

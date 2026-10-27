@@ -169,6 +169,41 @@ const setMonth = (m) => {
 };
 
 // ---------- tooltip ----------
+// Сортировка любой таблицы по нажатию на заголовок столбца: числа — сначала большие, текст — по алфавиту;
+// повторное нажатие меняет направление. Пустые («—») всегда внизу, строки «Итого» остаются на месте.
+const sortKey = (td) => {
+  const raw = (td?.dataset.sort ?? td?.textContent ?? "").trim();
+  if (!raw || raw === "—") return null;
+  const t = raw.replace(/[\s\u00a0\u202f]/g, "").replace(/−/g, "-");
+  const m = t.match(/^[$€₴£]?(-?\d+(?:,\d+)?)/);
+  return m ? Number(m[1].replace(",", ".")) : raw.toLowerCase();
+};
+document.addEventListener("click", (e) => {
+  const th = e.target.closest("thead th");
+  if (!th || e.target.closest("input, button, a, select")) return;
+  const table = th.closest("table");
+  const tr = th.parentElement;
+  if (tr !== table.tHead.rows[table.tHead.rows.length - 1] || !th.textContent.trim()) return;
+  const body = table.tBodies[0];
+  if (!body || body.querySelector("[rowspan]")) return;
+  let col = 0;
+  for (const c of tr.cells) { if (c === th) break; col += c.colSpan || 1; }
+  const rows = [...body.rows];
+  const fixed = rows.filter((r) => r.classList.contains("total"));
+  const items = rows.filter((r) => !fixed.includes(r)).map((r) => ({ r, k: sortKey(r.cells[col]) }));
+  const numeric = items.filter((x) => typeof x.k === "number").length >= items.filter((x) => typeof x.k === "string").length;
+  const desc = th.classList.contains("sort-desc") ? false : th.classList.contains("sort-asc") ? true : numeric;
+  for (const c of tr.cells) c.classList.remove("sort-asc", "sort-desc");
+  th.classList.add(desc ? "sort-desc" : "sort-asc");
+  const dir = desc ? -1 : 1;
+  items.sort((a, b) => {
+    const ka = numeric && typeof a.k !== "number" ? null : a.k, kb = numeric && typeof b.k !== "number" ? null : b.k;
+    if (ka == null || kb == null) return (ka == null) - (kb == null);
+    return dir * (typeof ka === "number" && typeof kb === "number" ? ka - kb : String(ka).localeCompare(String(kb), "ru"));
+  });
+  body.append(...items.map((x) => x.r), ...fixed);
+});
+
 document.addEventListener("mousemove", (e) => {
   const el = e.target.closest?.("[data-tip]");
   if (!el) {
@@ -564,7 +599,7 @@ function branchBoard(rows) {
   const open = new Set(lsGet("lp.board", "").split(",").filter(Boolean));
   const row = (r) => {
     const tip = `<b>${esc(r.name)}</b><br>Темп по ${basisName(r)}: ${pct(r.pace)} · ${STATUS[r.status].label}` + (r.leadsPace != null ? `<br>Лиды: ${fmt(r.factLeads)} из ожидаемых ${fmt(r.expectedLeads)} (план месяца ${fmt(r.planLeadsAll)})` : "") + `<br>Лидобалы: ${fmt(r.factBalls, 1)} из ожидаемых ${fmt(r.expectedBalls, 1)} (темп ${pct(r.ballsPace)})`;
-    return `<a class="brow" href="#/b/${r.id}" data-name="${esc(r.name.toLowerCase())}">
+    return `<a class="brow" href="#/b/${r.id}" data-name="${esc(r.name.toLowerCase())}" data-pace="${r.pace ?? ""}" data-leads="${r.factLeads ?? ""}" data-balls="${r.ballsPace ?? ""}">
       <span class="bname">${esc(r.name)}${r.warnings ? ' <span class="chip" data-tip="Есть предупреждения — откройте филиал">!</span>' : ""}</span>
       <span class="bbar" data-tip="${esc(tip)}">${ticks}${r.pace == null ? "" : `<b style="width:${x(r.pace)};background:${STATUS[r.status].color}"></b>`}${r.pace > BAR_MAX ? '<em>›</em>' : ""}</span>
       <span class="bpace">${pct(r.pace)}</span>
@@ -589,7 +624,7 @@ function branchBoard(rows) {
   return `<div class="card board"><div class="board-head"><div><h2>Филиалы по темпу</h2><div class="hint">От лучших к худшим. Нажмите на группу, чтобы раскрыть, на филиал — чтобы открыть план</div></div>
     <div class="board-tools"><input type="search" id="bSearch" placeholder="Найти филиал"><button class="btn" id="bToggle">Раскрыть все</button></div></div>
     <div class="scalebar board-dist">${dist}</div>
-    <div class="bhead"><span>Филиал</span><span>Темп по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"}</span><span></span><span class="bnum">Лиды / ожид.</span><span class="bnum">Темп ЛБ</span><span>Набор</span></div>
+    <div class="bhead"><span class="sortable" data-k="name">Филиал</span><span class="sortable sort-desc" data-k="pace">Темп по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"}</span><span></span><span class="bnum sortable" data-k="leads">Лиды / ожид.</span><span class="bnum sortable" data-k="balls">Темп ЛБ</span><span>Набор</span></div>
     ${groups}
     <div class="legend">${scaleLegend()}<span class="muted">засечки — границы уровней, сплошная — 100%; темп = факт ÷ (план × прошедшая часть месяца)</span></div></div>`;
 }
@@ -602,6 +637,24 @@ function bindBoard() {
   const sync = () => (btn.textContent = all.every((d) => d.open) ? "Свернуть все" : "Раскрыть все");
   all.forEach((d) => d.addEventListener("toggle", () => { if (!q.value) save(); sync(); }));
   btn.onclick = () => { const o = !all.every((d) => d.open); all.forEach((d) => (d.open = o)); };
+  // Сортировка филиалов внутри групп по столбцу; повторное нажатие меняет направление.
+  for (const h of document.querySelectorAll(".bhead .sortable"))
+    h.onclick = () => {
+      const k = h.dataset.k;
+      const desc = h.classList.contains("sort-desc") ? false : h.classList.contains("sort-asc") ? true : k !== "name";
+      document.querySelectorAll(".bhead .sortable").forEach((x) => x.classList.remove("sort-asc", "sort-desc"));
+      h.classList.add(desc ? "sort-desc" : "sort-asc");
+      for (const box of document.querySelectorAll(".brows")) {
+        const list = [...box.children];
+        list.sort((a, b) => {
+          if (k === "name") return (desc ? -1 : 1) * a.dataset.name.localeCompare(b.dataset.name, "ru");
+          const va = a.dataset[k] === "" ? null : Number(a.dataset[k]), vb = b.dataset[k] === "" ? null : Number(b.dataset[k]);
+          if (va == null || vb == null) return (va == null) - (vb == null);
+          return desc ? vb - va : va - vb;
+        });
+        box.append(...list);
+      }
+    };
   const q = document.getElementById("bSearch");
   q.oninput = () => {
     const v = q.value.trim().toLowerCase();
