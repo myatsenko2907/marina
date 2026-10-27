@@ -2,6 +2,7 @@
 import { computeSeason, seasonOf, addMonths } from "./planner.mjs";
 import { spendReport, productCplFor } from "./spend.mjs";
 import { googleReport } from "./googlespend.mjs";
+import { marketerTasks } from "./tasks.mjs";
 
 export const canSee = (user, branchId) => user.role === "admin" || (user.branches || []).includes(branchId);
 
@@ -71,6 +72,7 @@ export function branchDetail(data, user, branch, month, today = new Date()) {
       const mine = q?.branches.find((x) => x.id === branch.id);
       return mine ? { ...q, branch: mine } : null;
     })(),
+    tasks: marketerTasks(data, branch, s.month, today),
     canEdit: user.role === "admin",
   };
 }

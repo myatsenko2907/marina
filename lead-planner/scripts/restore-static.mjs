@@ -21,7 +21,7 @@ d.setAuthTag(buf.subarray(buf.length - 16));
 const data = JSON.parse(Buffer.concat([d.update(buf.subarray(0, buf.length - 16)), d.final()]).toString("utf8"));
 
 const store = new Store(process.env.DATA_FILE || path.join(ROOT, "data", "store.json"));
-for (const k of ["branches", "months", "seasons", "events", "spend", "spendMeta", "googleSpend", "googleMeta"]) if (data[k] != null) store.data[k] = data[k];
+for (const k of ["branches", "months", "seasons", "events", "spend", "spendMeta", "googleSpend", "googleMeta", "adsHealth"]) if (data[k] != null) store.data[k] = data[k];
 store.data.settings = { ...store.data.settings, ...data.settings };
 store.data.imports.push({ at: data.updatedAt, by: "restore-static", file: path.basename(file) });
 store.save();

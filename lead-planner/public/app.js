@@ -690,7 +690,7 @@ async function renderBranch(id, tab = "dash") {
   ].join(" · ");
 
   let body = "";
-  if (tab === "dash") body = branchDash(r, season, cur) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
+  if (tab === "dash") body = branchDash(r, season, cur, data.tasks, id) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
   if (tab === "season") body = branchSeason(season, inputs);
@@ -725,9 +725,10 @@ async function renderBranch(id, tab = "dash") {
       }
     };
   bindBranch(id, tab, data);
+  bindTasks(id, data.tasks);
 }
 
-function branchDash(r, season, cur) {
+function branchDash(r, season, cur, tasks, branchId) {
   const t = r.totals;
   const byType = {};
   for (const p of r.products) for (const x of p.byType) byType[x.typeId] = (byType[x.typeId] || 0) + x.balls;
@@ -751,6 +752,7 @@ function branchDash(r, season, cur) {
     <div class="card kpi"><div class="label">Лидов нужно за месяц</div><div class="value">${fmt(t.leads + t.registrations)}</div>
       <div class="foot">из них платных ${fmt(t.paidLeads + t.registrations)} · рег. на ивенты ${fmt(t.registrations)}</div></div>
   </div>
+  ${tasksCard(tasks, branchId)}
   <div class="grid cols-2">
     <div class="card"><h2>План и факт по продуктам</h2><div class="hint">Лидобалы месяца${S.settings.carryOver ? ", включая перенос недостачи" : ""}</div>${planFactChart(r.products)}</div>
     <div class="card"><h2>Набор: ${esc(season.season.name)}</h2><div class="hint">${S.settings.carryOver ? "Недостача закрытого месяца переносится в следующий" : "План и факт по месяцам полугодия"}</div>${seasonChart(season.months, r.month)}</div>
@@ -760,6 +762,47 @@ function branchDash(r, season, cur) {
   <div class="card mt"><h2>Коротко по продуктам</h2><div class="tbl-wrap"><table><thead><tr><th>Продукт</th><th>Статус</th><th class="n">План дог.</th><th class="n">Факт дог.</th><th class="n">План ЛБ</th><th class="n">Факт ЛБ</th><th class="n">Лидов нужно</th><th class="n">Ср. цена лида</th><th class="n">Бюджет</th></tr></thead><tbody>
   ${r.products.map((p) => `<tr class="${p.status}"><td>${esc(p.name)}</td><td>${pill(p.status)}</td><td class="n">${fmt(p.planContracts)}</td><td class="n">${fmt(p.factContracts)}</td><td class="n">${fmt(p.targetBalls, 1)}</td><td class="n">${fmt(p.factBalls, 1)}</td><td class="n">${fmt(p.leads)}</td><td class="n" data-tip="${esc(cplTip(p, cur))}">${money(p.cpl, cur)}${p.cplBasis ? `<div class="muted" style="font-size:11.5px">${p.cplBasis.branchAvg ? "ср. филиала" : `${fmt(p.cplBasis.leads)} лидов`} · ${p.cplBasis.months.map(monthShort).join(", ")}</div>` : ""}</td><td class="n">${money(p.budget, cur)}</td></tr>`).join("")}
   </tbody></table></div></div>`;
+}
+
+// ---------- задачи маркетолога ----------
+const PRIO = { 1: ["Срочно", "p1"], 2: ["Важно", "p2"], 3: ["Улучшить", "p3"] };
+const tasksKey = (id, asOf) => `lp.tasks.${id}.${asOf}`;
+
+/** Дашборд филиала: что сделать маркетологу по данным кабинетов FB и Google, плану и CRM. */
+function tasksCard(tk, id) {
+  if (!tk) return "";
+  const asOf = tk.asOf ? `${tk.asOf.slice(8, 10)}.${tk.asOf.slice(5, 7)}` : "";
+  if (tk.stale) return `<div class="card mt tasks"><div class="card-head"><h2>Задачи маркетолога</h2></div><div class="hint">Задачи считаются по текущему месяцу — данные кабинетов на ${asOf}. Откройте текущий месяц.</div></div>`;
+  const done = new Set(lsGet(tasksKey(id, tk.asOf), "").split(",").filter(Boolean));
+  const cnt = (p) => tk.tasks.filter((x) => x.prio === p).length;
+  const g = tk.gap;
+  const items = [...tk.tasks].sort((a, b) => done.has(a.id) - done.has(b.id) || a.prio - b.prio);
+  const first = items.find((x) => !done.has(x.id))?.id;
+  return `<div class="card mt tasks" id="tasks"><div class="card-head"><h2>Задачи маркетолога</h2>
+    ${[1, 2, 3].map((p) => (cnt(p) ? `<span class="tprio ${PRIO[p][1]}">${PRIO[p][0]} · ${cnt(p)}</span>` : "")).join("")}
+    <span class="spacer"></span><span class="chip" id="tDone">выполнено ${tk.tasks.filter((x) => done.has(x.id)).length} из ${tk.tasks.length}</span></div>
+  <div class="hint">По данным кабинетов FB и Google на ${asOf} (обновляются каждое утро), плана лидобалов и заявок CRM. Отмеченное сохраняется в этом браузере до следующего обновления данных. Цена лидобала = расход ÷ (лиды × балл типа лида).</div>
+  ${g && g.gap > 0 ? `<div class="tgap">До плана не хватает <b>${fmt(g.gap, 1)} ЛБ</b>: нужно <b>${fmt(g.needPerDay, 1)} ЛБ/день</b>, сейчас ${fmt(g.runRate, 1)} в день — при таком темпе месяц закроется на <b>${pct(g.forecast)}</b> плана. Начните со срочных задач: они быстрее всего возвращают лиды.</div>` : g ? `<div class="tgap ok">План лидобалов уже выполнен — задачи ниже про эффективность.</div>` : ""}
+  ${items.length ? `<div class="tlist">${items.map((x) => `<details class="titem ${done.has(x.id) ? "done" : ""}" data-t="${esc(x.id)}" ${x.id === first ? "open" : ""}>
+    <summary><input type="checkbox" ${done.has(x.id) ? "checked" : ""} aria-label="Выполнено"><span class="tprio ${PRIO[x.prio][1]}">${PRIO[x.prio][0]}</span><span class="tarea">${esc(x.area)}</span><span class="ttitle">${esc(x.title)}</span><span class="tdue">${esc(x.due)}</span></summary>
+    <div class="tbody"><p>${esc(x.why)}</p><ol>${x.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>${x.impact ? `<p class="timpact">${esc(x.impact)}</p>` : ""}</div></details>`).join("")}</div>` : '<div class="empty">Срочных задач по кабинетам нет.</div>'}
+  </div>`;
+}
+
+function bindTasks(id, tk) {
+  const box = document.getElementById("tasks");
+  if (!box || !tk) return;
+  box.querySelectorAll(".titem input[type=checkbox]").forEach((cb) => {
+    cb.onclick = (e) => e.stopPropagation();
+    cb.onchange = () => {
+      const done = new Set(lsGet(tasksKey(id, tk.asOf), "").split(",").filter(Boolean));
+      const it = cb.closest(".titem");
+      cb.checked ? done.add(it.dataset.t) : done.delete(it.dataset.t);
+      lsSet(tasksKey(id, tk.asOf), [...done].join(","));
+      it.classList.toggle("done", cb.checked);
+      document.getElementById("tDone").textContent = `выполнено ${tk.tasks.filter((x) => done.has(x.id)).length} из ${tk.tasks.length}`;
+    };
+  });
 }
 
 /** Подсказка: откуда цена лида продукта. */

@@ -282,3 +282,34 @@ thead tr:last-child th:not(:empty):hover, .bhead .sortable:hover { color: var(--
 th.sort-asc::after, th.sort-desc::after, .bhead .sort-asc::after, .bhead .sort-desc::after { color: var(--accent); margin-left: 4px; }
 th.sort-asc::after, .bhead .sort-asc::after { content: "▲"; font-size: 9px; }
 th.sort-desc::after, .bhead .sort-desc::after { content: "▼"; font-size: 9px; }
+
+/* задачи маркетолога */
+.tasks .card-head { flex-wrap: wrap; gap: 8px; }
+.tprio { display: inline-block; min-width: 66px; text-align: center; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 6px; white-space: nowrap; }
+.tprio.p1 { background: var(--bad-soft); color: var(--bad-ink); }
+.tprio.p2 { background: var(--warn-soft); color: var(--warn-ink); }
+.tprio.p3 { background: var(--idle-soft); color: var(--ink-2); }
+.tgap { background: var(--low-soft); color: var(--low-ink); border-radius: 10px; padding: 9px 12px; margin-bottom: 10px; font-size: 13.5px; }
+.tgap.ok { background: var(--good-soft); color: var(--good-ink); }
+.tlist { display: flex; flex-direction: column; gap: 6px; }
+.titem { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.titem > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 9px 12px; }
+.titem > summary::-webkit-details-marker { display: none; }
+.titem > summary:hover { background: var(--surface-2); border-radius: 10px; }
+.titem input[type=checkbox] { width: 17px; height: 17px; flex: none; margin: 0; accent-color: var(--good); cursor: pointer; }
+.tarea { font-size: 12px; color: var(--muted); white-space: nowrap; min-width: 82px; }
+.ttitle { flex: 1; min-width: 0; font-weight: 600; }
+.tdue { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+.titem.done .ttitle { text-decoration: line-through; color: var(--muted); font-weight: 500; }
+.titem.done .tprio { opacity: .5; }
+.tbody { padding: 0 14px 12px 39px; color: var(--ink-2); font-size: 13.5px; }
+.tbody p { margin: 0 0 6px; }
+.tbody ol { margin: 0 0 6px; padding-left: 18px; }
+.tbody li { margin-bottom: 3px; color: var(--ink); }
+.timpact { background: var(--accent-soft); border-radius: 8px; padding: 6px 10px; color: var(--ink); }
+@media (max-width: 640px) {
+  .titem > summary { flex-wrap: wrap; gap: 6px 8px; }
+  .ttitle { flex-basis: 100%; order: 5; }
+  .tdue { margin-left: auto; }
+  .tbody { padding-left: 14px; }
+}
