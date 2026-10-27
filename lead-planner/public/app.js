@@ -495,7 +495,7 @@ async function renderOverview() {
 
   const inner = `
   <div class="head"><div><div class="crumbs">${esc(data.season.name)}</div><h1>${S.me.role === "admin" ? "Все филиалы" : "Мои филиалы"}</h1>
-    <div class="sub">Оценка филиалов по темпу выполнения плана по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"} на сегодня. Слабые филиалы — сверху.</div></div>
+    <div class="sub">Оценка филиалов по темпу выполнения плана по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"} на сегодня.</div></div>
     <span class="spacer"></span>${monthNav()}
     ${S.me.role === "admin" && S.me.metaConfigured ? '<button class="btn" id="fbAll">Обновить FB по всем</button>' : ""}</div>
 
@@ -523,17 +523,7 @@ async function renderOverview() {
 
   ${nodata.length && !rows.some((r) => r.factSource) ? `<div class="alerts"><div class="alert-row info">Нет факта лидобалов за ${monthName(S.month).toLowerCase()} по ${nodata.length} фил. — ${S.me.role === "admin" ? '<a href="#/admin/import">загрузите выгрузку отчёта CRM «Маркетинг → Лидобалы»</a>' : "администратор загрузит отчёт CRM «Маркетинг → Лидобалы»"}. Без факта статус и перенос недостачи не считаются.</div></div>` : ""}
 
-  <div class="grid cols-2">
-    <div class="card"><h2>Темп по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"}</h2><div class="hint">Нажмите на филиал, чтобы открыть детальный план</div>
-      ${paceChart(active, { onClickHref: (r) => `#/b/${r.id}` })}</div>
-    <details class="card fold"><summary><h2>Филиалы</h2><span class="hint">${rows.length} фил. · от лучших к худшим · нажмите, чтобы раскрыть</span></summary><div class="hint">Месяцы набора: цвет — статус месяца</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th>Оценка</th><th class="n">Лиды факт / ожид.</th><th class="n">Темп лидов</th><th class="n">Темп ЛБ</th><th>Набор</th></tr></thead><tbody>
-      ${bestFirst(rows).map((r) => `<tr class="click ${r.status}" onclick="location.hash='#/b/${r.id}'"><td><b>${esc(r.name)}</b>${r.warnings ? ` <span class="chip" data-tip="Есть предупреждения — откройте филиал">!</span>` : ""}</td>
-        <td>${pill(r.status)}</td><td class="n">${fmt(r.factLeads)} <span class="muted">/ ${fmt(r.expectedLeads)}</span></td>
-        <td class="n">${r.paceBasis === "leads" ? `<b>${pct(r.leadsPace)}</b>` : pct(r.leadsPace)}</td><td class="n">${r.paceBasis === "balls" ? `<b>${pct(r.ballsPace)}</b>` : pct(r.ballsPace)}</td>
-        <td><div class="months">${r.seasonMonths.map((m) => `<i class="${m.status} ${m.month === S.month ? "cur" : ""}" data-tip="${esc(`${monthName(m.month)}: ${STATUS[m.status].label}${m.pace != null ? ", темп " + pct(m.pace) : ""}`)}"></i>`).join("")}</div></td></tr>`).join("")}
-      </tbody></table></div></details>
-  </div>
+  ${branchBoard(rows)}
 
   <div id="qcard">${qualityOverviewCard(data.quality)}</div>
 
@@ -543,6 +533,7 @@ async function renderOverview() {
     </tbody></table></div></div>`;
   shell("home", inner);
   bindQuality(data.quality);
+  bindBoard();
   bindMonthNav();
   const fb = document.getElementById("fbAll");
   if (fb)
@@ -561,9 +552,69 @@ async function renderOverview() {
     };
 }
 
-// Филиалы от лучших к худшим; без плана и без факта — в конце.
-const BEST_FIRST = { ok: 0, good: 1, boost: 2, low: 3, fail: 4, nodata: 5, branch: 5, noplan: 6, future: 7 };
-const bestFirst = (rows) => [...rows].sort((a, b) => BEST_FIRST[a.status] - BEST_FIRST[b.status] || (b.pace ?? -1) - (a.pace ?? -1));
+// Филиалы по темпу: группы по оценке от лучших к худшим, внутри — по темпу; без плана и факта — в конце.
+const BOARD_GROUPS = [["ok"], ["good"], ["boost"], ["low"], ["fail"], ["nodata", "branch", "noplan", "future"]];
+const BAR_MAX = 1.5;
+
+function branchBoard(rows) {
+  const th = scale();
+  const ranges = Object.fromEntries(scaleRanges());
+  const x = (v) => `${(Math.min(v, BAR_MAX) / BAR_MAX) * 100}%`;
+  const ticks = [th.low, th.boost, th.good, 1].map((v) => `<i class="tick${v === 1 ? " full" : ""}" style="left:${x(v)}"></i>`).join("");
+  const open = new Set(lsGet("lp.board", "").split(",").filter(Boolean));
+  const row = (r) => {
+    const tip = `<b>${esc(r.name)}</b><br>Темп по ${basisName(r)}: ${pct(r.pace)} · ${STATUS[r.status].label}` + (r.leadsPace != null ? `<br>Лиды: ${fmt(r.factLeads)} из ожидаемых ${fmt(r.expectedLeads)} (план месяца ${fmt(r.planLeadsAll)})` : "") + `<br>Лидобалы: ${fmt(r.factBalls, 1)} из ожидаемых ${fmt(r.expectedBalls, 1)} (темп ${pct(r.ballsPace)})`;
+    return `<a class="brow" href="#/b/${r.id}" data-name="${esc(r.name.toLowerCase())}">
+      <span class="bname">${esc(r.name)}${r.warnings ? ' <span class="chip" data-tip="Есть предупреждения — откройте филиал">!</span>' : ""}</span>
+      <span class="bbar" data-tip="${esc(tip)}">${ticks}${r.pace == null ? "" : `<b style="width:${x(r.pace)};background:${STATUS[r.status].color}"></b>`}${r.pace > BAR_MAX ? '<em>›</em>' : ""}</span>
+      <span class="bpace">${pct(r.pace)}</span>
+      <span class="bnum">${fmt(r.factLeads)} <span class="muted">/ ${fmt(r.expectedLeads)}</span></span>
+      <span class="bnum">${pct(r.ballsPace)}</span>
+      <span class="months">${r.seasonMonths.map((m) => `<i class="${m.status} ${m.month === S.month ? "cur" : ""}" data-tip="${esc(`${monthName(m.month)}: ${STATUS[m.status].label}${m.pace != null ? ", темп " + pct(m.pace) : ""}`)}"></i>`).join("")}</span></a>`;
+  };
+  const groups = BOARD_GROUPS.map((keys) => {
+    const list = rows.filter((r) => keys.includes(r.status)).sort((a, b) => (b.pace ?? -1) - (a.pace ?? -1));
+    if (!list.length) return "";
+    const k = keys[0];
+    const label = keys.length > 1 ? "Без оценки" : STATUS[k].label;
+    const note = keys.length > 1 ? "нет плана или факта" : `темп ${ranges[k]}`;
+    const f = list.reduce((a, r) => a + (r.factLeads || 0), 0), e = list.reduce((a, r) => a + (r.expectedLeads || 0), 0);
+    return `<details class="bgroup ${k}" data-g="${k}"${open.has(k) ? " open" : ""}><summary>
+      <span class="gdot" style="background:${keys.length > 1 ? "var(--idle)" : STATUS[k].color}"></span><b>${label}</b><span class="gcount">${list.length}</span>
+      <span class="muted gnote">${note}</span><span class="gnames muted">${list.slice(0, 4).map((r) => esc(r.name)).join(", ")}${list.length > 4 ? ` и ещё ${list.length - 4}` : ""}</span>
+      <span class="gsum">${e ? `лиды ${fmt(f)} / ${fmt(e)}` : ""}</span></summary>
+      <div class="brows">${list.map(row).join("")}</div></details>`;
+  }).join("");
+  const dist = BOARD_GROUPS.map((keys) => { const n = rows.filter((r) => keys.includes(r.status)).length; return n ? `<i style="flex:${n};background:${keys.length > 1 ? "var(--idle-soft)" : STATUS[keys[0]].color}" data-tip="${esc(keys.length > 1 ? "Без оценки" : STATUS[keys[0]].label)}: ${n}"></i>` : ""; }).join("");
+  return `<div class="card board"><div class="board-head"><div><h2>Филиалы по темпу</h2><div class="hint">От лучших к худшим. Нажмите на группу, чтобы раскрыть, на филиал — чтобы открыть план</div></div>
+    <div class="board-tools"><input type="search" id="bSearch" placeholder="Найти филиал"><button class="btn" id="bToggle">Раскрыть все</button></div></div>
+    <div class="scalebar board-dist">${dist}</div>
+    <div class="bhead"><span>Филиал</span><span>Темп по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"}</span><span></span><span class="bnum">Лиды / ожид.</span><span class="bnum">Темп ЛБ</span><span>Набор</span></div>
+    ${groups}
+    <div class="legend">${scaleLegend()}<span class="muted">засечки — границы уровней, сплошная — 100%; темп = факт ÷ (план × прошедшая часть месяца)</span></div></div>`;
+}
+
+function bindBoard() {
+  const all = [...document.querySelectorAll(".bgroup")];
+  if (!all.length) return;
+  const btn = document.getElementById("bToggle");
+  const save = () => lsSet("lp.board", all.filter((d) => d.open).map((d) => d.dataset.g).join(","));
+  const sync = () => (btn.textContent = all.every((d) => d.open) ? "Свернуть все" : "Раскрыть все");
+  all.forEach((d) => d.addEventListener("toggle", () => { if (!q.value) save(); sync(); }));
+  btn.onclick = () => { const o = !all.every((d) => d.open); all.forEach((d) => (d.open = o)); };
+  const q = document.getElementById("bSearch");
+  q.oninput = () => {
+    const v = q.value.trim().toLowerCase();
+    for (const d of all) {
+      let n = 0;
+      for (const r of d.querySelectorAll(".brow")) { const hit = !v || r.dataset.name.includes(v); r.hidden = !hit; n += hit; }
+      d.hidden = !!v && !n;
+      if (v) d.open = n > 0;
+    }
+    if (!v) { const open = new Set(lsGet("lp.board", "").split(",")); all.forEach((d) => (d.open = open.has(d.dataset.g))); }
+  };
+  sync();
+}
 
 // ---------- branch ----------
 async function renderBranch(id, tab = "dash") {
