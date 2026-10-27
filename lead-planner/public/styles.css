@@ -227,3 +227,10 @@ tr.qsub td:first-child { padding-left: 22px; }
 
 .gsec { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
 .gsec .card-head { margin-bottom: 6px; }
+details.fold { align-self: start; }
+details.fold summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+details.fold summary::-webkit-details-marker { display: none; }
+details.fold summary h2 { margin: 0; }
+details.fold summary h2::after { content: " ▸"; color: var(--ink-2); font-size: 13px; }
+details.fold[open] summary h2::after { content: " ▾"; }
+details.fold[open] summary { margin-bottom: 4px; }

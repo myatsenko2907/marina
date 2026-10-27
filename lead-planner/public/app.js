@@ -522,18 +522,17 @@ async function renderOverview() {
   </div>
 
   ${nodata.length && !rows.some((r) => r.factSource) ? `<div class="alerts"><div class="alert-row info">Нет факта лидобалов за ${monthName(S.month).toLowerCase()} по ${nodata.length} фил. — ${S.me.role === "admin" ? '<a href="#/admin/import">загрузите выгрузку отчёта CRM «Маркетинг → Лидобалы»</a>' : "администратор загрузит отчёт CRM «Маркетинг → Лидобалы»"}. Без факта статус и перенос недостачи не считаются.</div></div>` : ""}
-  ${fails.length || lows.length ? `<div class="alerts">${[...fails, ...lows].map((r) => `<a class="alert-row ${r.status === "fail" ? "bad" : "low"}" href="#/b/${r.id}"><b>${esc(r.name)}</b> — ${STATUS[r.status].label.toLowerCase()}: ${r.paceBasis === "leads" ? `${fmt(r.factLeads)} лидов из ожидаемых ${fmt(r.expectedLeads)}` : `${fmt(r.factBalls, 1)} лидобалов из ожидаемых ${fmt(r.expectedBalls, 1)}`} (темп ${pct(r.pace)}).</a>`).join("")}</div>` : ""}
 
   <div class="grid cols-2">
     <div class="card"><h2>Темп по ${S.settings.statusBasis === "balls" ? "лидобалам" : "лидам"}</h2><div class="hint">Нажмите на филиал, чтобы открыть детальный план</div>
       ${paceChart(active, { onClickHref: (r) => `#/b/${r.id}` })}</div>
-    <div class="card"><h2>Филиалы</h2><div class="hint">Месяцы набора: цвет — статус месяца</div>
+    <details class="card fold"><summary><h2>Филиалы</h2><span class="hint">${rows.length} фил. · от лучших к худшим · нажмите, чтобы раскрыть</span></summary><div class="hint">Месяцы набора: цвет — статус месяца</div>
       <div class="tbl-wrap"><table><thead><tr><th>Филиал</th><th>Оценка</th><th class="n">Лиды факт / ожид.</th><th class="n">Темп лидов</th><th class="n">Темп ЛБ</th><th>Набор</th></tr></thead><tbody>
-      ${rows.map((r) => `<tr class="click ${r.status}" onclick="location.hash='#/b/${r.id}'"><td><b>${esc(r.name)}</b>${r.warnings ? ` <span class="chip" data-tip="Есть предупреждения — откройте филиал">!</span>` : ""}</td>
+      ${bestFirst(rows).map((r) => `<tr class="click ${r.status}" onclick="location.hash='#/b/${r.id}'"><td><b>${esc(r.name)}</b>${r.warnings ? ` <span class="chip" data-tip="Есть предупреждения — откройте филиал">!</span>` : ""}</td>
         <td>${pill(r.status)}</td><td class="n">${fmt(r.factLeads)} <span class="muted">/ ${fmt(r.expectedLeads)}</span></td>
         <td class="n">${r.paceBasis === "leads" ? `<b>${pct(r.leadsPace)}</b>` : pct(r.leadsPace)}</td><td class="n">${r.paceBasis === "balls" ? `<b>${pct(r.ballsPace)}</b>` : pct(r.ballsPace)}</td>
         <td><div class="months">${r.seasonMonths.map((m) => `<i class="${m.status} ${m.month === S.month ? "cur" : ""}" data-tip="${esc(`${monthName(m.month)}: ${STATUS[m.status].label}${m.pace != null ? ", темп " + pct(m.pace) : ""}`)}"></i>`).join("")}</div></td></tr>`).join("")}
-      </tbody></table></div></div>
+      </tbody></table></div></details>
   </div>
 
   <div id="qcard">${qualityOverviewCard(data.quality)}</div>
@@ -561,6 +560,10 @@ async function renderOverview() {
       }
     };
 }
+
+// Филиалы от лучших к худшим; без плана и без факта — в конце.
+const BEST_FIRST = { ok: 0, good: 1, boost: 2, low: 3, fail: 4, nodata: 5, branch: 5, noplan: 6, future: 7 };
+const bestFirst = (rows) => [...rows].sort((a, b) => BEST_FIRST[a.status] - BEST_FIRST[b.status] || (b.pace ?? -1) - (a.pace ?? -1));
 
 // ---------- branch ----------
 async function renderBranch(id, tab = "dash") {
