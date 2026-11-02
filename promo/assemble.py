@@ -23,6 +23,19 @@ SUBS = [
     [(0.0, 2.3, "Раньше — три часа в день."), (2.3, 5.3, "Теперь — пять минут в 10 утра."),
      (5.3, 10.0, "Это больше 60 часов в месяц.")],
 ]
+# тайминги под озвучку ElevenLabs (voice.py) — используются, когда задан VOICE_DIR
+VOICE_SUBS = [
+    [(1.4, 3.05, "Четырнадцать филиалов."), (3.05, 5.3, "CRM, Facebook, Google…"),
+     (5.3, 10.0, "Каждое утро — три часа в таблицах,\\Nчтобы понять, кто проваливает план.")],
+    [(0.0, 2.55, "Тогда мы с Claude сделали сервис."), (2.6, 4.35, "Он сам собирает данные,"),
+     (4.4, 10.0, "считает лидобалы и показывает,\\Nкакой филиал отстаёт.")],
+    [(0.0, 3.3, "А маркетолог филиала\\Nсразу видит задачи:"), (3.35, 4.75, "где дорогой лид,"),
+     (4.8, 6.75, "где заявки не обработаны,"), (6.8, 10.0, "где заканчивается бюджет.")],
+    [(0.0, 2.3, "Раньше — три часа в день."), (2.35, 4.95, "Теперь — пять минут в 10 утра."),
+     (5.0, 10.0, "Это больше 60 часов в месяц.")],
+]
+BIG_AT = (2.4, 5.4)        # когда появляются «3 ч → 5 мин» и «−60 ч в месяц» (с от начала сцены 4)
+VOICE_BIG_AT = (2.4, 5.0)
 CHIPS = [(0, "ПРОБЛЕМА"), (1, "ЧТО СДЕЛАЛИ"), (3, "СКОЛЬКО ЭКОНОМИТ")]
 
 HEADER = f"""[Script Info]
@@ -62,17 +75,18 @@ def masks(tmp):
     ImageDraw.Draw(b).rounded_rectangle((0, 0, PIP_W + 11, PIP_H + 11), PIP_R + 6, fill=(255, 255, 255, 255))
     b.save(f"{tmp}/border.png")
 
-def subtitles(starts, ui, total, path):
+def subtitles(starts, ui, total, path, voice=False):
     ev = []
-    for i, lines in enumerate(SUBS):
+    big = VOICE_BIG_AT if voice else BIG_AT
+    for i, lines in enumerate(VOICE_SUBS if voice else SUBS):
         ev += [(starts[i] + a, starts[i] + b, "Sub", t) for a, b, t in lines]
     for i, t in CHIPS:
         ev.append((starts[i] + 0.15, starts[i] + 2.6, "Chip", "{\\fad(200,250)}" + t))
     for a, b in ui:
         ev.append((a, b, "Demo", "{\\fad(200,200)}демо-данные"))
     s4 = starts[3]
-    ev.append((s4 + 2.4, s4 + 10.0, "Big", "{\\fad(250,200)}3 ч → 5 мин"))
-    ev.append((s4 + 5.4, s4 + 10.0, "Big2", "{\\fad(250,200)}−60 ч в месяц"))
+    ev.append((s4 + big[0], s4 + 10.0, "Big", "{\\fad(250,200)}3 ч → 5 мин"))
+    ev.append((s4 + big[1], s4 + 10.0, "Big2", "{\\fad(250,200)}−60 ч в месяц"))
     ev.append((total - END, total, "End", END_CARD))
     with open(path, "w") as f:
         f.write(HEADER + "\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
@@ -90,8 +104,9 @@ def main(clips, frames, out):
     cut = 2.9  # в сцене 2 первые секунды — героиня во весь кадр, дальше экран сервиса
     na, nb = (len(os.listdir(os.path.join(frames, x))) for x in "ab")
     ua_len, ub_len = d[1] - cut, d[2]
-    subtitles(starts, [(starts[1] + cut, starts[3])], total, f"{tmp}/subs.ass")
+    subtitles(starts, [(starts[1] + cut, starts[3])], total, f"{tmp}/subs.ass", bool(os.environ.get("VOICE_DIR")))
 
+    voice = os.environ.get("VOICE_DIR")
     full = f"scale={W + 14}:{H},crop={W}:{H},fps={FPS},setsar=1"
     pip = f"scale={PIP_W}:{PIP_H},fps={FPS},format=yuva420p[pc{{i}}];[pc{{i}}][m{{i}}]alphamerge[pm{{i}}]"
     fc = [
@@ -112,15 +127,17 @@ def main(clips, frames, out):
         # финальная карточка: мягкий аккорд вместо тишины
         f"aevalsrc='0.06*(sin(2*PI*261.6*t)+sin(2*PI*329.6*t)+sin(2*PI*392*t))*exp(-0.6*t)':s=48000:d={END},"
         "aformat=channel_layouts=stereo,afade=t=in:d=0.05,afade=t=out:st=" + f"{END - 1.2}:d=1.2[ae]",
-        "[0:a]aresample=48000,aformat=channel_layouts=stereo[a1];[1:a]aresample=48000,aformat=channel_layouts=stereo[a2];"
-        "[2:a]aresample=48000,aformat=channel_layouts=stereo[a3];[3:a]aresample=48000,aformat=channel_layouts=stereo[a4]",
+        # голос: из клипов Vivix или, если задан VOICE_DIR, озвучка ElevenLabs (voice.py)
+        ";".join(f"[{i + 8 if voice else i}:a]aresample=48000,aformat=channel_layouts=stereo[a{i + 1}]" for i in range(4)),
         "[a1][a2][a3][a4]concat=n=4:v=0:a=1,loudnorm=I=-14:TP=-1[av];[av][ae]concat=n=2:v=0:a=1[ao]",
     ]
+    voice = os.environ.get("VOICE_DIR")
+    voice_in = sum([["-i", os.path.join(voice, n + ".wav")] for n in names], []) if voice else []
     cmd = ["ffmpeg", "-v", "error", "-y", *sum([["-i", f] for f in files], []),
            "-framerate", str(FPS), "-i", os.path.join(frames, "a", "%04d.jpg"),
            "-framerate", str(FPS), "-i", os.path.join(frames, "b", "%04d.jpg"),
            "-loop", "1", "-t", "12", "-i", f"{tmp}/mask.png", "-loop", "1", "-t", "12", "-i", f"{tmp}/border.png",
-           "-filter_complex", ";".join(fc), "-map", "[vo]", "-map", "[ao]", "-t", f"{total:.3f}",
+           *voice_in, "-filter_complex", ";".join(fc), "-map", "[vo]", "-map", "[ao]", "-t", f"{total:.3f}",
            "-c:v", "libx264", "-crf", "20", "-preset", "slow", "-pix_fmt", "yuv420p",
            "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart", out]
     subprocess.check_call(cmd)

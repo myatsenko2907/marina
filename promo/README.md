@@ -1,6 +1,9 @@
 # Ролик «План лидобалов» — 44 с, 9:16
 
-`video/lead-planner-promo-44s.mp4` (1080×1920, 30 к/с, на русском, с вшитыми субтитрами).
+- `video/lead-planner-promo-44s-elevenlabs.mp4` — озвучка ElevenLabs (`eleven_multilingual_v2`, голос Sarah);
+- `video/lead-planner-promo-44s.mp4` — голос, который сгенерировал сам Vivix.
+
+1080×1920, 30 к/с, на русском, с вшитыми субтитрами.
 Про сервис `lead-planner` (ветка `claude/wizardly-hopper-bduxqz`): лидобалы, темп филиалов, задачи маркетолога.
 
 | Время | Блок | Что на экране |
@@ -33,5 +36,18 @@ DATA_FILE=$PWD/store.json node $LP/scripts/build-static.mjs demo lp.html
 node demo/record.js FRAMES_DIR                     # кадры a/ (главная) и b/ (филиал); lp.html рядом со скриптом
 python3 assemble.py CLIPS_DIR FRAMES_DIR out.mp4   # итоговый ролик
 ```
+
+### Озвучка ElevenLabs
+
+Ключ — переменная `ELEVENLABS_API_KEY` в настройках облачного окружения (не в репозитории), голос — `ELEVENLABS_VOICE_ID`.
+
+```bash
+python3 voice.py CLIPS_DIR VOICE_DIR                              # реплики из scenes.py → VOICE_DIR/*.wav
+VOICE_DIR=VOICE_DIR python3 assemble.py CLIPS_DIR FRAMES_DIR out.mp4
+```
+
+Реплика ставится в то окно, где героиня говорит в клипе, и подгоняется по темпу (не медленнее ×0,88).
+«Claude» и «CRM» для синтеза пишутся как «Клод» и «си-ар-эм» (`SAY` в `voice.py`).
+Тайминги субтитров под озвучку — `VOICE_SUBS` в `assemble.py`.
 
 Тайминги субтитров (`SUBS` в `assemble.py`) сняты с текущих клипов; после перегенерации сцен их нужно сверить.
