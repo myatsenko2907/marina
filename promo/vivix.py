@@ -50,3 +50,27 @@ def upload_image(path):
     if res.get("code") != 0:
         raise RuntimeError(res)
     return res["data"]["url"]
+
+def upload_audio(path):
+    import subprocess
+    res = json.loads(subprocess.check_output(["curl", "-sS", "-X", "POST",
+        API + "/v1/files/audios", "-F", f"file=@{path};type=audio/mpeg"]))
+    if res.get("code") != 0:
+        raise RuntimeError(res)
+    return res["data"]["url"]
+
+def lipsync(prompt, image_url, audio_url, out, ratio="9:16"):
+    """Vivix A1: оживляет кадр под готовую аудиодорожку (губы точно по звуку)."""
+    import subprocess
+    vid = call("POST", "/v1/videos/generations", {"model": "vivix-a1", "prompt": prompt,
+        "first_frame_image": image_url, "audio": audio_url, "resolution": "720p", "video_ratio": ratio})["video_id"]
+    print(out, vid, flush=True)
+    while True:
+        time.sleep(5)
+        d = call("GET", f"/v1/videos/generations/{vid}")["items"][0]
+        if d["status"] == "succeeded":
+            subprocess.check_call(["ffmpeg", "-v", "error", "-y", "-i", d["playback_url"], "-c:v", "libx264", "-crf", "16", "-c:a", "aac", "-b:a", "192k", out])
+            print(out, "done", flush=True)
+            return out
+        if d["status"] in ("failed", "timeout"):
+            raise RuntimeError(f"{out}: {d}")

@@ -1,7 +1,7 @@
-# Ролик «План лидобалов» — 44 с, 9:16
+# Ролик «План лидобалов» — 38 с, 9:16
 
-- `video/lead-planner-promo-44s-elevenlabs.mp4` — озвучка ElevenLabs (`eleven_multilingual_v2`, голос Sarah);
-- `video/lead-planner-promo-44s.mp4` — голос, который сгенерировал сам Vivix.
+- `video/lead-planner-promo-38s.mp4` — **основной**: озвучка ElevenLabs (голос Anna Sokolova), губы героини синхронизированы с ней через Vivix A1;
+- `video/lead-planner-promo-44s.mp4` — первая версия с голосом, который сгенерировал сам Vivix W1.
 
 1080×1920, 30 к/с, на русском, с вшитыми субтитрами.
 Про сервис `lead-planner` (ветка `claude/wizardly-hopper-bduxqz`): лидобалы, темп филиалов, задачи маркетолога.
@@ -34,20 +34,22 @@ DATA_FILE=$PWD/store.json node $LP/scripts/load-spend.mjs spend 2026-10-22
 node demo/gen-tasks.mjs                            # кабинеты FB/Google для «Задач маркетолога»
 DATA_FILE=$PWD/store.json node $LP/scripts/build-static.mjs demo lp.html
 node demo/record.js FRAMES_DIR                     # кадры a/ (главная) и b/ (филиал); lp.html рядом со скриптом
-python3 assemble.py CLIPS_DIR FRAMES_DIR out.mp4   # итоговый ролик
 ```
 
-### Озвучка ElevenLabs
+### Озвучка ElevenLabs + синхронизация губ
 
-Ключ — переменная `ELEVENLABS_API_KEY` в настройках облачного окружения (не в репозитории), голос — `ELEVENLABS_VOICE_ID`.
+Ключ — переменная `ELEVENLABS_API_KEY` в настройках облачного окружения (не в репозитории), голос — `ELEVENLABS_VOICE_ID`
+(по умолчанию Anna Sokolova, `IO0VLmDxIb8N5msewtV4`).
 
 ```bash
-python3 voice.py CLIPS_DIR VOICE_DIR                              # реплики из scenes.py → VOICE_DIR/*.wav
-VOICE_DIR=VOICE_DIR python3 assemble.py CLIPS_DIR FRAMES_DIR out.mp4
+python3 generate.py W1_DIR                            # сцены Vivix W1: обстановка, героиня, первые кадры
+python3 voice.py VOICE_DIR                            # реплики из scenes.py → VOICE_DIR/*.mp3 (ElevenLabs)
+python3 lipsync.py W1_DIR VOICE_DIR A1_DIR            # Vivix A1: первый кадр сцены оживает под озвучку
+python3 assemble.py A1_DIR FRAMES_DIR out.mp4         # итоговый ролик
 ```
 
-Реплика ставится в то окно, где героиня говорит в клипе, и подгоняется по темпу (не медленнее ×0,88).
 «Claude» и «CRM» для синтеза пишутся как «Клод» и «си-ар-эм» (`SAY` в `voice.py`).
+
 Тайминги субтитров под озвучку — `VOICE_SUBS` в `assemble.py`.
 
 Тайминги субтитров (`SUBS` в `assemble.py`) сняты с текущих клипов; после перегенерации сцен их нужно сверить.
