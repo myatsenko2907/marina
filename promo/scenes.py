@@ -19,7 +19,7 @@ SCENES = [
     {"id": "s1_problem", "outfit": "grey knit sweater, glasses",
      "prompt": "Late evening, small office, two monitors full of spreadsheets with red cells, stacks of printouts, "
                "a cold cup of coffee. One continuous shot, slow push-in. She rubs her eyes, then looks into the "
-               "camera, tired, and says in Russian: \"Четырнадцать филиалов. CRM, Фейсбук, Гугл… "
+               "camera, tired, and says in Russian: \"Сто шесть филиалов. CRM, Фейсбук, Гугл… "
                "Каждое утро — три часа в таблицах, чтобы понять, кто проваливает план.\""},
     {"id": "s2_solution", "outfit": "light beige blazer over a white top",
      "prompt": "Bright morning, modern open-space office, laptop on the desk. One continuous medium close-up. "
