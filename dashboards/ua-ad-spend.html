@@ -1,0 +1,691 @@
+<title>Реклама филиалов Украины</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Layout: control bar → summary strip → grid of branch ledgers (product · spend · share), quiet tail of empty branches */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#18202b; --muted:#5f6b7a; --line:#dfe3ea;
+  --accent:#1f5fd6; --accent-soft:#e3ecfc; --bar:#2f6fe4; --warn:#a15c00; --warn-soft:#fff3df; --bad:#b4232c; --bad-soft:#fde8e9;
+  --font-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --font-body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --surface:#171e28; --ink:#e7ecf3; --muted:#9aa6b6; --line:#2a3442;
+  --accent:#7aa7ff; --accent-soft:#1d2b45; --bar:#5b8ef5; --warn:#f0b35a; --warn-soft:#3a2a12; --bad:#ff7b84; --bad-soft:#3d1a1e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --surface:#171e28; --ink:#e7ecf3; --muted:#9aa6b6; --line:#2a3442;
+  --accent:#7aa7ff; --accent-soft:#1d2b45; --bar:#5b8ef5; --warn:#f0b35a; --warn-soft:#3a2a12; --bad:#ff7b84; --bad-soft:#3d1a1e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--font-display);font-weight:600;font-size:22px;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:4px 0 0}
+.num{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.field input{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0}
+.field input[type=number]{width:90px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 11px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.primary{background:var(--accent);color:#fff;border:0;border-radius:7px;padding:8px 16px;font-weight:600}
+:root[data-theme="dark"] .primary{color:#0f141b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .primary{color:#0f141b}}
+.primary:disabled{opacity:.55;cursor:default}
+.grow{flex:1 1 160px}
+
+.status{font-size:13px;color:var(--muted)}
+.banner{border-radius:var(--r);padding:12px 14px;border:1px solid}
+.banner.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--ink)}
+.banner.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--ink)}
+.progress{height:3px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;min-width:0}
+.stat b{display:block;font-family:var(--font-display);font-weight:500;font-size:20px;margin-top:2px}
+.stat span{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.stat small{color:var(--muted)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.toolbar input{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 10px;width:min(280px,100%)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,370px),1fr));gap:14px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card header{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.card h2{font-size:16px;font-weight:600;margin:0}
+.card .total{font-weight:600;white-space:nowrap}
+.card .meta{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500;text-align:left;padding:4px 0;border-bottom:1px solid var(--line)}
+th.r,td.r{text-align:right}
+td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.prod{padding-right:8px;min-width:0}
+td.spend{white-space:nowrap;padding-right:10px}
+td.share{width:38%}
+.sharecell{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.bar{flex:1;height:8px;background:var(--accent-soft);border-radius:4px;overflow:hidden;min-width:40px}
+.bar i{display:block;height:100%;background:var(--bar);border-radius:4px}
+.pct{width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.other td.prod{color:var(--warn)}
+details.camps summary{cursor:pointer;color:var(--muted);font-size:12px;list-style:none}
+details.camps summary::-webkit-details-marker{display:none}
+details.camps summary::before{content:"▸ ";}
+details.camps[open] summary::before{content:"▾ ";}
+details.camps ul{margin:4px 0 0;padding:0;list-style:none;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+details.camps li{display:flex;justify-content:space-between;gap:10px}
+details.camps li span:first-child{overflow-wrap:anywhere}
+.acc-errors{font-size:12px;color:var(--bad)}
+
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:12px 14px;color:var(--muted);font-size:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px}
+.panel summary{cursor:pointer;font-weight:600}
+.panel p{color:var(--muted);margin:8px 0;max-width:75ch}
+.panel textarea{width:100%;min-height:220px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:10px;font-size:13px;line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:7px;padding:7px 12px}
+.foot{font-size:12px;color:var(--muted);max-width:90ch}
+@media (prefers-reduced-motion:reduce){.progress i{transition:none}}
+</style>
+
+<style>
+.field select{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0}
+.owner{background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.owner h3{margin:0;font-size:14px}
+.owner p{margin:0;color:var(--muted);max-width:80ch}
+.owner .row{align-items:flex-end;margin:0}
+.months{display:flex;flex-wrap:wrap;gap:6px}
+.mchip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--muted)}
+.mchip.ok{border-color:var(--accent);color:var(--accent)}
+.freshness{font-size:13px;color:var(--muted)}
+.card.zero{gap:4px;padding:12px 16px}
+.card.zero header{align-items:center}
+.card.zero .total{color:var(--muted);font-weight:500}
+.accs summary{font-size:12px}
+.accs .mono{font-size:11px;color:var(--muted)}
+.card .note{font-size:12px;color:var(--muted)}
+.card .note.warn{color:var(--warn)}
+.section-title{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:6px 0 0}
+</style>
+
+<style>
+.gate{max-width:420px;margin:6vh auto 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 22px 18px;display:flex;flex-direction:column;gap:12px}
+.gate h2{margin:0;font-size:17px}
+.gate p{margin:0;color:var(--muted)}
+.gate .field input{width:100%}
+.gate .err{color:var(--bad);font-size:13px;min-height:1.2em}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.who{font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.who b{color:var(--ink);font-weight:600}
+.pill{font-size:11px;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:2px 8px}
+.admin{background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:12px 16px}
+.admin summary{cursor:pointer;font-weight:600}
+.admin .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin-top:12px}
+.admin h3{font-size:14px;margin:0 0 8px}
+.admin table td,.admin table th{padding:6px 6px 6px 0}
+.admin .meta{font-size:12px;color:var(--muted)}
+.citylist{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:4px 12px;max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:7px;padding:8px 10px;background:var(--bg)}
+.citylist label{font-size:13px;display:flex;gap:6px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:10px}
+.inline{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.inline .field{flex:1 1 160px}
+.field input[type=text],.field input[type=password]{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0;width:100%}
+.danger{background:transparent;border:1px solid var(--bad);color:var(--bad);border-radius:7px;padding:4px 10px;font-size:12px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;user-select:all}
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>Реклама филиалов Украины</h1>
+      <p class="sub">Расход Meta Ads по продуктам за выбранные месяцы и доля каждого продукта в рекламном бюджете филиала. Данные обновляются раз в день.</p>
+    </div>
+    <div class="who" id="who" hidden><span>Вы вошли как <b id="whoName"></b></span><span class="pill" id="whoRole"></span><button type="button" class="ghost" id="logout">Выйти</button></div>
+  </div>
+
+  <form class="gate" id="loginCard" hidden autocomplete="on">
+    <h2>Вход</h2>
+    <p>Введите логин и пароль, которые вам выдал администратор дашборда.</p>
+    <div class="field"><label for="lgLogin">Логин</label><input type="text" id="lgLogin" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+    <div class="field"><label for="lgPass">Пароль</label><input type="password" id="lgPass" autocomplete="current-password" required></div>
+    <button class="primary" type="submit" id="lgBtn">Войти</button>
+    <div class="err" id="lgErr" role="alert"></div>
+  </form>
+
+  <form class="gate" id="setupCard" hidden>
+    <h2>Первичная настройка</h2>
+    <p>Создайте главного администратора. Он видит все города и выдаёт доступы остальным. Данные будут зашифрованы: без пароля их не прочитать даже по ссылке.</p>
+    <div class="field"><label for="suLogin">Логин администратора</label><input type="text" id="suLogin" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="например, marina"></div>
+    <div class="field"><label for="suPass">Пароль (не короче 10 символов)</label><input type="password" id="suPass" autocomplete="new-password" required minlength="10"></div>
+    <div class="field"><label for="suPass2">Пароль ещё раз</label><input type="password" id="suPass2" autocomplete="new-password" required minlength="10"></div>
+    <button class="primary" type="submit" id="suBtn">Создать и зашифровать данные</button>
+    <div class="err" id="suErr" role="alert"></div>
+  </form>
+
+  <div class="gate" id="notReady" hidden>
+    <h2>Дашборд ещё не настроен</h2>
+    <p id="notReadyText">Владелец дашборда пока не создал доступы. Попробуйте позже.</p>
+  </div>
+
+  <div class="stack" id="app" hidden>
+    <details class="admin" id="adminPanel" hidden>
+      <summary>Пользователи и доступы</summary>
+      <div class="cols">
+        <div>
+          <h3>Пользователи</h3>
+          <div style="overflow-x:auto"><table><thead><tr><th>Логин</th><th>Доступ</th><th></th></tr></thead><tbody id="userRows"></tbody></table></div>
+          <p class="meta">Пароль хранится только у пользователя. Если его забыли, создайте пользователя с тем же логином заново: старый пароль перестанет работать.</p>
+        </div>
+        <form class="stack" id="userForm">
+          <h3>Добавить или перезаписать пользователя</h3>
+          <div class="inline">
+            <div class="field"><label for="ufLogin">Логин</label><input type="text" id="ufLogin" autocapitalize="none" spellcheck="false" required placeholder="латиница, цифры, . _ -"></div>
+            <div class="field"><label for="ufPass">Пароль</label><input type="text" id="ufPass" required minlength="10" spellcheck="false"></div>
+            <button type="button" class="ghost" id="ufGen">Сгенерировать</button>
+          </div>
+          <label class="status"><input type="checkbox" id="ufAll"> Главный пользователь: все города</label>
+          <div class="citylist" id="ufCities"></div>
+          <div class="inline"><button class="primary" type="submit" id="ufSave">Сохранить пользователя</button><span class="status" id="ufStatus" role="status"></span></div>
+        </form>
+      </div>
+    </details>
+
+  <form class="controls" id="controls">
+    <div class="field"><label for="from">С месяца</label><select id="from"></select></div>
+    <div class="field"><label for="to">По месяц</label><select id="to"></select></div>
+    <div class="field grow"><label>Быстрый выбор</label>
+      <div class="presets" id="presets">
+        <button type="button" class="chip" data-p="this_month">Этот месяц</button>
+        <button type="button" class="chip" data-p="last_month">Прошлый месяц</button>
+        <button type="button" class="chip" data-p="last_3">3 месяца</button>
+        <button type="button" class="chip" data-p="quarter">Квартал</button>
+        <button type="button" class="chip" data-p="ytd">С начала года</button>
+      </div>
+    </div>
+  </form>
+
+
+  <div id="banner" hidden></div>
+  <div class="freshness" id="freshness">Загружаю сохранённые данные…</div>
+
+  <section class="summary" id="summary" aria-label="Итоги"></section>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Найти филиал" aria-label="Найти филиал">
+    <span class="status" id="periodLabel"></span>
+  </div>
+
+  <section class="grid" id="grid" aria-label="Филиалы с расходом"></section>
+  <h2 class="section-title" id="zeroTitle" hidden>Без расхода в Meta за период</h2>
+  <section class="grid" id="zeroGrid" aria-label="Филиалы без расхода"></section>
+
+  <details class="panel" id="rulesPanel">
+    <summary>Как кампании распределяются по продуктам</summary>
+    <p>Продукт определяется по названию кампании: каждая строка — продукт и через запятую метки, которые ищутся в названии. Проверка идёт сверху вниз, срабатывает первая подошедшая строка. Короткие метки до 3 букв (ПКО, СК, ШС) ищутся как отдельное слово, длинные — как часть названия. Кабинеты школ, колледжей, университетов и лагерей целиком относятся к своему продукту. Всё, что не подошло, попадает в «Не определено».</p>
+    <label for="rules" class="status" id="rulesLabel">Правила</label>
+    <textarea id="rules" spellcheck="false" readonly></textarea>
+    <div class="row" id="rulesActions" hidden>
+      <button type="button" class="primary" id="applyRules">Сохранить для всех</button>
+      <button type="button" class="ghost" id="resetRules">Вернуть стандартные</button>
+      <span class="status" id="rulesStatus"></span>
+    </div>
+  </details>
+
+  <p class="foot" id="foot"></p>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const DEFAULT_RULES = [
+  "Вакансии (HR): вакансі, вакансия, пошук викладача",
+  "ШС: шс, шc",
+  "ПКО (взрослые): пко, рпз, рпо, кгід, кгид, мік, ді, дизайн інтер, дизайн интерьер, профоріє, профорие, тест-драйв, тест драйв, qa",
+  "Колледж: коледж, колледж, college",
+  "Университет: університет, университет, university, вуз, внз, хту",
+  "Лагеря: табір, лагер, camp, кемп, lager",
+  "Школа: школа, school, шкіл",
+  "МКА (дети): мка, mka, мк, пу, дцр, kids, кідс, roblox, роблокс, minecraft, майнкрафт, brawl, lego, лего, людина-павук, людини-павука, супергер, super heroes, marvel, brookhaven, 99 ночей, кріпер, мультик, комікс, персонаж, gamedev, підготовка до школи, подготовка к школе",
+  "НМТ (подготовка): нмт, нтм",
+  "Спецкурсы: ск, спецкурс, курс, ші, ім, штучний інтелект, ai, аі, python, canva, figma, вайб, 3ds, 3dsmax, smm, marketer, marketing, маркетинг, маркетолог, digital, анімац, моушн, motion, ui ux, 2d, prompt, з нуля до, для бізнесу, кібербезпек, кибербезопасн, cybersecurity",
+  "Педагогическая академия: teacher, педагог"
+].join("\n");
+const OTHER = "Не определено";
+const PBKDF2_ITER = 310000;
+const $ = id => document.getElementById(id);
+const store = {get(k){try{return sessionStorage.getItem(k)}catch(e){return null}}, set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}}};
+const show = (id, on) => { $(id).hidden = !on; };
+
+// ---------- crypto ----------
+const subtle = window.crypto && window.crypto.subtle;
+const enc = new TextEncoder(), dec = new TextDecoder();
+const b64 = buf => { const b=new Uint8Array(buf); let s=""; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); };
+const ub64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const EC = {name:"ECDH", namedCurve:"P-256"};
+async function passKey(password, salt, iter){
+  const base = await subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+  return subtle.deriveKey({name:"PBKDF2", hash:"SHA-256", salt, iterations:iter}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function aesSeal(key, bytes){ const iv=crypto.getRandomValues(new Uint8Array(12)); return {iv:b64(iv), ct:b64(await subtle.encrypt({name:"AES-GCM", iv}, key, bytes))}; }
+async function aesOpen(key, box){ return new Uint8Array(await subtle.decrypt({name:"AES-GCM", iv:ub64(box.iv)}, key, ub64(box.ct))); }
+async function eciesKey(priv, pub){
+  const bits = await subtle.deriveBits({name:"ECDH", public:pub}, priv, 256);
+  const hk = await subtle.importKey("raw", bits, "HKDF", false, ["deriveKey"]);
+  return subtle.deriveKey({name:"HKDF", hash:"SHA-256", salt:new Uint8Array(32), info:enc.encode("uaads-v1")}, hk, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function eciesOpen(priv, box){
+  const epk = await subtle.importKey("raw", ub64(box.epk), EC, false, []);
+  return JSON.parse(dec.decode(await aesOpen(await eciesKey(priv, epk), box)));
+}
+async function eciesSeal(pubJwk, obj){
+  const pub = await subtle.importKey("jwk", pubJwk, EC, false, []);
+  const eph = await subtle.generateKey(EC, true, ["deriveBits"]);
+  const box = await aesSeal(await eciesKey(eph.privateKey, pub), enc.encode(JSON.stringify(obj)));
+  box.epk = b64(await subtle.exportKey("raw", eph.publicKey));
+  return box;
+}
+
+// ---------- rules ----------
+function parseRules(text){
+  return String(text||"").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+    const i=l.indexOf(":"); if(i<1) return null;
+    const product=l.slice(0,i).trim();
+    const keys=l.slice(i+1).split(",").map(s=>s.trim().toLowerCase()).filter(Boolean);
+    return keys.length?{product,keys}:null;
+  }).filter(Boolean);
+}
+function tokens(s){return s.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean)}
+function classify(name, rules){
+  const low=name.toLowerCase(), toks=tokens(name);
+  for(const r of rules) for(const k of r.keys){
+    if(k.length<=3 && !/\s/.test(k)){ if(toks.includes(k)) return r.product; }
+    else if(low.includes(k)) return r.product;
+  }
+  return OTHER;
+}
+let rules = parseRules(DEFAULT_RULES);
+$("rules").value = DEFAULT_RULES;
+
+// ---------- months ----------
+const MONTHS_RU=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+const pad=n=>String(n).padStart(2,"0");
+const mkey=(y,m)=>y+"-"+pad(m+1);
+const today=new Date(); today.setHours(0,0,0,0);
+const curKey=mkey(today.getFullYear(),today.getMonth());
+const monthList=[];
+for(let i=0;i<24;i++){const d=new Date(today.getFullYear(),today.getMonth()-i,1); monthList.push(mkey(d.getFullYear(),d.getMonth()));}
+const mlabel=k=>{const [y,m]=k.split("-"); return MONTHS_RU[+m-1]+" "+y;};
+function rangeKeys(a,b){ if(a>b) [a,b]=[b,a]; return monthList.filter(k=>k>=a&&k<=b).sort(); }
+
+// ---------- state ----------
+let db=null, isOwner=false;
+let accounts=null;          // config/accounts branches
+let cityKeys=null;          // {branch: public JWK}
+let session=null;           // {login, admin, pk:AES key, privs:Map(branch->CryptoKey), raw:Map(branch->pkcs8 bytes)}
+let encDocs={};             // raw enc docs by month
+let months={};              // decrypted: month -> {fetchedAt, through, rate, branches:{name:{c,e}}}
+let plainMonths={};         // legacy unencrypted docs, migrated by the owner
+let users=[];
+let unsubs=[];
+
+function fillSelects(){
+  for(const id of ["from","to"]){
+    const sel=$(id), keep=sel.value;
+    sel.innerHTML=monthList.map(k=>'<option value="'+k+'">'+mlabel(k)+(months[k]?"":" · нет данных")+'</option>').join("");
+    if(keep) sel.value=keep;
+  }
+}
+function setPreset(p){
+  const y=today.getFullYear(), m=today.getMonth();
+  const k=(dm)=>{const d=new Date(y,m+dm,1); return mkey(d.getFullYear(),d.getMonth());};
+  let a,b;
+  switch(p){
+    case "this_month": a=b=curKey; break;
+    case "last_month": a=b=k(-1); break;
+    case "last_3": a=k(-3); b=k(-1); break;
+    case "quarter": a=mkey(y,Math.floor(m/3)*3); b=curKey; break;
+    case "ytd": a=mkey(y,0); b=curKey; break;
+    default: a=b=k(-1); p="last_month";
+  }
+  $("from").value=a; $("to").value=b;
+  document.querySelectorAll("#presets .chip").forEach(x=>x.setAttribute("aria-pressed", String(x.dataset.p===p)));
+  store.set("uaads.preset", p);
+  render();
+}
+
+// ---------- formatting ----------
+const usd = v => "$" + Math.round(v).toLocaleString("ru-RU");
+const pct = v => (v*100).toFixed(v>=0.1?0:1).replace(".",",") + "%";
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtWhen = iso => { try{ return new Date(iso).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}); }catch(e){ return iso; } };
+const fmtDay = s => s ? s.split("-").reverse().join(".") : "";
+function plural(n,a,b,c){const m10=n%10,m100=n%100; if(m10===1&&m100!==11)return a; if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b; return c;}
+function showBanner(kind, text){const b=$("banner"); b.className="banner "+kind; b.textContent=text; b.hidden=false;}
+function hideBanner(){$("banner").hidden=true;}
+
+// ---------- render ----------
+function visibleBranches(){
+  if(!accounts || !session) return [];
+  return accounts.filter(b=>session.privs.has(b.name));
+}
+function aggregate(br, keys){
+  const by=new Map(); const errors=[];
+  for(const k of keys){
+    const d=months[k] && months[k].branches && months[k].branches[br.name];
+    if(!d) continue;
+    for(const c of (d.c||[])){
+      const [name, acc, fixed, spend]=c;
+      const p=fixed || classify(String(name), rules);
+      if(!by.has(p)) by.set(p,{product:p, spend:0, camps:new Map()});
+      const g=by.get(p); g.spend+=Number(spend)||0;
+      const ck=name+"\u0000"+acc; const prev=g.camps.get(ck);
+      g.camps.set(ck,{name,acc,spend:(prev?prev.spend:0)+(Number(spend)||0)});
+    }
+    for(const e of (d.e||[])) errors.push({month:k, acc:e[0], code:e[1]});
+  }
+  const total=[...by.values()].reduce((s,g)=>s+g.spend,0);
+  const rows=[...by.values()].map(g=>({product:g.product, spend:g.spend, camps:[...g.camps.values()].sort((a,b)=>b.spend-a.spend)}))
+    .sort((a,b)=>(a.product===OTHER)-(b.product===OTHER) || b.spend-a.spend);
+  return {name:br.name, acc:br.acc||[], accCount:(br.acc||[]).length, noAccess:br.noAccess||[], total, rows, errors};
+}
+function render(){
+  if(!session || !accounts) return;
+  const keys=rangeKeys($("from").value||curKey, $("to").value||curKey);
+  const have=keys.filter(k=>months[k]), missing=keys.filter(k=>!months[k]);
+  $("periodLabel").textContent = "Период: " + (keys.length===1? mlabel(keys[0]) : mlabel(keys[0])+" — "+mlabel(keys[keys.length-1]));
+  const stamps=Object.values(months).map(m=>m.fetchedAt).filter(Boolean).sort();
+  const latest=stamps[stamps.length-1];
+  $("freshness").textContent = latest ? "Данные из Meta обновляются раз в день. Последнее обновление: "+fmtWhen(latest)+(have.includes(curKey)&&months[curKey].through?". Текущий месяц — по "+fmtDay(months[curKey].through)+".":".") : "Данные ещё не выгружены.";
+  if(missing.length && have.length) showBanner("warn","Нет данных за: "+missing.map(mlabel).join(", ")+". Итоги посчитаны только по выгруженным месяцам.");
+  else hideBanner();
+
+  const q=$("q").value.trim().toLowerCase();
+  const all=visibleBranches().map(b=>aggregate(b, have));
+  const active=all.filter(b=>b.total>0).sort((a,b)=>b.total-a.total);
+  const zero=all.filter(b=>b.total===0).sort((a,b)=>(b.accCount>0)-(a.accCount>0) || a.name.localeCompare(b.name,"ru"));
+  const grand=active.reduce((s,b)=>s+b.total,0);
+  const prodTotals=new Map();
+  active.forEach(b=>b.rows.forEach(r=>prodTotals.set(r.product,(prodTotals.get(r.product)||0)+r.spend)));
+  const topProd=[...prodTotals.entries()].filter(e=>e[0]!==OTHER).sort((a,b)=>b[1]-a[1])[0];
+  const undef=prodTotals.get(OTHER)||0, top=active[0];
+  const scope = session.admin ? "по Украине" : (all.length===1 ? "по филиалу" : "по вашим филиалам");
+  $("summary").innerHTML = !have.length ? "" :
+    stat("Расход "+scope, usd(grand), active.length+" из "+all.length+" "+plural(all.length,"филиала","филиалов","филиалов")+" с рекламой") +
+    (all.length>1 ? stat("Больше всех тратит", top?esc(top.name):"—", top?usd(top.total)+" · "+pct(top.total/grand):"") : "") +
+    stat("Главный продукт", topProd?esc(topProd[0]):"—", topProd?usd(topProd[1])+" · "+pct(topProd[1]/grand):"") +
+    stat("Не определено", usd(undef), grand?pct(undef/grand)+" расхода":"");
+  const match=b=>!q || b.name.toLowerCase().includes(q);
+  $("grid").innerHTML = active.filter(match).map(card).join("") ||
+    (!have.length ? '<div class="empty">За выбранные месяцы данных пока нет.</div>' : active.length ? "" : '<div class="empty">За этот период расхода нет.</div>');
+  const zs=zero.filter(match);
+  $("zeroGrid").innerHTML = zs.map(b=>zeroCard(b, have.length>0)).join("");
+  $("zeroTitle").hidden = !zs.length;
+  const rates=[...new Set(Object.values(months).map(m=>m.rate).filter(Boolean))];
+  $("foot").textContent = "Источник: рекламные кабинеты Meta (Facebook и Instagram), расход в долларах"+(rates.length?"; кабинеты в гривне пересчитаны по курсу "+rates.join(" / ")+" грн":"")+". Процент — доля продукта в рекламном расходе филиала за период. Google Ads и другие каналы сюда не входят.";
+}
+function stat(label, big, small){return '<div class="stat"><span>'+label+'</span><b class="num">'+big+'</b><small class="num">'+small+'</small></div>'}
+const ERR={tool_error:"Meta вернула ошибку", server_unavailable:"Meta не ответила", needs_reauth:"нужно переподключить Meta"};
+function accList(b){
+  if(!b.acc.length) return "";
+  return '<details class="camps accs"><summary>Кабинеты Meta: '+b.acc.length+'</summary><ul>'+
+    b.acc.map(a=>'<li><span>'+esc(a.fb||a.label)+'</span><span class="num mono">'+esc(a.id)+'</span></li>').join("")+'</ul></details>';
+}
+function notes(b){
+  let h="";
+  if(b.noAccess.length) h+='<div class="note warn">Не учтено, Meta не даёт доступа: '+b.noAccess.map(esc).join(", ")+'</div>';
+  if(b.errors.length){
+    const uniq=[...new Set(b.errors.map(e=>e.acc+" ("+(ERR[e.code]||e.code)+")"))];
+    h+='<div class="acc-errors">Не загрузились при последнем обновлении: '+uniq.map(esc).join("; ")+'. Итог может быть занижен.</div>';
+  }
+  return h;
+}
+function card(b){
+  const rows=b.rows.map(r=>{
+    const share=b.total? r.spend/b.total : 0;
+    const list='<details class="camps"><summary>'+r.camps.length+" "+plural(r.camps.length,"кампания","кампании","кампаний")+'</summary><ul>'+
+      r.camps.slice(0,40).map(c=>'<li><span>'+esc(c.name)+' <span class="meta">· '+esc(c.acc)+'</span></span><span class="num">'+usd(c.spend)+'</span></li>').join("")+
+      (r.camps.length>40?'<li><span>и ещё '+(r.camps.length-40)+'</span><span></span></li>':"")+'</ul></details>';
+    return '<tr class="'+(r.product===OTHER?"other":"")+'"><td class="prod">'+esc(r.product)+list+'</td>'+
+      '<td class="r spend num">'+usd(r.spend)+'</td>'+
+      '<td class="share"><div class="sharecell"><div class="bar" aria-hidden="true"><i style="width:'+(share*100).toFixed(1)+'%"></i></div><span class="pct">'+pct(share)+'</span></div></td></tr>';
+  }).join("");
+  return '<article class="card"><header><h2>'+esc(b.name)+'</h2><span class="total num">'+usd(b.total)+'</span></header>'+accList(b)+
+    '<table><thead><tr><th>Продукт</th><th class="r">Расход</th><th class="r">% от рекламы филиала</th></tr></thead><tbody>'+rows+'</tbody></table>'+notes(b)+'</article>';
+}
+function zeroCard(b, hasData){
+  const why = !b.accCount ? (b.noAccess.length? "Кабинет есть, но Meta не даёт к нему доступа" : "Рекламный кабинет Meta не найден")
+    : hasData ? "В кабинетах не было расхода" : "Нет данных за период";
+  return '<article class="card zero"><header><h2>'+esc(b.name)+'</h2><span class="total num">$0</span></header>'+accList(b)+
+    '<div class="note">'+why+'</div>'+(b.accCount?notes(b):"")+'</article>';
+}
+
+// ---------- data ----------
+async function decryptAll(){
+  if(!session) return;
+  const out={};
+  for(const [k,doc] of Object.entries(encDocs)){
+    const m={fetchedAt:doc.fetchedAt, through:doc.through, rate:doc.rate, branches:{}};
+    for(const [name, box] of Object.entries(doc.cities||{})){
+      const priv=session.privs.get(name); if(!priv) continue;
+      try{ m.branches[name]=await eciesOpen(priv, box); }catch(e){ /* sealed for a key this user no longer holds */ }
+    }
+    out[k]=m;
+  }
+  months=out; fillSelects(); render();
+}
+
+// ---------- login ----------
+const LOGIN_RE=/^[a-z0-9._-]{2,40}$/;
+async function openSession(login, password){
+  const snap=await db.doc("users/"+login).get();
+  if(!snap.exists) throw new Error("bad");
+  const u=snap.data();
+  const pk=await passKey(password, ub64(u.salt), u.iter||PBKDF2_ITER);
+  const privs=new Map(), raw=new Map();
+  for(const [name, box] of Object.entries(u.wrapped||{})){
+    let bytes;
+    try{ bytes=await aesOpen(pk, box); }catch(e){ throw new Error("bad"); }
+    raw.set(name, bytes);
+    privs.set(name, await subtle.importKey("pkcs8", bytes, EC, false, ["deriveBits"]));
+  }
+  if(!privs.size) throw new Error("bad");
+  return {login, admin:!!u.admin, pk, salt:u.salt, iter:u.iter||PBKDF2_ITER, privs, raw};
+}
+async function userDoc(login, password, admin, rawByBranch){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const pk=await passKey(password, salt, PBKDF2_ITER);
+  const wrapped={};
+  for(const [name, bytes] of rawByBranch) wrapped[name]=await aesSeal(pk, bytes);
+  return {login, admin:!!admin, cities:[...rawByBranch.keys()], salt:b64(salt), iter:PBKDF2_ITER, wrapped, updatedAt:new Date().toISOString()};
+}
+function enterApp(){
+  show("loginCard",false); show("setupCard",false); show("notReady",false);
+  show("app",true); show("who",true);
+  $("whoName").textContent=session.login;
+  $("whoRole").textContent= session.admin ? "все города" : (session.privs.size+" "+plural(session.privs.size,"город","города","городов"));
+  store.set("uaads.login", session.login);
+  fillSelects(); setPreset(store.get("uaads.preset") || "last_month");
+  decryptAll();
+  if(isOwner && session.admin) setupAdmin();
+}
+$("loginCard").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const login=$("lgLogin").value.trim().toLowerCase(), pass=$("lgPass").value;
+  $("lgErr").textContent=""; $("lgBtn").disabled=true; $("lgBtn").textContent="Проверяю…";
+  try{
+    if(!LOGIN_RE.test(login)) throw new Error("bad");
+    session=await openSession(login, pass);
+    $("lgPass").value="";
+    enterApp();
+  }catch(err){
+    $("lgErr").textContent = err.message==="bad" ? "Неверный логин или пароль." : "Не удалось войти (код "+(err.code||err.message)+"). Обновите страницу и попробуйте снова.";
+  }finally{ $("lgBtn").disabled=false; $("lgBtn").textContent="Войти"; }
+});
+$("logout").addEventListener("click",()=>{ location.reload(); });
+
+// ---------- first setup (owner) ----------
+async function genBranchKey(){
+  const kp=await subtle.generateKey(EC, true, ["deriveBits"]);
+  return {pub:await subtle.exportKey("jwk", kp.publicKey), raw:new Uint8Array(await subtle.exportKey("pkcs8", kp.privateKey))};
+}
+$("setupCard").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const login=$("suLogin").value.trim().toLowerCase(), p1=$("suPass").value, p2=$("suPass2").value;
+  const err=t=>{$("suErr").textContent=t;};
+  if(!LOGIN_RE.test(login)) return err("Логин: 2–40 символов, латиница, цифры, точка, дефис или подчёркивание.");
+  if(p1.length<10) return err("Пароль должен быть не короче 10 символов.");
+  if(p1!==p2) return err("Пароли не совпадают.");
+  $("suBtn").disabled=true; $("suBtn").textContent="Шифрую…"; err("");
+  try{
+    const keys={}, raw=new Map();
+    for(const b of accounts){ const k=await genBranchKey(); keys[b.name]=k.pub; raw.set(b.name,k.raw); }
+    await db.doc("users/"+login).set(await userDoc(login, p1, true, raw));
+    await db.doc("config/cityKeys").set({keys, updatedAt:new Date().toISOString()});
+    cityKeys=keys;
+    session=await openSession(login, p1);
+    $("suPass").value=""; $("suPass2").value="";
+    await migratePlain();
+    enterApp();
+  }catch(ex){
+    err("Не получилось сохранить (код "+(ex.code||ex.message)+"). Сохранять настройки может только владелец дашборда.");
+  }finally{ $("suBtn").disabled=false; $("suBtn").textContent="Создать и зашифровать данные"; }
+});
+// Moves unencrypted month documents into the encrypted collection, then deletes them.
+async function migratePlain(){
+  const ids=Object.keys(plainMonths);
+  for(const id of ids){
+    const doc=plainMonths[id];
+    if(!encDocs[id] || (encDocs[id].fetchedAt||"") < (doc.fetchedAt||"")){
+      const cities={};
+      for(const [name, payload] of Object.entries(doc.branches||{})) if(cityKeys[name]) cities[name]=await eciesSeal(cityKeys[name], payload);
+      await db.doc("enc/"+id).set({month:id, fetchedAt:doc.fetchedAt, through:doc.through, rate:doc.rate, cities});
+    }
+    await db.doc("months/"+id).delete();
+  }
+}
+// Branches added to the account list after setup get a key the next time an admin signs in.
+async function ensureKeys(){
+  const missing=accounts.filter(b=>!cityKeys[b.name]);
+  if(!missing.length) return;
+  const keys=Object.assign({}, cityKeys), raw=new Map(session.raw);
+  for(const b of missing){ const k=await genBranchKey(); keys[b.name]=k.pub; raw.set(b.name,k.raw); }
+  const wrapped={};
+  for(const [name, bytes] of raw) wrapped[name]=await aesSeal(session.pk, bytes);
+  await db.doc("users/"+session.login).set({login:session.login, admin:true, cities:[...raw.keys()], salt:session.salt, iter:session.iter, wrapped, updatedAt:new Date().toISOString()});
+  await db.doc("config/cityKeys").set({keys, updatedAt:new Date().toISOString()});
+  cityKeys=keys; session.raw=raw;
+  for(const b of missing) session.privs.set(b.name, await subtle.importKey("pkcs8", raw.get(b.name), EC, false, ["deriveBits"]));
+}
+
+// ---------- admin ----------
+let adminReady=false;
+async function setupAdmin(){
+  show("adminPanel", true);
+  try{ await ensureKeys(); if(Object.keys(plainMonths).length) await migratePlain(); }catch(e){ $("ufStatus").textContent="Не удалось обновить ключи (код "+(e.code||e.message)+")."; }
+  if(adminReady) return; adminReady=true;
+  $("ufCities").innerHTML = accounts.map((b,i)=>'<label><input type="checkbox" value="'+i+'"> '+esc(b.name)+'</label>').join("");
+  unsubs.push(db.collection("users").onSnapshot(snap=>{
+    users=snap.docs.filter(d=>d.exists).map(d=>d.data()); renderUsers();
+  }, ()=>{}));
+}
+function renderUsers(){
+  $("userRows").innerHTML = users.slice().sort((a,b)=>(b.admin-a.admin)||a.login.localeCompare(b.login)).map(u=>{
+    const cities=u.admin ? "Все города" : (u.cities||[]).join(", ");
+    const del = u.login===session.login ? '<span class="meta">это вы</span>' : '<button type="button" class="danger" data-del="'+esc(u.login)+'">Удалить</button>';
+    return '<tr><td class="mono">'+esc(u.login)+'</td><td>'+esc(cities)+'</td><td>'+del+'</td></tr>';
+  }).join("") || '<tr><td colspan="3" class="meta">Пока никого нет.</td></tr>';
+}
+let pendingDelete=null;
+$("userRows").addEventListener("click", async e=>{
+  const b=e.target.closest("[data-del]"); if(!b) return;
+  const login=b.dataset.del;
+  if(pendingDelete!==login){ pendingDelete=login; b.textContent="Точно удалить?"; return; }
+  pendingDelete=null; b.disabled=true;
+  try{ await db.doc("users/"+login).delete(); $("ufStatus").textContent="Пользователь "+login+" удалён."; }
+  catch(err){ b.disabled=false; $("ufStatus").textContent="Не удалось удалить (код "+(err.code||err.message)+")."; }
+});
+$("ufGen").addEventListener("click",()=>{
+  const abc="abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const r=crypto.getRandomValues(new Uint32Array(14));
+  $("ufPass").value=Array.from(r,x=>abc[x%abc.length]).join("");
+});
+$("ufAll").addEventListener("change",()=>{ $("ufCities").querySelectorAll("input").forEach(i=>{ i.disabled=$("ufAll").checked; if($("ufAll").checked) i.checked=true; }); });
+$("userForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const login=$("ufLogin").value.trim().toLowerCase(), pass=$("ufPass").value, all=$("ufAll").checked;
+  const st=t=>{$("ufStatus").textContent=t;};
+  if(!LOGIN_RE.test(login)) return st("Логин: 2–40 символов, латиница, цифры, точка, дефис или подчёркивание.");
+  if(pass.length<10) return st("Пароль должен быть не короче 10 символов.");
+  const chosen = all ? accounts.map(b=>b.name) : [...$("ufCities").querySelectorAll("input:checked")].map(i=>accounts[+i.value].name);
+  if(!chosen.length) return st("Отметьте хотя бы один город.");
+  const raw=new Map(); for(const n of chosen){ if(session.raw.has(n)) raw.set(n, session.raw.get(n)); }
+  $("ufSave").disabled=true; st("Шифрую доступ…");
+  try{
+    await db.doc("users/"+login).set(await userDoc(login, pass, all, raw));
+    st("Сохранено. Передайте пользователю логин «"+login+"» и пароль: он показан в поле выше и больше нигде не хранится.");
+  }catch(err){ st("Не удалось сохранить (код "+(err.code||err.message)+")."); }
+  finally{ $("ufSave").disabled=false; }
+});
+
+// ---------- events ----------
+$("presets").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(b) setPreset(b.dataset.p);});
+["from","to"].forEach(id=>$(id).addEventListener("change",()=>{document.querySelectorAll("#presets .chip").forEach(b=>b.setAttribute("aria-pressed","false")); render();}));
+$("controls").addEventListener("submit",e=>e.preventDefault());
+$("q").addEventListener("input",render);
+$("applyRules").addEventListener("click",async()=>{
+  if(!db) return;
+  try{ await db.doc("config/rules").set({text:$("rules").value}); $("rulesStatus").textContent="Сохранено для всех"; }
+  catch(e){ $("rulesStatus").textContent="Не сохранилось (код "+(e&&e.code)+")"; }
+});
+$("resetRules").addEventListener("click",()=>{ $("rules").value=DEFAULT_RULES; $("rulesStatus").textContent="Нажмите «Сохранить для всех», чтобы применить"; });
+
+// ---------- boot ----------
+function chooseGate(){
+  if(session || !accounts || cityKeys===undefined) return;
+  if(cityKeys){ show("setupCard",false); show("notReady",false); show("loginCard",true); const l=store.get("uaads.login"); if(l && !$("lgLogin").value) $("lgLogin").value=l; }
+  else if(isOwner){ show("loginCard",false); show("setupCard",true); }
+  else { show("notReady",true); }
+}
+cityKeys=undefined;
+const cl = window.claude && window.claude.use ? window.claude : null;
+if(!cl || !subtle){ show("notReady",true); $("notReadyText").textContent="Откройте эту страницу по ссылке на claude.ai."; }
+else {
+  Promise.all([cl.use("db"), cl.use("user")]).then(async ([d,u])=>{
+    db=d;
+    isOwner = u ? await u.isOwner() : false;
+    if(!db){ show("notReady",true); $("notReadyText").textContent="Данные недоступны в этом просмотре. Откройте страницу на claude.ai, войдя в аккаунт."; return; }
+    if(isOwner){ $("rules").readOnly=false; show("rulesActions",true); $("rulesLabel").textContent="Правила (сохраняются для всех, кто смотрит дашборд)"; }
+    db.doc("config/accounts").onSnapshot(snap=>{
+      accounts = snap.exists && Array.isArray(snap.data().branches) ? snap.data().branches : [];
+      chooseGate(); render();
+    }, ()=>{});
+    db.doc("config/cityKeys").onSnapshot(snap=>{
+      cityKeys = snap.exists && snap.data().keys ? snap.data().keys : null;
+      chooseGate();
+    }, ()=>{ cityKeys=null; chooseGate(); });
+    db.collection("enc").onSnapshot(snap=>{
+      const next={}; snap.docs.forEach(doc=>{ if(doc.exists) next[doc.id]=doc.data(); });
+      encDocs=next; decryptAll();
+    }, ()=>{});
+    if(isOwner) db.collection("months").onSnapshot(snap=>{
+      const next={}; snap.docs.forEach(doc=>{ if(doc.exists) next[doc.id]=doc.data(); });
+      plainMonths=next;
+    }, ()=>{});
+    db.doc("config/rules").onSnapshot(snap=>{
+      const t = snap.exists && snap.data().text ? String(snap.data().text) : DEFAULT_RULES;
+      rules=parseRules(t);
+      if(!isOwner || document.activeElement!==$("rules")) $("rules").value=t;
+      render();
+    }, ()=>{});
+  });
+}
+})();
+</script>
