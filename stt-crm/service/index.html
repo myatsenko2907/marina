@@ -1,0 +1,830 @@
+<title>STEP Travel CRM</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: left rail of sections + airy white canvas; one bright accent per section, coral as the brand "sunset" accent. Single light look by request. */
+:root{
+  color-scheme: light;
+  --bg:#f5f7fb; --card:#ffffff; --ink:#18213a; --muted:#6b7591; --line:#e6e9f2; --soft:#eef1f8;
+  --blue:#2f6bff; --blue-soft:#e8efff;
+  --coral:#ff5b3a; --coral-soft:#fff0ec;
+  --mint:#12b886; --mint-soft:#e3f8f0;
+  --sun:#ffb400; --sun-soft:#fff6dc;
+  --violet:#7c5cff; --violet-soft:#f0ecff;
+  --red:#e5383b; --red-soft:#fdeaea;
+  --f-display:"Unbounded", "Golos Text", system-ui, sans-serif;
+  --f-body:"Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font:14px/1.5 var(--f-body);margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--blue)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh}
+aside{background:var(--card);border-right:1px solid var(--line);padding-block:22px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:16px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--coral),var(--sun));display:grid;place-items:center;color:#fff;font:700 15px var(--f-display)}
+.brand b{font:700 14px var(--f-display);letter-spacing:.01em;display:block}
+.brand span{color:var(--muted);font-size:12px}
+nav.menu{display:flex;flex-direction:column;gap:2px}
+nav.menu a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:500}
+nav.menu a .dot{width:9px;height:9px;border-radius:3px;flex:none}
+nav.menu a .cnt{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+nav.menu a:hover{background:var(--soft)}
+nav.menu a.on{background:var(--blue-soft);color:var(--blue)}
+.side-foot{margin-top:auto;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+
+main{padding-block:24px 48px;padding-left:28px;padding-right:max(28px, env(safe-area-inset-right, 0px));min-width:0}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:20px}
+.top h1{font:700 22px/1.2 var(--f-display);margin:0;text-wrap:balance}
+.top .sp{flex:1}
+.period{display:flex;gap:6px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 8px;font-size:13px;color:var(--muted)}
+.period input{border:0;background:none;padding:4px 2px;width:132px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:#cfd5e6}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.coral{background:var(--coral);border-color:var(--coral);color:#fff}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:default}
+
+.status{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
+.status i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
+.status i::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--line)}
+.status i.ok::before{background:var(--mint)} .status i.load::before{background:var(--sun)} .status i.err::before{background:var(--red)}
+
+.banner{border-radius:var(--r);padding:14px 16px;margin-bottom:16px;font-size:13px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.banner.warn{background:var(--sun-soft)} .banner.err{background:var(--red-soft)} .banner.info{background:var(--blue-soft)}
+.banner b{display:block;margin-bottom:2px}
+
+section.view{display:none} section.view.on{display:block}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.cols2{grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))}
+.cols3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.card h3{font:600 14px var(--f-body);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.card h3 small{color:var(--muted);font-weight:400;margin-left:auto;font-size:12px}
+.kpi{position:relative;overflow:hidden}
+.kpi .l{color:var(--muted);font-size:12px;font-weight:500}
+.kpi .v{font:700 26px/1.25 var(--f-display);margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.kpi .s{color:var(--muted);font-size:12px;margin-top:4px}
+.kpi::after{content:"";position:absolute;right:-18px;top:-18px;width:64px;height:64px;border-radius:50%;background:var(--accent-soft,var(--soft))}
+.kpi .v,.kpi .l,.kpi .s{position:relative;z-index:1}
+.k-blue{--accent-soft:var(--blue-soft)} .k-coral{--accent-soft:var(--coral-soft)} .k-mint{--accent-soft:var(--mint-soft)} .k-sun{--accent-soft:var(--sun-soft)} .k-violet{--accent-soft:var(--violet-soft)} .k-red{--accent-soft:var(--red-soft)}
+h2{font:600 16px var(--f-display);margin:26px 0 12px}
+
+.bars .row{display:grid;grid-template-columns:minmax(110px,180px) minmax(0,1fr) 78px;gap:10px;align-items:center;margin:7px 0;font-size:13px}
+.bars .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .track{height:10px;background:var(--soft);border-radius:99px;overflow:hidden;display:flex}
+.bars .f1{background:var(--c1,var(--blue));height:100%}
+.bars .f2{background:var(--c2,#b9cdff);height:100%}
+.bars .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:-4px 0 8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+.funnel .st{display:grid;grid-template-columns:minmax(120px,210px) minmax(0,1fr) 100px;gap:10px;align-items:center;margin:8px 0;font-size:13px}
+.funnel .tr{height:26px;background:var(--soft);border-radius:8px;overflow:hidden}
+.funnel .fl{height:100%;background:linear-gradient(90deg,var(--coral),var(--sun));border-radius:8px}
+.funnel .n{text-align:right;font-variant-numeric:tabular-nums}
+.funnel .n small{color:var(--muted)}
+
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font:11px var(--f-body)}
+
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+.tools input[type=search],.tools select,.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 10px;min-width:0}
+.tools input[type=search]{flex:1 1 220px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.count{color:var(--muted);font-size:12px;margin:0 0 8px}
+
+.tbl{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;white-space:nowrap;cursor:pointer;background:var(--card);position:sticky;top:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer} tbody tr:hover{background:#fafbfe}
+tr:last-child td{border-bottom:0}
+.muted{color:var(--muted)} .small{font-size:12px}
+.cm{max-width:340px;color:var(--muted);font-size:12px}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:500;background:var(--soft);white-space:nowrap}
+.t-blue{background:var(--blue-soft);color:var(--blue)} .t-coral{background:var(--coral-soft);color:#d63d1e} .t-mint{background:var(--mint-soft);color:#0b8a63}
+.t-sun{background:var(--sun-soft);color:#a26d00} .t-red{background:var(--red-soft);color:var(--red)} .t-violet{background:var(--violet-soft);color:var(--violet)}
+.who{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.who img{width:20px;height:20px;border-radius:50%}
+.prio{font:700 12px var(--f-display);display:inline-grid;place-items:center;width:34px;height:24px;border-radius:8px;background:var(--soft)}
+.prio.hi{background:var(--coral-soft);color:#d63d1e} .prio.md{background:var(--sun-soft);color:#a26d00}
+
+.today li{list-style:none;display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px;cursor:pointer}
+.today ul{margin:0;padding:0} .today li:last-child{border-bottom:0}
+.empty{color:var(--muted);font-size:13px;padding:10px 0}
+
+.board{display:grid;grid-template-columns:repeat(3,minmax(250px,1fr));gap:14px;overflow-x:auto;padding-bottom:4px}
+.col{background:#eef1f8;border-radius:var(--r);padding:12px;min-height:200px}
+.col h4{margin:0 0 10px;font:600 13px var(--f-body);display:flex;align-items:center;gap:8px}
+.col h4 .b{width:8px;height:8px;border-radius:50%}
+.col h4 span{color:var(--muted);font-weight:500}
+.tcard{background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.tcard .tt{font-weight:600}
+.tcard .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.tcard .acts{display:flex;gap:6px;flex-wrap:wrap}
+.tcard.late{border-color:#ffc2b6}
+
+.drawer{position:fixed;inset:0;background:rgba(24,33,58,.28);display:flex;justify-content:flex-end;z-index:50}
+.drawer[hidden]{display:none!important}
+.panel{background:var(--card);width:min(460px,100%);height:100%;overflow-y:auto;padding:22px max(20px, env(safe-area-inset-right, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) 22px;padding-top:calc(22px + env(safe-area-inset-top, 0px));display:flex;flex-direction:column;gap:14px;box-shadow:-10px 0 40px rgba(24,33,58,.12)}
+.panel h3{font:700 17px var(--f-display);margin:0}
+.field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:500}
+.field textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:6px 10px;font-size:13px}
+.kv div:nth-child(odd){color:var(--muted)}
+.hits{border:1px solid var(--line);border-radius:10px;max-height:180px;overflow:auto}
+.hits button{display:flex;gap:8px;align-items:center;width:100%;border:0;background:none;padding:7px 10px;text-align:left;cursor:pointer}
+.hits button:hover{background:var(--soft)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;z-index:60}
+
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding-block:14px 10px;padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  nav.menu{flex-direction:row;overflow-x:auto;gap:4px}
+  nav.menu a{white-space:nowrap}
+  nav.menu a .cnt{margin-left:4px}
+  .side-foot{display:none}
+  main{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  .board{grid-template-columns:repeat(3,minmax(240px,82vw))}
+  .bars .row{grid-template-columns:96px minmax(0,1fr) 64px}
+  .funnel .st{grid-template-columns:110px minmax(0,1fr) 80px}
+}
+@media (prefers-reduced-motion:no-preference){ .bars .f1,.bars .f2,.funnel .fl{transition:width .5s ease} }
+</style>
+
+<div class="app">
+  <aside>
+    <div class="brand"><div class="logo">ST</div><div><b>STEP Travel</b><span>выездные лагеря · CRM</span></div></div>
+    <nav class="menu" id="menu">
+      <a href="#dashboard" data-v="dashboard"><span class="dot" style="background:var(--blue)"></span>Дашборд</a>
+      <a href="#calls" data-v="calls"><span class="dot" style="background:var(--coral)"></span>Обзвон<span class="cnt" id="cntCalls"></span></a>
+      <a href="#tasks" data-v="tasks"><span class="dot" style="background:var(--violet)"></span>Задачи<span class="cnt" id="cntTasks"></span></a>
+      <a href="#leads" data-v="leads"><span class="dot" style="background:var(--sun)"></span>Все лиды<span class="cnt" id="cntLeads"></span></a>
+      <a href="#sales" data-v="sales"><span class="dot" style="background:var(--mint)"></span>Продажи ВЛ</a>
+      <a href="#ads" data-v="ads"><span class="dot" style="background:var(--blue)"></span>Реклама Meta</a>
+      <a href="#losses" data-v="losses"><span class="dot" style="background:var(--red)"></span>Потери и Instagram</a>
+    </nav>
+    <div class="side-foot">
+      <div class="status" id="srcStatus"></div>
+      <div id="whoami" class="who"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <h1 id="viewTitle">Дашборд</h1>
+      <div class="sp"></div>
+      <label class="period">с <input type="date" id="dFrom" value="2026-04-01"> по <input type="date" id="dTo"></label>
+      <button class="btn pri" id="btnRefresh">Обновить данные</button>
+    </div>
+    <div id="banners"></div>
+
+    <!-- DASHBOARD -->
+    <section class="view" id="v-dashboard">
+      <div class="grid kpis" id="kpis"></div>
+      <div class="grid cols3" style="margin-top:14px">
+        <div class="card today"><h3>На сегодня <small id="todayDate"></small></h3><div id="todayList"></div></div>
+        <div class="card"><h3>Воронка лидов</h3><div class="funnel" id="dashFunnel"></div></div>
+        <div class="card"><h3>Статусы лидов</h3><div class="bars" id="dashStatus" style="--c1:var(--coral)"></div></div>
+      </div>
+      <div class="grid cols2" style="margin-top:14px">
+        <div class="card"><h3>Лиды по странам</h3><div class="legend"><span><i style="background:var(--blue)"></i>целевые</span><span><i style="background:#b9cdff"></i>все лиды</span></div><div class="bars" id="dashCountry"></div></div>
+        <div class="card"><h3>Продажи ВЛ по странам <small>договоры за период</small></h3><div class="legend"><span><i style="background:var(--mint)"></i>оплачено</span><span><i style="background:#a8ead3"></i>все договоры</span></div><div class="bars" id="dashSalesCountry" style="--c1:var(--mint);--c2:#a8ead3"></div></div>
+        <div class="card"><h3>Реклама Meta по месяцам <small>расход, $ · лиды</small></h3><div class="chart" id="dashMonth"></div></div>
+        <div class="card"><h3>Продажи по филиалам</h3><div class="bars" id="dashBranch" style="--c1:var(--violet);--c2:#d5cbff"></div></div>
+      </div>
+    </section>
+
+    <!-- CALLS -->
+    <section class="view" id="v-calls">
+      <div class="banner info"><div><b>Кого обзванивать</b>Лиды без отказа и не фейк. Сверху: «Думает», «Ждёт звонка», не связывались, «Недозвон». Нажмите на строку, чтобы поставить статус, взять лид себе, назначить следующий звонок или создать задачу. Это видит вся команда.</div></div>
+      <div class="tools">
+        <input type="search" id="cQ" placeholder="Имя, комментарий, продукт">
+        <select id="cCountry"></select>
+        <select id="cStatus"></select>
+        <div class="chips" id="cChips"></div>
+      </div>
+      <div class="count" id="cCount"></div>
+      <div class="tbl"><table id="cTbl"></table></div>
+    </section>
+
+    <!-- TASKS -->
+    <section class="view" id="v-tasks">
+      <div class="tools">
+        <button class="btn coral" id="btnNewTask">+ Новая задача</button>
+        <div class="chips" id="tChips"></div>
+        <div class="sp" style="flex:1"></div>
+        <span class="count" id="tCount" style="margin:0"></span>
+      </div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <!-- LEADS -->
+    <section class="view" id="v-leads">
+      <div class="tools">
+        <input type="search" id="lQ" placeholder="Имя, комментарий, продукт">
+        <select id="lCountry"></select><select id="lStatus"></select><select id="lQuality"></select><select id="lSource"></select>
+      </div>
+      <div class="count" id="lCount"></div>
+      <div class="tbl"><table id="lTbl"></table></div>
+    </section>
+
+    <!-- SALES -->
+    <section class="view" id="v-sales">
+      <div class="grid kpis" id="sKpis"></div>
+      <div class="grid cols2" style="margin-top:14px">
+        <div class="card"><h3>Выручка по странам <small>оплачено, ₴</small></h3><div class="bars" id="sRev" style="--c1:var(--mint)"></div></div>
+        <div class="card"><h3>Договоры по месяцам</h3><div class="legend"><span><i style="background:var(--violet)"></i>оплачено</span><span><i style="background:#d5cbff"></i>все</span></div><div class="bars" id="sMonth" style="--c1:var(--violet);--c2:#d5cbff"></div></div>
+        <div class="card"><h3>Менеджеры <small>договоры / оплачено</small></h3><div class="bars" id="sMgr" style="--c1:var(--blue)"></div></div>
+        <div class="card"><h3>Статусы оплат</h3><div class="bars" id="sPay" style="--c1:var(--sun)"></div></div>
+      </div>
+      <h2>Договоры</h2>
+      <div class="tools">
+        <input type="search" id="sQ" placeholder="Клиент, ребёнок, менеджер">
+        <select id="sBranch"></select><select id="sCountry"></select><select id="sPayF"></select>
+      </div>
+      <div class="count" id="sCount"></div>
+      <div class="tbl"><table id="sTbl"></table></div>
+    </section>
+
+    <!-- ADS -->
+    <section class="view" id="v-ads">
+      <div class="grid kpis" id="mKpis"></div>
+      <div class="grid cols2" style="margin-top:14px">
+        <div class="card"><h3>Качество лидов Meta по странам</h3><div class="legend"><span><i style="background:var(--blue)"></i>целевые</span><span><i style="background:#b9cdff"></i>все лиды из форм</span></div><div class="bars" id="mQual"></div></div>
+        <div class="card"><h3>Facebook и Instagram</h3><div id="mPlat"></div></div>
+      </div>
+      <h2>Кампании по направлениям</h2>
+      <div class="banner info"><div>«Лиды Meta» из рекламного кабинета. «Целевые», «Недозвон», «Фейк» по карточкам Step2Travel с той же страной. «Продажи ВЛ» — договоры по стране во всех филиалах за период: CRM не связывает договор с рекламным лидом, поэтому это ориентир.</div></div>
+      <div class="tbl"><table id="mTbl"></table></div>
+    </section>
+
+    <!-- LOSSES -->
+    <section class="view" id="v-losses">
+      <div class="banner warn"><div><b>Переписки Instagram Direct пока не подключены.</b>Страница читает CRM и рекламный кабинет Meta. Диалоги Direct появятся здесь, когда будет готов маркер системного пользователя с правом instagram_manage_messages.</div></div>
+      <div class="grid cols2">
+        <div class="card"><h3>Где теряются лиды из рекламы</h3><div class="funnel" id="lFunnel"></div></div>
+        <div class="card"><h3>Причины потерь</h3><div class="bars" id="lLoss" style="--c1:var(--red)"></div></div>
+        <div class="card"><h3>Скорость обработки</h3><div id="lSla"></div></div>
+        <div class="card"><h3>Instagram в рекламе</h3><div id="lIg"></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="drawer" id="drawer" hidden><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+/* ================= config ================= */
+const CRM = "срм", META = "Meta";
+const META_ACCOUNT = "1785823405700372";
+const BRANCHES = {kiev:"Киев",dp:"Днепр",kh:"Харьков",vn:"Винница",cher:"Чернигов",brovary:"Бровары",zp:"Запорожье",od:"Одесса",hm:"Хмельницкий",kremen:"Кременчуг",virt:"Облачный",bila:"Белая Церковь",rv:"Ровно",krog:"Кривой Рог"};
+const CACHE = {staleTime: 6*3600e3, gcTime: 7*24*3600e3};
+const CONV_ID = (() => { const a="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"; let s=""; for(let i=0;i<20;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; })();
+
+const COUNTRIES = [
+  ["korea","Корея",/коре|korea/],["japan","Япония",/япон|japan/],["carpathians","Карпаты",/карпат|carpath/],
+  ["greece","Греция",/грец|греция|греці|^gr$/],["bulgaria","Болгария",/болгар|bulgar/],["london","Лондон",/лондон|london|англ/],
+  ["barcelona","Испания",/барсел|іспан|испан|barcelona|spain/],["china","Китай",/китай|пекін|пекин|hongkong|beijing/],
+  ["seattle","США: Сиэтл",/сиэтл|сіетл|калифор|seattle/],["newyork","США: Нью-Йорк",/нью.?йорк|флорид|new york|usa_2/],
+  ["malaysia","Малайзия",/малайз|malaysia/],["kyiv_city","Городской (Оболонь)",/оболон/],
+  ["webinar","Вебинар",/як обрати|как выбрать/],["general","Без страны",/общий|общая|літні табори|^вт\s*-\s*$/],
+];
+const CN = Object.fromEntries(COUNTRIES.map(c=>[c[0],c[1]])); CN.unknown="Не указано"; CN.smm="SMM";
+const countryOf = t => { t=(t||"").trim().toLowerCase(); for (const [k,,rx] of COUNTRIES) if (rx.test(t)) return k; return "unknown"; };
+const STATUS = {result_no_answer:"Недозвон",wait_call:"Ждёт звонка",result_think:"Думает",result_fail:"Отказ",result_deleted:"Удалён"};
+const SOURCE = {irt_facebook:"Meta-форма",irt_course:"Сайт: программа",irt_consultation:"Сайт: консультация",irt_study_form:"Сайт: форма",irt_internet:"Сайт"};
+const PAYMENT = {"1":"Оплачен","0":"Не оплачен","2":"Отказ","5":"Аннулирован"};
+const MARKS = ["Позвонить","Перезвонить","Отправили программу","Горячий","На след. сезон","Продано","Не актуально"];
+const MARK_TAG = {"Горячий":"t-coral","Продано":"t-mint","Не актуально":"t-red","На след. сезон":"t-violet","Отправили программу":"t-blue","Перезвонить":"t-sun","Позвонить":"t-sun"};
+const NOT_LEFT = /не\s*зал[иі]ш|не\s*оставл|помилк|випадков|ошибк|тест/i, EXPENSIVE=/дорог/i, LATER=/наст|на след|наступн|осін|осен|на зим|рік|год/i;
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => (n==null||isNaN(n)) ? "—" : Math.round(n).toLocaleString("ru-RU");
+const money = n => n==null||isNaN(n) ? "—" : "$"+(Math.round(n*100)/100).toLocaleString("ru-RU",{maximumFractionDigits:2});
+const uah = n => fmt(n)+" ₴";
+const pct = (a,b) => b ? (Math.round(a/b*1000)/10)+"%" : "—";
+const by = (a,f) => a.reduce((m,x)=>{const k=f(x);(m[k]=m[k]||[]).push(x);return m},{});
+const short = (t,n=140) => { t=t||""; return t.length>n ? t.slice(0,n).trim()+"…" : t; };
+const uniq = a => [...new Set(a)].filter(x=>x!==""&&x!=null);
+const todayISO = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const dmy = s => s ? s.slice(0,10).split("-").reverse().join(".") : "";
+const store = { get(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}} };
+function toast(t){ const el=$("#toast"); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2400); }
+
+/* ================= state ================= */
+const S = {
+  leads: [], contracts: [], meta: null,
+  src: {crm_leads:{st:"idle"}, crm_sales:{st:"idle"}, meta:{st:"idle"}},
+  leadState: {}, tasks: [], me: {id:null}, db: null, user: null, mcp: null,
+  canWrite: null, dbOk: false,
+};
+$("#dTo").value = todayISO();
+const saved = store.get("stt_period"); if (saved) { $("#dFrom").value = saved.from || $("#dFrom").value; }
+
+/* ================= data loading ================= */
+const ERR_TEXT = {
+  server_not_connected: s => `Коннектор «${s}» не подключён. Добавьте его в claude.ai → Настройки → Коннекторы и обновите страницу.`,
+  needs_reauth: s => `Доступ к «${s}» истёк. Переподключите его в claude.ai → Настройки → Коннекторы.`,
+  selection_required: s => `У вас несколько коннекторов «${s}». Выберите нужный в запросе claude.ai.`,
+  not_in_manifest: s => `Вы не разрешили этой странице доступ к «${s}».`,
+  approval_required: s => `Нужно разрешение на доступ к «${s}».`,
+  blocked_by_policy: s => `Политика организации запрещает доступ к «${s}».`,
+  server_unavailable: s => `«${s}» сейчас не отвечает. Попробуйте обновить через минуту.`,
+  tool_error: (s,e) => `«${s}» вернул ошибку: ${e.message||""}`,
+};
+const errText = (s,e) => (ERR_TEXT[e?.code] || ((s,e)=>`Не удалось получить данные из «${s}»: ${e?.message||e?.code||"ошибка"}`))(s,e);
+
+async function call(server, tool, input, refresh) {
+  const opts = {cache: refresh ? {...CACHE, refresh:true} : CACHE};
+  try { return await S.mcp.callTool(server, tool, input, opts); }
+  catch (e) {
+    if (e && e.retryable) { await new Promise(r=>setTimeout(r, Math.min(e.retryAfterMs||1500+Math.random()*1500, 8000))); return await S.mcp.callTool(server, tool, input, opts); }
+    throw e;
+  }
+}
+const payload = r => { let p = r.payload; if (typeof p === "string") { try { p = JSON.parse(p); } catch(e) {} } return p; };
+const stamp = r => r.cache?.storedAt || Date.now();
+
+async function loadLeads(refresh) {
+  const from=$("#dFrom").value, to=$("#dTo").value;
+  S.src.crm_leads = {st:"load"}; renderStatus();
+  const all = []; let total = Infinity, at = Infinity;
+  for (let page=1; page<=25 && all.length < total; page++) {
+    const r = await call(CRM, "crm_internet_requests", {cityAlias:"stt_ukr", dateFrom:from, dateTo:to, mode:"history", perPage:200, page}, refresh);
+    const p = payload(r); at = Math.min(at, stamp(r));
+    const got = p?.data?.leads || [];
+    total = p?.pagination?.count_all ?? p?.data?.count_leads ?? all.length + got.length;
+    all.push(...got);
+    if (!got.length) break;
+  }
+  const seen = new Set();
+  S.leads = all.filter(l => !seen.has(l.id) && seen.add(l.id)).map(normLead);
+  S.src.crm_leads = {st:"ok", at, n:S.leads.length};
+}
+async function loadSales(refresh) {
+  const from=$("#dFrom").value, to=$("#dTo").value;
+  S.src.crm_sales = {st:"load", done:0}; renderStatus();
+  const out = [], errs = []; let at = Infinity;
+  const keys = Object.keys(BRANCHES); let i = 0;
+  async function worker(){
+    while (i < keys.length) {
+      const b = keys[i++];
+      try {
+        let total = Infinity, got = 0;
+        for (let page=1; page<=10 && got < total; page++) {
+          const r = await call(CRM, "crm_contracts_list", {cityAlias:b, studyFormId:[20], dateFrom:from, dateTo:to, perPage:100, page}, refresh);
+          const p = payload(r); at = Math.min(at, stamp(r));
+          const items = p?.items || []; total = p?.summary?.count_all ?? items.length; got += items.length;
+          out.push(...items.map(x=>normContract(x,b)));
+          if (!items.length) break;
+        }
+      } catch(e) { errs.push([b,e]); if (["server_not_connected","needs_reauth","not_in_manifest","approval_required","blocked_by_policy","selection_required"].includes(e?.code)) throw e; }
+      S.src.crm_sales.done++; renderStatus();
+    }
+  }
+  await Promise.all([worker(),worker(),worker()]);
+  S.contracts = out;
+  S.src.crm_sales = {st: errs.length ? "partial":"ok", at, n:out.length, errs};
+}
+async function loadMeta(refresh) {
+  const from=$("#dFrom").value, to=$("#dTo").value, tr = JSON.stringify({since:from, until:to});
+  S.src.meta = {st:"load"}; renderStatus();
+  const base = {ad_account_id:META_ACCOUNT, advertiser_job:"report_measure_or_look_up", advertiser_request:"детальная аналитика рекламы STEP Travel: лиды, качество, продажи", client_conversation_id:CONV_ID, time_range:tr, include_additional_context:false, reporting_purpose:["metric_lookup"]};
+  const ents = r => { const p = payload(r); let e = p?.ad_entities ?? p; if (typeof e === "string") { try { e = JSON.parse(e); } catch(x) { e = []; } } return Array.isArray(e) ? e : []; };
+  const [rc, rp, rm] = await Promise.all([
+    call(META, "ads_get_ad_entities", {...base, level:"campaign", fields:["id","name","objective","effective_status","amount_spent","impressions","reach","link_click","ctr","cpm","lead","cost_per_lead"], filtering:[{field:"amount_spent",operator:"GREATER_THAN",value:["0"]}], sort:"amount_spent_descending", limit:200}, refresh),
+    call(META, "ads_get_ad_entities", {...base, level:"ad_account", fields:["amount_spent","impressions","reach","link_click","lead","cost_per_lead"], breakdowns:["publisher_platform"]}, refresh),
+    call(META, "ads_get_ad_entities", {...base, level:"ad_account", fields:["amount_spent","impressions","link_click","lead"], time_increment:"monthly"}, refresh),
+  ]);
+  const num = v => v==null ? 0 : typeof v === "object" ? parseFloat(v.value)||0 : parseFloat(String(v).replace(",", "."))||0;
+  const camps = ents(rc).map(c => ({id:c.id, name:c.name, objective:c.objective, status:c.effective_status, spend:num(c.amount_spent), impressions:num(c.impressions), reach:num(c.reach), clicks:num(c.link_click), leads:num(c.lead)}))
+    .map(c => ({...c, country: c.objective==="OUTCOME_LEADS" ? countryOf(c.name) : "smm"}));
+  const plat = {}; ents(rp).forEach(x => { if (x.publisher_platform && x.publisher_platform!=="unknown") plat[x.publisher_platform] = {spend:num(x.amount_spent), reach:num(x.reach), clicks:num(x.link_click), leads:num(x.lead)}; });
+  const monthly = ents(rm).map(x => ({m:(x.date_start||"").slice(0,7), spend:num(x.amount_spent), leads:num(x.lead), clicks:num(x.link_click)}));
+  S.meta = {camps, plat, monthly};
+  S.src.meta = {st:"ok", at: Math.min(stamp(rc),stamp(rp),stamp(rm))};
+}
+
+function normLead(l) {
+  const com = [l.comment, l.last_comment].filter(Boolean).join(" ");
+  let q;
+  if (l.result === "result_deleted") q = (l.comment==="delete_fake_tooltip"||NOT_LEFT.test(com)) ? "Фейк" : l.comment==="delete_duplicate_tooltip" ? "Дубль" : "Удалён";
+  else if (NOT_LEFT.test(com)) q = "Фейк";
+  else if (l.result==="wait_call"||l.result==="result_think") q = "Целевой";
+  else if (l.result==="result_fail") q = "Целевой, отказ";
+  else if (l.result==="result_no_answer") q = "Не дозвонились";
+  else q = "Не обработан";
+  let loss = "";
+  if (q==="Фейк") loss="Фейк / случайная заявка"; else if (q==="Дубль") loss="Дубль"; else if (l.result==="result_deleted") loss="Удалён без причины";
+  else if (EXPENSIVE.test(com)) loss="Дорого"; else if (LATER.test(com)) loss="Неактуально сейчас"; else if (l.result==="result_no_answer") loss="Не дозвонились";
+  else if (!l.result) loss="Не обработан"; else if (l.result==="result_fail") loss="Отказ";
+  let pr = null;
+  if (!(l.result==="result_deleted"||l.result==="result_fail"||q==="Фейк")) {
+    pr = ({result_think:90, wait_call:80, result_no_answer:50})[l.result] ?? 75;
+    if (EXPENSIVE.test(com)) pr -= 15; if (LATER.test(com)) pr += 5; if (!(l.count_contacts_ago>0)) pr += 10;
+  }
+  const utm = (l.utm_source||"").toLowerCase();
+  return {
+    id: String(l.id), date:(l.created_at||"").slice(0,10), name:(l.fio||"").trim()||"Без имени", product:(l.product_name||"").trim(),
+    country: countryOf(l.product_name), source: SOURCE[l.type]||l.type||"", placement: utm.includes("instagram")?"Instagram":utm.includes("facebook")?"Facebook":"",
+    statusRaw:l.result||null, status: STATUS[l.result]||"Не обработан", quality:q, loss, priority:pr,
+    contacts:l.count_contacts_ago||0, processed:(l.processed_at||"").slice(0,10), lastResult:l.last_result||"",
+    comment:uniq([l.comment,l.last_comment].map(x=>(x||"").trim()).filter(x=>x&&!["no_answer","delete_fake_tooltip","delete_duplicate_tooltip","not_call"].includes(x))).join(" · "),
+    crm: l.link_client_history || null, isMeta: l.type==="irt_facebook",
+  };
+}
+function normContract(x,b) {
+  const d = x.docsClients||{};
+  const note = [d.special,d.stream,d.timeless].filter(Boolean).join(" ").trim();
+  let c = countryOf(x.product); if (c==="unknown") c = countryOf(note);
+  const p = x.payments?.payment;
+  return {branch:b, branchName:BRANCHES[b]||b, id:String(x.id_source), date:(x.date_time||"").slice(0,10), customer:(x.fio_customer||"").trim(), child:(x.fio_listener||"").trim(),
+    age:x.contacts?.age||"", country:c, note, sum:parseFloat(d.total_cost_of_the_contract)||0, payment:PAYMENT[p]||p||"", paid:p==="1",
+    manager:x.users?.fio_user||"", crm: x.id_uniq ? "https://crm.itstep.org/clients/"+x.id_uniq : null};
+}
+
+async function loadAll(refresh) {
+  if (!S.mcp) return;
+  const jobs = [
+    loadLeads(refresh).catch(e => { S.src.crm_leads = {st:"err", e}; }),
+    loadSales(refresh).catch(e => { S.src.crm_sales = {st:"err", e}; }),
+    loadMeta(refresh).catch(e => { S.src.meta = {st:"err", e}; }),
+  ];
+  jobs.forEach(j => j.then(renderAll));
+  await Promise.all(jobs); renderAll();
+}
+
+/* ================= shared state (db) ================= */
+function leadSt(id){ return S.leadState[id] || {}; }
+const writing = {};
+async function saveLead(id, patch) {
+  if (!S.db) { toast("Общая база недоступна в этом просмотре"); return; }
+  const doc = {...leadSt(id), ...patch, updatedBy:S.me.id, updatedAt:new Date().toISOString()};
+  Object.keys(doc).forEach(k => doc[k]===undefined && delete doc[k]);
+  while (writing["l"+id]) await writing["l"+id];
+  writing["l"+id] = S.db.doc("leads/"+id).set(doc).then(()=>toast("Сохранено"), e => toast(e?.code==="invalid_argument" ? "У вас нет прав на изменение" : "Не сохранилось, попробуйте ещё раз")).finally(()=>{ writing["l"+id]=null; });
+  await writing["l"+id];
+}
+async function saveTask(id, data) {
+  if (!S.db) { toast("Общая база недоступна в этом просмотре"); return; }
+  const ref = id ? S.db.doc("tasks/"+id) : S.db.collection("tasks").doc();
+  const cur = id ? (S.tasks.find(t=>t.id===id)||{}) : {createdBy:S.me.id, createdAt:new Date().toISOString(), status:"todo"};
+  const body = {...cur, ...data, updatedAt:new Date().toISOString()}; delete body.id;
+  Object.keys(body).forEach(k => body[k]===undefined && delete body[k]);
+  const key = "t"+ref.id; while (writing[key]) await writing[key];
+  writing[key] = ref.set(body).then(()=>toast(id?"Задача обновлена":"Задача создана"), e=>toast(e?.code==="invalid_argument"?"У вас нет прав на изменение":"Не сохранилось")).finally(()=>{writing[key]=null});
+  await writing[key];
+}
+async function deleteTask(id){ if (!S.db) return; try { await S.db.doc("tasks/"+id).delete(); toast("Задача удалена"); } catch(e){ toast("Не удалось удалить"); } }
+
+/* ================= people ================= */
+async function paintPeople(root=document) {
+  if (!S.user) return;
+  const els = [...root.querySelectorAll("[data-uid]")]; const ids = uniq(els.map(e=>e.dataset.uid));
+  if (!ids.length) return;
+  const ps = await S.user.profiles(ids);
+  els.forEach(el => { const p = ps[el.dataset.uid]; if (!p) return; el.textContent = ""; const img = document.createElement("img"); img.src = p.avatarUrl; img.alt = ""; const sp = document.createElement("span"); sp.textContent = p.isMe ? "Я" : (p.name || "Коллега"); el.append(img, sp); });
+}
+const whoHtml = id => id ? `<span class="who" data-uid="${esc(id)}">…</span>` : `<span class="muted small">не назначен</span>`;
+
+/* ================= rendering ================= */
+const TITLES = {dashboard:"Дашборд",calls:"Обзвон",tasks:"Задачи",leads:"Все лиды",sales:"Продажи выездных лагерей",ads:"Реклама Meta",losses:"Потери и Instagram"};
+function route(){
+  let v = (location.hash||"").slice(1); if (!TITLES[v]) v = "dashboard";
+  document.querySelectorAll("section.view").forEach(s=>s.classList.toggle("on", s.id==="v-"+v));
+  document.querySelectorAll("#menu a").forEach(a=>a.classList.toggle("on", a.dataset.v===v));
+  $("#viewTitle").textContent = TITLES[v];
+}
+window.addEventListener("hashchange", route);
+
+function bars(el, rows, f=fmt) {
+  if (!rows.length) { el.innerHTML = `<div class="empty">Нет данных за период</div>`; return; }
+  const max = Math.max(1, ...rows.map(r=>r[1]));
+  el.innerHTML = rows.map(r => { const w=r[1]/max*100, w2 = r[2]!=null ? r[2]/max*100 : null;
+    const fill = w2!=null ? `<div class="f1" style="width:${w2}%"></div><div class="f2" style="width:${Math.max(0,w-w2)}%"></div>` : `<div class="f1" style="width:${w}%"></div>`;
+    return `<div class="row"><div class="lbl" title="${esc(r[0])}">${esc(r[0])}</div><div class="track">${fill}</div><div class="n">${f(r[1])}${r[3]!=null?` <span class="small">${esc(r[3])}</span>`:""}</div></div>`; }).join("");
+}
+function kpis(el, list){ el.innerHTML = list.map(k=>`<div class="card kpi k-${k[3]||"blue"}"><div class="l">${esc(k[0])}</div><div class="v">${typeof k[1]==="number"?fmt(k[1]):esc(k[1])}</div><div class="s">${esc(k[2]||"")}</div></div>`).join(""); }
+function options(sel, label, vals, namer=x=>x){ const cur = sel.value; sel.innerHTML = `<option value="">${label}: все</option>`+vals.map(v=>`<option value="${esc(v)}">${esc(namer(v))}</option>`).join(""); if (vals.includes(cur)) sel.value = cur; }
+const stTag = s => `<span class="tag ${({"Думает":"t-mint","Ждёт звонка":"t-blue","Недозвон":"t-sun","Отказ":"t-red","Удалён":"t-red","Не обработан":"t-coral"})[s]||""}">${esc(s)}</span>`;
+const qTag = q => `<span class="tag ${q==="Целевой"?"t-mint":q==="Целевой, отказ"?"t-sun":(q==="Фейк"||q==="Дубль")?"t-red":""}">${esc(q)}</span>`;
+const markTag = m => m ? `<span class="tag ${MARK_TAG[m]||""}">${esc(m)}</span>` : "";
+const loaded = k => S.src[k].st==="ok"||S.src[k].st==="partial";
+const inPeriod = c => c.date >= $("#dFrom").value && c.date <= $("#dTo").value;
+
+function renderStatus(){
+  const lab = {crm_leads:"Лиды CRM", crm_sales:"Продажи ВЛ", meta:"Meta"};
+  $("#srcStatus").innerHTML = Object.entries(S.src).map(([k,v]) => {
+    const cls = v.st==="ok"?"ok":v.st==="partial"?"load":v.st==="load"?"load":v.st==="err"?"err":"";
+    const extra = v.st==="load" && k==="crm_sales" ? ` ${v.done||0}/${Object.keys(BRANCHES).length}` : v.st==="load" ? " · загрузка" : v.at ? " · "+new Date(v.at).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "";
+    return `<i class="${cls}">${lab[k]}${extra}</i>`; }).join("");
+  const b = [];
+  if (!S.mcp) b.push(`<div class="banner err"><div><b>Нет доступа к данным.</b>Эта страница берёт данные из ваших коннекторов «срм» и «Meta» в claude.ai. Откройте её на claude.ai под аккаунтом организации, где они подключены.</div></div>`);
+  const shown = new Set();
+  Object.entries(S.src).forEach(([k,v]) => { if (v.st==="err") { const srv = k==="meta"?META:CRM; const t = errText(srv, v.e); if (shown.has(t)) return; shown.add(t);
+    const btn = ["approval_required","not_in_manifest","server_unavailable","upstream_error"].includes(v.e?.code) ? `<button class="btn sm" data-retry>Повторить</button>` : "";
+    b.push(`<div class="banner err"><div>${esc(t)}</div>${btn}</div>`);} });
+  if (S.src.crm_sales.st==="partial") b.push(`<div class="banner warn"><div>Не загрузились договоры по филиалам: ${S.src.crm_sales.errs.map(e=>esc(BRANCHES[e[0]])).join(", ")}. Остальные данные показаны.</div><button class="btn sm" data-retry>Повторить</button></div>`);
+  if (S.mcp && (!S.db || S.dbErr || S.dbLate) && !S.dbOk) b.push(`<div class="banner warn"><div>Общая база (пометки, ответственные, задачи) недоступна в этом просмотре: изменения не сохранятся.</div></div>`);
+  $("#banners").innerHTML = b.join("");
+}
+document.addEventListener("click", e => { if (e.target.closest("[data-retry]")) loadAll(true); });
+
+function renderAll(){
+  renderStatus();
+  const L = S.leads;
+  $("#cntLeads").textContent = loaded("crm_leads") ? L.length : "";
+  renderDashboard(); renderCalls(); renderTasks(); renderLeads(); renderSales(); renderAds(); renderLosses();
+  paintPeople();
+}
+
+/* ---------- dashboard ---------- */
+function renderDashboard(){
+  const L=S.leads, C=S.contracts.filter(inPeriod), M=S.meta;
+  const nonDel = L.filter(l=>l.statusRaw!=="result_deleted"), target=L.filter(l=>l.quality==="Целевой");
+  const pot = L.filter(l=>l.priority!=null), paid=C.filter(c=>c.paid), rev=paid.reduce((s,c)=>s+c.sum,0);
+  const spend = M ? M.camps.reduce((s,c)=>s+c.spend,0) : null, mLeads = M ? M.camps.reduce((s,c)=>s+c.leads,0) : null;
+  const sold = Object.values(S.leadState).filter(x=>x.mark==="Продано").length;
+  const openTasks = S.tasks.filter(t=>t.status!=="done").length;
+  kpis($("#kpis"), [
+    ["Лиды за период", loaded("crm_leads")?L.length:"…", loaded("crm_leads")?`целевых ${target.length} · ${pct(target.length,nonDel.length)}`:"", "blue"],
+    ["Можно продать", loaded("crm_leads")?pot.length:"…", loaded("crm_leads")?`недозвон ${L.filter(l=>l.statusRaw==="result_no_answer").length}`:"", "coral"],
+    ["Договоры ВЛ", loaded("crm_sales")?C.length:"…", loaded("crm_sales")?`оплачено ${paid.length}`:"", "mint"],
+    ["Выручка (оплачено)", loaded("crm_sales")?uah(rev):"…", loaded("crm_sales")&&paid.length?`средний чек ${uah(rev/paid.length)}`:"", "sun"],
+    ["Расход Meta", M?money(spend):"…", M?`${fmt(mLeads)} лидов · CPL ${money(spend/Math.max(1,mLeads))}`:"", "violet"],
+    ["Задачи в работе", openTasks, `продано по пометкам: ${sold}`, "red"],
+  ]);
+  // today
+  const t = todayISO(); $("#todayDate").textContent = dmy(t);
+  const byId = Object.fromEntries(L.map(l=>[l.id,l]));
+  const calls = Object.entries(S.leadState).filter(([id,s])=>s.next && s.next<=t && s.mark!=="Продано" && s.mark!=="Не актуально").map(([id,s])=>({id,s,l:byId[id]})).sort((a,b)=>a.s.next.localeCompare(b.s.next));
+  const tasks = S.tasks.filter(x=>x.status!=="done" && x.due && x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
+  const items = [
+    ...calls.map(c=>`<li data-lead="${esc(c.id)}"><span class="tag ${c.s.next<t?"t-red":"t-coral"}">${c.s.next<t?"просрочен":"звонок"}</span><span>${esc(c.l?.name||"Лид #"+c.id)}</span><span class="muted small" style="margin-left:auto">${esc(CN[c.l?.country]||"")}</span></li>`),
+    ...tasks.map(x=>`<li data-task="${esc(x.id)}"><span class="tag ${x.due<t?"t-red":"t-violet"}">${x.due<t?"просрочена":"задача"}</span><span>${esc(x.title)}</span><span style="margin-left:auto">${whoHtml(x.assignee)}</span></li>`),
+  ];
+  $("#todayList").innerHTML = items.length ? `<ul>${items.slice(0,9).join("")}</ul>${items.length>9?`<div class="muted small">и ещё ${items.length-9}</div>`:""}` : `<div class="empty">На сегодня звонков и задач нет. Назначьте «следующий звонок» в карточке лида во вкладке «Обзвон».</div>`;
+  funnel($("#dashFunnel"));
+  const bs = by(L, l=>l.status); bars($("#dashStatus"), Object.entries(bs).map(([k,v])=>[k,v.length,null,pct(v.length,L.length)]).sort((a,b)=>b[1]-a[1]));
+  const bc = by(L, l=>l.country); bars($("#dashCountry"), Object.entries(bc).map(([k,v])=>[CN[k]||k, v.length, v.filter(l=>l.quality==="Целевой").length]).sort((a,b)=>b[1]-a[1]).slice(0,12));
+  const sc = by(C, c=>c.country); bars($("#dashSalesCountry"), Object.entries(sc).map(([k,v])=>[CN[k]||k, v.length, v.filter(c=>c.paid).length]).sort((a,b)=>b[1]-a[1]));
+  const sb = by(C, c=>c.branchName); bars($("#dashBranch"), Object.entries(sb).map(([k,v])=>[k, v.length, v.filter(c=>c.paid).length]).sort((a,b)=>b[1]-a[1]));
+  monthChart($("#dashMonth"));
+}
+function funnel(el){
+  const L=S.leads, fb=L.filter(l=>l.isMeta);
+  if (!L.length) { el.innerHTML = `<div class="empty">Загрузка лидов…</div>`; return; }
+  const mLeads = S.meta ? S.meta.camps.reduce((s,c)=>s+c.leads,0) : null;
+  const st = [
+    ...(mLeads!=null?[["Лиды в Meta", mLeads]]:[]),
+    ["Пришли в CRM", fb.length], ["Не фейк и не дубль", fb.filter(l=>l.statusRaw!=="result_deleted").length],
+    ["Дозвонились", fb.filter(l=>["wait_call","result_think","result_fail"].includes(l.statusRaw)).length],
+    ["Есть интерес", fb.filter(l=>l.quality==="Целевой").length], ["Думают", fb.filter(l=>l.statusRaw==="result_think").length],
+    ["Продано (пометки)", fb.filter(l=>leadSt(l.id).mark==="Продано").length],
+  ];
+  const top = Math.max(1, st[0][1]);
+  el.innerHTML = st.map((s,i)=>`<div class="st"><div>${s[0]}</div><div class="tr"><div class="fl" style="width:${Math.max(1.5,s[1]/top*100)}%"></div></div><div class="n">${fmt(s[1])}${i?` <small>${pct(s[1],st[i-1][1])}</small>`:""}</div></div>`).join("");
+}
+function monthChart(el){
+  const M = S.meta; if (!M) { el.innerHTML = `<div class="empty">${S.src.meta.st==="err"?"Meta недоступна":"Загрузка Meta…"}</div>`; return; }
+  const d = M.monthly; if (!d.length) { el.innerHTML = `<div class="empty">Нет расхода за период</div>`; return; }
+  const W=560,H=210,pl=44,pr=36,pt=14,pb=28, iw=W-pl-pr, ih=H-pt-pb, maxS=Math.max(1,...d.map(x=>x.spend)), maxL=Math.max(1,...d.map(x=>x.leads));
+  const bw = iw/d.length*.56, x = i => pl + iw/d.length*(i+.5);
+  const ticks = [0,.5,1].map(f=>({v:maxS*f,y:pt+ih-ih*f}));
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Расход и лиды по месяцам">`;
+  s += ticks.map(t=>`<line x1="${pl}" x2="${W-pr}" y1="${t.y}" y2="${t.y}" stroke="#e6e9f2"/><text x="${pl-6}" y="${t.y+4}" text-anchor="end">$${fmt(t.v)}</text>`).join("");
+  d.forEach((m,i)=>{ const h=ih*m.spend/maxS; s+=`<rect x="${x(i)-bw/2}" y="${pt+ih-h}" width="${bw}" height="${Math.max(0,h)}" rx="5" fill="#2f6bff"><title>${m.m}: ${money(m.spend)}, лидов ${m.leads}</title></rect><text x="${x(i)}" y="${H-10}" text-anchor="middle">${m.m.slice(5)}.${m.m.slice(2,4)}</text>`; });
+  const pts = d.map((m,i)=>`${x(i)},${pt+ih-ih*m.leads/maxL}`).join(" ");
+  s += `<polyline points="${pts}" fill="none" stroke="#ff5b3a" stroke-width="2.5" stroke-linejoin="round"/>`;
+  d.forEach((m,i)=>{ if (m.leads) s+=`<circle cx="${x(i)}" cy="${pt+ih-ih*m.leads/maxL}" r="4" fill="#ff5b3a"/><text x="${x(i)}" y="${pt+ih-ih*m.leads/maxL-9}" text-anchor="middle" style="fill:#d63d1e;font-weight:600">${m.leads}</text>`; });
+  el.innerHTML = s + `</svg><div class="legend" style="margin-top:6px"><span><i style="background:var(--blue)"></i>расход</span><span><i style="background:var(--coral)"></i>лиды</span></div>`;
+}
+
+/* ---------- calls ---------- */
+const CF = {chip:"all", sk:"priority", dir:-1};
+function renderCalls(){
+  const pot = S.leads.filter(l=>l.priority!=null);
+  $("#cntCalls").textContent = pot.length ? pot.filter(l=>!["Продано","Не актуально"].includes(leadSt(l.id).mark)).length : "";
+  options($("#cCountry"),"Страна",uniq(pot.map(l=>l.country)).sort((a,b)=>(CN[a]||a).localeCompare(CN[b]||b)),k=>CN[k]||k);
+  options($("#cStatus"),"Статус CRM",uniq(pot.map(l=>l.status)));
+  const chips = [["all","Все"],["mine","Мои"],["free","Без ответственного"],["today","Звонок сегодня"],["hot","Горячие"],["sold","Продано"]];
+  $("#cChips").innerHTML = chips.map(c=>`<button class="chip ${CF.chip===c[0]?"on":""}" data-chip="${c[0]}">${c[1]}</button>`).join("");
+  const q=$("#cQ").value.toLowerCase(), cc=$("#cCountry").value, cs=$("#cStatus").value, t=todayISO();
+  const rows = pot.filter(l => { const s=leadSt(l.id);
+    if (cc && l.country!==cc) return false; if (cs && l.status!==cs) return false;
+    if (q && !(l.name+" "+l.comment+" "+l.product+" "+(s.note||"")).toLowerCase().includes(q)) return false;
+    if (CF.chip==="mine") return s.owner && s.owner===S.me.id; if (CF.chip==="free") return !s.owner;
+    if (CF.chip==="today") return s.next && s.next<=t; if (CF.chip==="hot") return s.mark==="Горячий"; if (CF.chip==="sold") return s.mark==="Продано";
+    return s.mark!=="Продано" && s.mark!=="Не актуально";
+  }).sort((a,b)=>{ const va=CF.sk==="next"?(leadSt(a.id).next||"9"):a[CF.sk], vb=CF.sk==="next"?(leadSt(b.id).next||"9"):b[CF.sk]; return (va>vb?1:va<vb?-1:0)*CF.dir || b.priority-a.priority; });
+  $("#cCount").textContent = loaded("crm_leads") ? `${rows.length} лидов` : "Загрузка лидов из CRM…";
+  $("#cTbl").innerHTML = `<thead><tr><th class="num" data-k="priority">Приор.</th><th data-k="name">Клиент</th><th data-k="country">Страна</th><th data-k="status">Статус CRM</th><th>Пометка</th><th>Ответственный</th><th data-k="next">След. звонок</th><th>Комментарий</th></tr></thead><tbody>`+
+    rows.map(l=>{ const s=leadSt(l.id); const late = s.next && s.next<t;
+      return `<tr data-lead="${esc(l.id)}"><td class="num"><span class="prio ${l.priority>=80?"hi":l.priority>=60?"md":""}">${l.priority}</span></td><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.source)} · ${dmy(l.date)}</div></td>
+      <td><span class="tag">${esc(CN[l.country]||l.country)}</span></td><td>${stTag(l.status)}<div class="small muted">контактов: ${l.contacts}</div></td><td>${markTag(s.mark)}</td><td>${whoHtml(s.owner)}</td>
+      <td>${s.next?`<span class="tag ${late?"t-red":s.next===t?"t-coral":""}">${dmy(s.next)}</span>`:""}</td><td class="cm">${esc(short(s.note||l.comment))}</td></tr>`; }).join("")+`</tbody>`;
+}
+$("#cChips").addEventListener("click", e=>{ const b=e.target.closest("[data-chip]"); if(!b) return; CF.chip=b.dataset.chip; renderCalls(); paintPeople($("#cTbl")); });
+["#cQ","#cCountry","#cStatus"].forEach(s=>$(s).addEventListener("input",()=>{renderCalls();paintPeople($("#cTbl"));}));
+$("#cTbl").addEventListener("click", e=>{ const th=e.target.closest("th[data-k]"); if (th){ CF.dir = CF.sk===th.dataset.k ? -CF.dir : (th.dataset.k==="next"?1:-1); CF.sk=th.dataset.k; renderCalls(); paintPeople($("#cTbl")); return; } const tr=e.target.closest("tr[data-lead]"); if (tr) openLead(tr.dataset.lead); });
+document.addEventListener("click", e=>{ const li=e.target.closest("#todayList li"); if(!li) return; if (li.dataset.lead) openLead(li.dataset.lead); if (li.dataset.task) openTask(li.dataset.task); });
+
+/* ---------- drawer: lead ---------- */
+let drawerFor = null;
+function closeDrawer(){ $("#drawer").hidden = true; drawerFor = null; }
+$("#drawer").addEventListener("click", e=>{ if (e.target.id==="drawer" || e.target.closest("[data-close]")) closeDrawer(); });
+document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("#drawer").hidden) closeDrawer(); });
+function openLead(id){
+  const l = S.leads.find(x=>x.id===id); if (!l) return; const s = leadSt(id);
+  drawerFor = "lead:"+id;
+  $("#panel").innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px"><h3 style="flex:1">${esc(l.name)}</h3><button class="btn sm" data-close>Закрыть</button></div>
+    <div class="chips">${stTag(l.status)} ${qTag(l.quality)} <span class="tag">${esc(CN[l.country]||l.country)}</span></div>
+    <div class="kv"><div>Заявка</div><div>${dmy(l.date)} · ${esc(l.source)}${l.placement?" · "+esc(l.placement):""}</div><div>Продукт / форма</div><div>${esc(l.product)}</div>
+      <div>Контактов</div><div>${l.contacts}${l.lastResult?" · "+esc(l.lastResult):""}</div><div>Комментарий CRM</div><div>${esc(l.comment)||"—"}</div>
+      <div>Карточка</div><div>${l.crm?`<a href="${esc(l.crm)}" target="_blank" rel="noopener">открыть в CRM</a>`:"—"}</div></div>
+    <div class="field">Пометка<div class="chips" id="dMarks">${MARKS.map(m=>`<button class="chip ${s.mark===m?"on":""}" data-mark="${esc(m)}">${esc(m)}</button>`).join("")}</div></div>
+    <div class="row2">
+      <div class="field">Ответственный<div style="display:flex;gap:6px;align-items:center;min-height:36px">${whoHtml(s.owner)}${S.me.id&&s.owner!==S.me.id?`<button class="btn sm" id="dTake">Взять себе</button>`:""}${s.owner?`<button class="btn sm" id="dFree">Снять</button>`:""}</div></div>
+      <div class="field"><label for="dNext">Следующий звонок</label><input type="date" id="dNext" value="${esc(s.next||"")}"></div>
+    </div>
+    <div class="field"><label for="dNote">Заметка для команды</label><textarea id="dNote" placeholder="О чём договорились, что отправили, возраст ребёнка, бюджет">${esc(s.note||"")}</textarea></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="dSave">Сохранить</button><button class="btn" id="dTask">Создать задачу по лиду</button></div>
+    ${s.updatedAt?`<div class="small muted">Изменено ${new Date(s.updatedAt).toLocaleString("ru-RU")} · <span data-uid="${esc(s.updatedBy||"")}"></span></div>`:""}`;
+  $("#drawer").hidden = false; paintPeople($("#panel"));
+  $("#dMarks").onclick = e => { const b=e.target.closest("[data-mark]"); if(!b) return; const m = leadSt(id).mark===b.dataset.mark ? undefined : b.dataset.mark;
+    $("#dMarks").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", c.dataset.mark===m)); saveLead(id,{mark:m}); };
+  $("#dTake") && ($("#dTake").onclick = async () => { await saveLead(id,{owner:S.me.id}); openLead(id); });
+  $("#dFree") && ($("#dFree").onclick = async () => { await saveLead(id,{owner:undefined}); openLead(id); });
+  $("#dSave").onclick = () => saveLead(id,{next:$("#dNext").value||undefined, note:$("#dNote").value.trim()||undefined});
+  $("#dTask").onclick = () => openTask(null, {leadId:id, title:"Позвонить: "+l.name, due:$("#dNext").value||todayISO(), assignee:leadSt(id).owner||S.me.id||undefined});
+}
+
+/* ---------- tasks ---------- */
+const TF = {chip:"all"};
+const COLS = [["todo","К выполнению","var(--sun)"],["doing","В работе","var(--blue)"],["done","Готово","var(--mint)"]];
+function renderTasks(){
+  const t = todayISO();
+  $("#cntTasks").textContent = S.tasks.filter(x=>x.status!=="done").length || "";
+  $("#tChips").innerHTML = [["all","Все"],["mine","Мои"],["late","Просроченные"]].map(c=>`<button class="chip ${TF.chip===c[0]?"on":""}" data-tchip="${c[0]}">${c[1]}</button>`).join("");
+  const list = S.tasks.filter(x => TF.chip==="mine" ? x.assignee===S.me.id : TF.chip==="late" ? (x.status!=="done" && x.due && x.due<t) : true);
+  $("#tCount").textContent = `${list.length} задач`;
+  const byId = Object.fromEntries(S.leads.map(l=>[l.id,l]));
+  const pr = {hi:["Срочно","t-coral"], md:["Важно","t-sun"], lo:["Обычная",""]};
+  $("#board").innerHTML = COLS.map(([k,name,color],ci) => { const items = list.filter(x=>(x.status||"todo")===k).sort((a,b)=>(a.due||"9").localeCompare(b.due||"9"));
+    return `<div class="col"><h4><span class="b" style="background:${color}"></span>${name}<span>${items.length}</span></h4>${items.map(x=>{ const late = x.status!=="done" && x.due && x.due<t; const p = pr[x.priority||"lo"]; const l = x.leadId && byId[x.leadId];
+      return `<div class="tcard ${late?"late":""}"><div class="tt">${esc(x.title)}</div>${x.note?`<div class="small muted">${esc(x.note)}</div>`:""}
+      <div class="meta">${p[0]!=="Обычная"?`<span class="tag ${p[1]}">${p[0]}</span>`:""}${x.due?`<span class="tag ${late?"t-red":""}">до ${dmy(x.due)}</span>`:""}${x.leadId?`<span class="tag t-blue" data-openlead="${esc(x.leadId)}" style="cursor:pointer">${esc(l?.name||"лид #"+x.leadId)}</span>`:""}${whoHtml(x.assignee)}</div>
+      <div class="acts">${ci>0?`<button class="btn sm" data-move="${esc(x.id)}" data-to="${COLS[ci-1][0]}">← ${COLS[ci-1][1]}</button>`:""}${ci<2?`<button class="btn sm" data-move="${esc(x.id)}" data-to="${COLS[ci+1][0]}">${COLS[ci+1][1]} →</button>`:""}<button class="btn sm" data-edit="${esc(x.id)}">Изменить</button></div></div>`; }).join("") || `<div class="empty">${k==="todo"?"Задач нет. Создайте первую кнопкой «Новая задача» или из карточки лида.":"Пусто"}</div>`}</div>`; }).join("");
+}
+$("#tChips").addEventListener("click", e=>{ const b=e.target.closest("[data-tchip]"); if(!b) return; TF.chip=b.dataset.tchip; renderTasks(); paintPeople($("#board")); });
+$("#board").addEventListener("click", e=>{ const m=e.target.closest("[data-move]"); if (m) { saveTask(m.dataset.move,{status:m.dataset.to}); return; }
+  const ed=e.target.closest("[data-edit]"); if (ed) { openTask(ed.dataset.edit); return; } const ol=e.target.closest("[data-openlead]"); if (ol) openLead(ol.dataset.openlead); });
+$("#btnNewTask").onclick = () => openTask(null, {assignee:S.me.id||undefined, due:todayISO()});
+function openTask(id, preset={}){
+  const x = id ? S.tasks.find(t=>t.id===id) : {...preset}; if (!x) return;
+  drawerFor = "task:"+(id||"new");
+  let assignee = x.assignee || "";
+  const leadOpts = S.leads.filter(l=>l.priority!=null || l.id===x.leadId).sort((a,b)=>a.name.localeCompare(b.name));
+  $("#panel").innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px"><h3 style="flex:1">${id?"Задача":"Новая задача"}</h3><button class="btn sm" data-close>Закрыть</button></div>
+    <div class="field"><label for="tTitle">Что сделать</label><input id="tTitle" value="${esc(x.title||"")}" placeholder="Например: отправить программу по Японии"></div>
+    <div class="field"><label for="tNote">Детали</label><textarea id="tNote">${esc(x.note||"")}</textarea></div>
+    <div class="row2"><div class="field"><label for="tDue">Срок</label><input type="date" id="tDue" value="${esc(x.due||"")}"></div>
+      <div class="field"><label for="tPrio">Приоритет</label><select id="tPrio"><option value="lo">Обычная</option><option value="md">Важно</option><option value="hi">Срочно</option></select></div></div>
+    <div class="row2"><div class="field"><label for="tStatus">Статус</label><select id="tStatus">${COLS.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join("")}</select></div>
+      <div class="field"><label for="tLead">Лид</label><select id="tLead"><option value="">— без лида —</option>${leadOpts.map(l=>`<option value="${esc(l.id)}">${esc(l.name)} · ${esc(CN[l.country]||"")}</option>`).join("")}</select></div></div>
+    <div class="field">Исполнитель<div id="tWho" style="min-height:28px"></div><input id="tSearch" placeholder="Найти коллегу по имени" autocomplete="off"><div class="hits" id="tHits" hidden></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="tSave">${id?"Сохранить":"Создать"}</button>${id?`<button class="btn" id="tDel" style="color:var(--red)">Удалить</button>`:""}</div>
+    <div id="tConfirm"></div>`;
+  $("#tPrio").value = x.priority||"lo"; $("#tStatus").value = x.status||"todo"; $("#tLead").value = x.leadId||"";
+  const drawWho = () => { $("#tWho").innerHTML = assignee ? `${whoHtml(assignee)} <button class="btn sm" id="tUn">убрать</button>` : `<span class="muted small">не назначен</span>${S.me.id?` <button class="btn sm" id="tMe">Назначить себя</button>`:""}`;
+    paintPeople($("#tWho")); $("#tUn")&&($("#tUn").onclick=()=>{assignee="";drawWho();}); $("#tMe")&&($("#tMe").onclick=()=>{assignee=S.me.id;drawWho();}); };
+  drawWho();
+  const search = async q => { if (!S.user) return; const hits = await S.user.search(q); const box=$("#tHits"); box.hidden = !hits.length; box.innerHTML="";
+    hits.forEach(h=>{ const b=document.createElement("button"); b.type="button"; const img=document.createElement("img"); img.src=h.avatarUrl; img.style.cssText="width:20px;height:20px;border-radius:50%"; const sp=document.createElement("span"); sp.textContent=h.isMe?"Я":h.name; b.append(img,sp); b.onclick=()=>{assignee=h.id; box.hidden=true; $("#tSearch").value=""; drawWho();}; box.append(b); }); };
+  $("#tSearch").onfocus = e => search(e.target.value); $("#tSearch").oninput = e => search(e.target.value);
+  $("#tSave").onclick = async () => { const title=$("#tTitle").value.trim(); if(!title){ $("#tTitle").focus(); toast("Напишите, что сделать"); return; }
+    await saveTask(id, {title, note:$("#tNote").value.trim()||undefined, due:$("#tDue").value||undefined, priority:$("#tPrio").value, status:$("#tStatus").value, leadId:$("#tLead").value||undefined, assignee:assignee||undefined});
+    closeDrawer(); location.hash = "#tasks"; };
+  $("#tDel") && ($("#tDel").onclick = () => { $("#tConfirm").innerHTML = `<div class="banner err"><div>Удалить задачу без возможности восстановления?</div><button class="btn sm" id="tDelYes">Удалить</button></div>`; $("#tDelYes").onclick = async()=>{ await deleteTask(id); closeDrawer(); }; });
+  $("#drawer").hidden = false; setTimeout(()=>$("#tTitle").focus(), 50);
+}
+
+/* ---------- leads ---------- */
+const LF = {sk:"date", dir:-1};
+function renderLeads(){
+  const L = S.leads;
+  options($("#lCountry"),"Страна",uniq(L.map(l=>l.country)).sort((a,b)=>(CN[a]||a).localeCompare(CN[b]||b)),k=>CN[k]||k);
+  options($("#lStatus"),"Статус",uniq(L.map(l=>l.status))); options($("#lQuality"),"Качество",uniq(L.map(l=>l.quality))); options($("#lSource"),"Источник",uniq(L.map(l=>l.source)));
+  const q=$("#lQ").value.toLowerCase(), c=$("#lCountry").value, s=$("#lStatus").value, qq=$("#lQuality").value, so=$("#lSource").value;
+  const rows = L.filter(l=>(!c||l.country===c)&&(!s||l.status===s)&&(!qq||l.quality===qq)&&(!so||l.source===so)&&(!q||(l.name+" "+l.comment+" "+l.product).toLowerCase().includes(q)))
+    .sort((a,b)=>(a[LF.sk]>b[LF.sk]?1:a[LF.sk]<b[LF.sk]?-1:0)*LF.dir);
+  $("#lCount").textContent = loaded("crm_leads") ? `${rows.length} из ${L.length}` : "Загрузка…";
+  $("#lTbl").innerHTML = `<thead><tr><th data-k="date">Дата</th><th data-k="name">Клиент</th><th data-k="country">Страна</th><th data-k="product">Продукт / форма</th><th data-k="source">Источник</th><th data-k="status">Статус</th><th data-k="quality">Качество</th><th>Пометка</th><th>Комментарий</th></tr></thead><tbody>`+
+    rows.map(l=>`<tr data-lead="${esc(l.id)}"><td>${dmy(l.date)}</td><td><b>${esc(l.name)}</b></td><td><span class="tag">${esc(CN[l.country]||l.country)}</span></td><td class="small">${esc(l.product)}</td><td class="small">${esc(l.source)}${l.placement?`<br><span class="muted">${esc(l.placement)}</span>`:""}</td><td>${stTag(l.status)}</td><td>${qTag(l.quality)}</td><td>${markTag(leadSt(l.id).mark)}</td><td class="cm">${esc(short(l.comment))}</td></tr>`).join("")+`</tbody>`;
+}
+["#lQ","#lCountry","#lStatus","#lQuality","#lSource"].forEach(s=>$(s).addEventListener("input",renderLeads));
+$("#lTbl").addEventListener("click", e=>{ const th=e.target.closest("th[data-k]"); if (th){ LF.dir = LF.sk===th.dataset.k?-LF.dir:-1; LF.sk=th.dataset.k; renderLeads(); return; } const tr=e.target.closest("tr[data-lead]"); if (tr) openLead(tr.dataset.lead); });
+
+/* ---------- sales ---------- */
+const SF = {sk:"date", dir:-1};
+function renderSales(){
+  const C = S.contracts.filter(inPeriod), paid = C.filter(c=>c.paid);
+  kpis($("#sKpis"), [
+    ["Договоров ВЛ", loaded("crm_sales")?C.length:"…", `${Object.keys(by(C,c=>c.branch)).length} филиалов`, "mint"],
+    ["Оплачено", loaded("crm_sales")?paid.length:"…", pct(paid.length,C.length), "blue"],
+    ["Выручка", loaded("crm_sales")?uah(paid.reduce((s,c)=>s+c.sum,0)):"…", "оплаченные договоры", "sun"],
+    ["Ждут оплаты", C.filter(c=>c.payment==="Не оплачен").length, "контроль оплаты", "coral"],
+    ["Отказы и аннулирования", C.filter(c=>c.payment==="Отказ"||c.payment==="Аннулирован").length, "", "red"],
+  ]);
+  const rc = by(paid,c=>c.country); bars($("#sRev"), Object.entries(rc).map(([k,v])=>[CN[k]||k, v.reduce((s,c)=>s+c.sum,0), null, v.length+" шт"]).sort((a,b)=>b[1]-a[1]), uah);
+  const mo = by(C,c=>c.date.slice(0,7)); bars($("#sMonth"), Object.keys(mo).sort().map(k=>[k.slice(5)+"."+k.slice(0,4), mo[k].length, mo[k].filter(c=>c.paid).length]));
+  const mg = by(C,c=>c.manager+" · "+c.branchName); bars($("#sMgr"), Object.entries(mg).map(([k,v])=>[k, v.length, null, v.filter(c=>c.paid).length+" опл."]).sort((a,b)=>b[1]-a[1]).slice(0,12));
+  const ps = by(C,c=>c.payment); bars($("#sPay"), Object.entries(ps).map(([k,v])=>[k, v.length]).sort((a,b)=>b[1]-a[1]));
+  options($("#sBranch"),"Филиал",uniq(C.map(c=>c.branchName))); options($("#sCountry"),"Страна",uniq(C.map(c=>c.country)),k=>CN[k]||k); options($("#sPayF"),"Оплата",uniq(C.map(c=>c.payment)));
+  const q=$("#sQ").value.toLowerCase(), b=$("#sBranch").value, c=$("#sCountry").value, p=$("#sPayF").value;
+  const rows = C.filter(x=>(!b||x.branchName===b)&&(!c||x.country===c)&&(!p||x.payment===p)&&(!q||(x.customer+" "+x.child+" "+x.manager+" "+x.note).toLowerCase().includes(q))).sort((a,b)=>(a[SF.sk]>b[SF.sk]?1:a[SF.sk]<b[SF.sk]?-1:0)*SF.dir);
+  $("#sCount").textContent = loaded("crm_sales") ? `${rows.length} договоров · оплачено ${uah(rows.filter(x=>x.paid).reduce((s,x)=>s+x.sum,0))}` : `Загрузка договоров… ${S.src.crm_sales.done||0} из ${Object.keys(BRANCHES).length} филиалов`;
+  $("#sTbl").innerHTML = `<thead><tr><th data-k="date">Дата</th><th data-k="branchName">Филиал</th><th data-k="customer">Заказчик</th><th data-k="child">Ребёнок</th><th data-k="country">Страна</th><th>Смена</th><th class="num" data-k="sum">Сумма</th><th data-k="payment">Оплата</th><th data-k="manager">Менеджер</th></tr></thead><tbody>`+
+    rows.map(x=>`<tr data-url="${esc(x.crm||"")}"><td>${dmy(x.date)}</td><td>${esc(x.branchName)}</td><td><b>${esc(x.customer)}</b></td><td>${esc(x.child)}${x.age?` <span class="muted small">${esc(x.age)} л.</span>`:""}</td><td><span class="tag">${esc(CN[x.country]||x.country)}</span></td><td class="small muted">${esc(x.note)}</td><td class="num">${fmt(x.sum)} ₴</td><td><span class="tag ${x.paid?"t-mint":x.payment==="Не оплачен"?"t-sun":"t-red"}">${esc(x.payment)}</span></td><td class="small">${esc(x.manager)}</td></tr>`).join("")+`</tbody>`;
+}
+["#sQ","#sBranch","#sCountry","#sPayF"].forEach(s=>$(s).addEventListener("input",renderSales));
+$("#sTbl").addEventListener("click", e=>{ const th=e.target.closest("th[data-k]"); if (th){ SF.dir = SF.sk===th.dataset.k?-SF.dir:-1; SF.sk=th.dataset.k; renderSales(); return; } const tr=e.target.closest("tr[data-url]"); if (tr && tr.dataset.url) window.open(tr.dataset.url, "_blank", "noopener"); });
+
+/* ---------- ads ---------- */
+function renderAds(){
+  const M = S.meta, L = S.leads, fb = L.filter(l=>l.isMeta);
+  if (!M) { kpis($("#mKpis"), [["Расход", "…", S.src.meta.st==="err"?"Meta недоступна":"загрузка", "violet"]]); $("#mTbl").innerHTML=""; $("#mPlat").innerHTML=""; bars($("#mQual"),[]); return; }
+  const spend = M.camps.reduce((s,c)=>s+c.spend,0), leadC = M.camps.filter(c=>c.objective==="OUTCOME_LEADS"), lSpend = leadC.reduce((s,c)=>s+c.spend,0), mLeads = leadC.reduce((s,c)=>s+c.leads,0);
+  const tg = fb.filter(l=>l.quality==="Целевой").length, fk = fb.filter(l=>l.quality==="Фейк"||l.quality==="Дубль").length;
+  const sold = fb.filter(l=>leadSt(l.id).mark==="Продано").length;
+  kpis($("#mKpis"), [
+    ["Расход", money(spend), `${M.camps.length} кампаний`, "violet"], ["Лиды Meta", mLeads, "CPL "+money(lSpend/Math.max(1,mLeads)), "blue"],
+    ["Целевые в CRM", tg, "цена целевого "+money(lSpend/Math.max(1,tg)), "mint"], ["Фейк и дубли", fk, pct(fk, fb.length)+" лидов из форм", "red"],
+    ["Продано по пометкам", sold, sold?"цена продажи "+money(lSpend/sold):"отмечайте «Продано» в обзвоне", "sun"],
+  ]);
+  const lc = by(fb,l=>l.country); bars($("#mQual"), Object.entries(lc).map(([k,v])=>[CN[k]||k, v.length, v.filter(l=>l.quality==="Целевой").length, pct(v.filter(l=>l.quality==="Целевой").length, v.length)]).sort((a,b)=>b[1]-a[1]));
+  const p = M.plat; const pr = (n,x)=>x?`<tr><td><b>${n}</b></td><td class="num">${money(x.spend)}</td><td class="num">${fmt(x.reach)}</td><td class="num">${fmt(x.clicks)}</td><td class="num">${fmt(x.leads)}</td><td class="num">${money(x.spend/Math.max(1,x.leads))}</td></tr>`:"";
+  $("#mPlat").innerHTML = `<div class="tbl" style="border:0"><table><thead><tr><th>Площадка</th><th class="num">Расход</th><th class="num">Охват</th><th class="num">Клики</th><th class="num">Лиды</th><th class="num">CPL</th></tr></thead><tbody>${pr("Facebook",p.facebook)}${pr("Instagram",p.instagram)}</tbody></table></div>`;
+  const C = S.contracts.filter(inPeriod);
+  const rows = Object.entries(by(M.camps,c=>c.country)).map(([k,cs])=>{ const sp=cs.reduce((s,c)=>s+c.spend,0), ml=cs.reduce((s,c)=>s+c.leads,0), cl=fb.filter(l=>l.country===k), t=cl.filter(l=>l.quality==="Целевой").length; const sales=C.filter(c=>c.country===k);
+    return {k, cs, sp, ml, cl:cl.length, t, na:cl.filter(l=>l.statusRaw==="result_no_answer").length, fk:cl.filter(l=>l.quality==="Фейк"||l.quality==="Дубль").length, sales:sales.length, paid:sales.filter(c=>c.paid).length, rev:sales.filter(c=>c.paid).reduce((s,c)=>s+c.sum,0)}; }).sort((a,b)=>b.sp-a.sp);
+  $("#mTbl").innerHTML = `<thead><tr><th>Направление</th><th class="num">Расход</th><th class="num">Лиды Meta</th><th class="num">CPL</th><th class="num">В CRM</th><th class="num">Целевые</th><th class="num">Недозвон</th><th class="num">Фейк</th><th class="num">Цена целевого</th><th class="num">Продажи ВЛ</th><th class="num">Выручка</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr><td><b>${esc(CN[r.k]||r.k)}</b><div class="small muted">${r.cs.map(c=>esc(c.name)).join("<br>")}</div></td><td class="num">${money(r.sp)}</td><td class="num">${r.ml||"—"}</td><td class="num">${r.ml?money(r.sp/r.ml):"—"}</td><td class="num">${r.cl||"—"}</td><td class="num">${r.t?`<span class="tag t-mint">${r.t} · ${pct(r.t,r.cl)}</span>`:"—"}</td><td class="num">${r.na||"—"}</td><td class="num">${r.fk||"—"}</td><td class="num">${r.t?money(r.sp/r.t):"—"}</td><td class="num">${r.sales?`${r.sales} / ${r.paid} опл.`:"—"}</td><td class="num">${r.rev?fmt(r.rev)+" ₴":"—"}</td></tr>`).join("")+`</tbody>`;
+}
+
+/* ---------- losses ---------- */
+function renderLosses(){
+  const L = S.leads; funnel($("#lFunnel"));
+  const lr = by(L.filter(l=>l.loss), l=>l.loss); bars($("#lLoss"), Object.entries(lr).map(([k,v])=>[k, v.length, null, pct(v.length, L.length)]).sort((a,b)=>b[1]-a[1]));
+  const proc = L.filter(l=>l.processed&&l.date).map(l=>(new Date(l.processed)-new Date(l.date))/864e5).filter(x=>x>=0).sort((a,b)=>a-b);
+  const med = proc.length ? proc[Math.floor(proc.length/2)] : null, na = L.filter(l=>l.statusRaw==="result_no_answer"), wait = L.filter(l=>l.statusRaw==="wait_call");
+  $("#lSla").innerHTML = L.length ? `<div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+    <div class="card kpi k-sun" style="padding:12px 14px"><div class="l">Медиана до обработки</div><div class="v">${med!=null?(Math.round(med*10)/10)+" дн.":"—"}</div><div class="s">в тот же день: ${pct(proc.filter(x=>x<1).length, proc.length)}</div></div>
+    <div class="card kpi k-coral" style="padding:12px 14px"><div class="l">В недозвоне</div><div class="v">${na.length}</div><div class="s">с 1 попыткой: ${na.filter(l=>l.contacts<=1).length}</div></div>
+    <div class="card kpi k-blue" style="padding:12px 14px"><div class="l">Ждут звонка</div><div class="v">${wait.length}</div><div class="s">самый старый: ${dmy(wait.map(l=>l.date).sort()[0])||"—"}</div></div>
+    <div class="card kpi k-violet" style="padding:12px 14px"><div class="l">Без ответственного</div><div class="v">${L.filter(l=>l.priority!=null && !leadSt(l.id).owner).length}</div><div class="s">из ${L.filter(l=>l.priority!=null).length} в обзвоне</div></div></div>` : `<div class="empty">Загрузка…</div>`;
+  const p = S.meta?.plat;
+  $("#lIg").innerHTML = p?.instagram && p?.facebook ? `<div class="kv"><div>Доля бюджета</div><div><b>${pct(p.instagram.spend, p.instagram.spend+p.facebook.spend)}</b></div><div>Доля лидов</div><div><b>${pct(p.instagram.leads, p.instagram.leads+p.facebook.leads)}</b></div>
+    <div>CPL Instagram</div><div><b>${money(p.instagram.spend/Math.max(1,p.instagram.leads))}</b> против ${money(p.facebook.spend/Math.max(1,p.facebook.leads))} в Facebook</div>
+    <div>Лиды сайта с Instagram</div><div>${L.filter(l=>l.placement==="Instagram").length} (по utm)</div></div><p class="small muted">У лидов из Meta-форм площадка в CRM не передаётся, поэтому качество Instagram и Facebook отдельно в CRM не сравнить.</p>` : `<div class="empty">${S.src.meta.st==="err"?"Meta недоступна":"Загрузка Meta…"}</div>`;
+}
+
+/* ================= boot ================= */
+route(); renderAll();
+$("#btnRefresh").onclick = () => { store.set("stt_period",{from:$("#dFrom").value}); loadAll(true); };
+["#dFrom","#dTo"].forEach(s=>$(s).addEventListener("change",()=>{ store.set("stt_period",{from:$("#dFrom").value}); loadAll(false); }));
+
+(async () => {
+  const c = window.claude;
+  const [mcp, db, user] = c && c.use ? await Promise.all([c.use("mcp"), c.use("db"), c.use("user")]) : [null,null,null];
+  S.mcp = mcp; S.db = db; S.user = user;
+  if (user) { S.me = await user.me(); const w=$("#whoami"); if (S.me.id){ w.innerHTML=`<img src="" alt=""><span></span>`; w.querySelector("img").src=S.me.avatarUrl; w.querySelector("img").style.cssText="width:22px;height:22px;border-radius:50%"; w.querySelector("span").textContent=S.me.name||"Вы"; } }
+  if (db) {
+    let timer = setTimeout(()=>{ if(!S.dbOk){ S.dbLate=true; renderStatus(); } }, 10000);
+    db.collection("leads").onSnapshot(snap => { S.dbOk = true; clearTimeout(timer); const m={}; snap.docs.forEach(d=>m[d.id]=d.data()); S.leadState=m; renderAll(); if (drawerFor && drawerFor.startsWith("lead:")) { /* keep inputs; drawer reopens on demand */ } }, e => { S.dbOk=false; S.dbErr=true; renderStatus(); });
+    db.collection("tasks").onSnapshot(snap => { S.dbOk = true; S.tasks = snap.docs.map(d=>({id:d.id, ...d.data()})); renderAll(); }, e => { S.dbOk=false; S.dbErr=true; renderStatus(); });
+  }
+  renderStatus();
+  if (mcp) loadAll(false);
+})();
+})();
+</script>
