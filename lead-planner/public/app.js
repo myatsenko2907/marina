@@ -693,7 +693,7 @@ async function renderBranch(id, tab = "dash") {
   ].join(" · ");
 
   let body = "";
-  if (tab === "dash") body = branchDash(r, season, cur, data.tasks, id) + branchKpiCard(data.kpi) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
+  if (tab === "dash") body = branchDash(r, season, cur, data.tasks, id) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
   if (tab === "tasks") body = data.tasks ? tasksCard(data.tasks, id) : `<div class="card"><div class="empty">Задач пока нет: для этого филиала ещё не загружены данные кабинетов FB и Google. Они обновляются раз в день.</div></div>`;
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
@@ -707,6 +707,7 @@ async function renderBranch(id, tab = "dash") {
       <span class="spacer"></span>${monthNav()}
       ${branch.adAccountId && S.me.metaConfigured ? '<button class="btn" id="fbRef">Обновить из FB</button>' : ""}
       ${window.LOCAL_MODE ? "" : `<a class="btn" href="/api/branches/${id}/export.csv?month=${S.month}">Скачать CSV</a>`}</div>
+    ${branchKpiCard(data.kpi)}
     <nav class="tabs">${tabs.map(([k, n]) => `<a href="#/b/${id}/${k}" class="${k === tab ? "on" : ""}">${n}</a>`).join("")}</nav>
     ${t.status === "noplan" ? `<div class="alerts"><div class="alert-row info">В CRM нет плана договоров на ${monthName(S.month).toLowerCase()} — без плана лидобалы, лиды, бюджет и оценка не считаются. ${data.canEdit ? `Внесите план на вкладке <a href="#/b/${id}/input">«Ввод данных»</a> или в CRM.` : "Попросите администратора внести план."} Факт договоров и заявок показывается.</div></div>` : ""}
     ${r.warnings.length ? `<div class="alerts">${r.warnings.map((w) => `<div class="alert-row">${esc(w)}</div>`).join("")}</div>` : ""}
@@ -1957,7 +1958,7 @@ function branchKpiCard(r) {
   if (!r) return "";
   const ks = { ...{ threshold: 0.8, currency: "грн" }, ...(S.settings.kpi || {}) };
   if (r.planBalls <= 0) return "";
-  return `<div class="card mt"><div class="card-head"><h2>KPI маркетолога</h2>${kpill(r.status)}<span class="spacer"></span><a class="btn sm" href="#/kpi">Подробнее →</a></div>
+  return `<div class="card kpitop"><div class="card-head"><h2>KPI маркетолога</h2>${kpill(r.status)}<span class="spacer"></span><a class="btn sm" href="#/kpi">Подробнее →</a></div>
     <div class="hint">${r.closed ? "Итог месяца" : "Прогноз на конец месяца по темпу"}: ${fmt(r.closed ? r.factBalls : r.forecastBalls, 1)} из ${fmt(r.planBalls, 1)} ЛБ (${pct(r.usePct)}) · бонус ${uah(r.bonusBalls, ks)} из ${uah(r.targetBonus, ks)}${r.reviewsPlan != null ? ` · отзывы ${fmt(r.reviewsFact)} / ${fmt(r.reviewsPlan)}` : ""}${!r.closed && r.toThreshold > 0 ? ` · до порога ${pct(ks.threshold ?? 0.8)} ещё ${fmt(r.toThreshold, 1)} ЛБ` : ""}</div>
     ${kpiBar(r.usePct, r.status, { threshold: ks.threshold ?? 0.8 })}</div>`;
 }
