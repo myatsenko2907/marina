@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Business Studio Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+/* One dark stage: a start screen, a live "AI teams at work" board, then sections that fill in as each team finishes. */
+:root {
+  color-scheme: dark;
+  --bg: #120c09;
+  --bg2: #1c130e;
+  --card: #231811;
+  --line: #3a2a20;
+  --text: #f4ebdd;
+  --muted: #b9a593;
+  --accent: #e9b872;
+  --accent2: #c8874a;
+  --sage: #8fa37e;
+  --danger: #e08a6d;
+  --radius: 22px;
+  --display: 'Unbounded', system-ui, sans-serif;
+  --body: 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--body); }
+body { overflow-x: hidden; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.muted { color: var(--muted); }
+.hidden { display: none !important; }
+body::before {
+  content: ''; position: fixed; inset: -20%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(40% 35% at 20% 20%, color-mix(in srgb, var(--accent2) 22%, transparent), transparent 70%),
+    radial-gradient(35% 30% at 85% 70%, rgba(143, 163, 126, .16), transparent 70%);
+  animation: drift 18s ease-in-out infinite alternate;
+}
+@keyframes drift { to { transform: translate(4%, -3%) scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(var(--bg), rgba(18, 12, 9, 0));
+}
+.course { font-family: var(--display); font-size: 14px; letter-spacing: .04em; }
+.course b { color: var(--accent); }
+.course .live { display: inline-block; font-family: var(--body); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #1a100a; background: var(--accent); border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px; }
+.tools { display: flex; gap: 8px; }
+.tool { border: 1px solid var(--line); background: rgba(35, 24, 17, .7); color: var(--text); border-radius: 999px; padding: 8px 14px; font-size: 14px; backdrop-filter: blur(8px); }
+.tool:hover { border-color: var(--accent2); }
+
+.screen { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 90px max(16px, 5vw) 48px; }
+.start { align-items: center; text-align: center; }
+.eyebrow { display: inline-block; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; margin-bottom: 26px; }
+.start h1 { font-size: clamp(34px, 6.4vw, 86px); line-height: 1.03; max-width: 15ch; }
+.start h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--sage)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.start p.lead { font-size: clamp(16px, 2vw, 21px); color: var(--muted); max-width: 48ch; margin: 22px auto 30px; }
+.idea { width: min(800px, 100%); display: flex; gap: 10px; padding: 10px; border-radius: 26px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0, 0, 0, .45); }
+.idea textarea { flex: 1; min-width: 0; resize: none; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 18px; line-height: 1.45; padding: 10px 12px; min-height: 84px; }
+.idea textarea::placeholder { color: #7d6a5b; }
+.go { border: 0; border-radius: 18px; padding: 0 26px; font-weight: 600; font-size: 17px; color: #1a100a; background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 35%, transparent); transition: transform .2s; }
+.go:hover { transform: translateY(-2px) scale(1.02); }
+.go:disabled { opacity: .5; transform: none; cursor: default; }
+.chips-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 18px; max-width: 820px; }
+.chips-row button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 999px; padding: 7px 13px; font-size: 14px; }
+.chips-row button:hover { color: var(--text); border-color: var(--accent2); }
+.note { margin-top: 18px; font-size: 13px; color: var(--muted); max-width: 60ch; }
+.note b { color: var(--text); font-weight: 600; }
+.fallback { margin-top: 18px; padding: 14px 18px; border: 1px dashed var(--line); border-radius: 16px; color: var(--muted); font-size: 14px; max-width: 640px; }
+.fallback button { margin-left: 8px; border: 1px solid var(--accent2); background: transparent; color: var(--accent); border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+
+/* live board */
+.board { padding: 92px max(16px, 5vw) 24px; max-width: 1340px; margin: 0 auto; }
+.board-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.board-head h2 { font-size: clamp(24px, 3.6vw, 44px); }
+.board-head .q { color: var(--muted); margin-top: 8px; max-width: 70ch; }
+.clock { font-family: var(--display); font-size: clamp(28px, 4vw, 48px); color: var(--accent); font-variant-numeric: tabular-nums; }
+.clock small { display: block; font-family: var(--body); font-size: 12px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; text-align: right; }
+.teams { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 1000px) { .teams { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .teams { grid-template-columns: minmax(0, 1fr); } }
+.team { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; transition: border-color .3s, transform .3s; }
+.team.working { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 8%, transparent); }
+.team.done { border-color: color-mix(in srgb, var(--sage) 60%, var(--line)); }
+.team.failed { border-color: var(--danger); }
+.team .head { display: flex; gap: 10px; align-items: center; }
+.team .ico { font-size: 20px; width: 38px; height: 38px; border-radius: 12px; background: var(--bg2); display: grid; place-items: center; flex: none; }
+.team b { display: block; }
+.team small { display: block; color: var(--muted); font-size: 12px; }
+.team .state { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.team.working .state { color: var(--accent); }
+.team.done .state { color: var(--sage); }
+.team.failed .state { color: var(--danger); }
+.spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tail { font-family: var(--mono); font-size: 11.5px; line-height: 1.45; color: #a9937f; background: #0d0806; border-radius: 10px; padding: 10px; height: 92px; overflow: hidden; white-space: pre-wrap; word-break: break-all; display: flex; flex-direction: column; justify-content: flex-end; }
+.tail::after { content: '▍'; color: var(--accent); animation: blink 1s steps(1) infinite; }
+.team:not(.working) .tail::after { content: ''; }
+.team .retry { align-self: start; border: 1px solid var(--danger); background: transparent; color: var(--danger); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+@keyframes blink { 50% { opacity: 0; } }
+.board-actions { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
+
+/* result sections */
+.slide { padding: 72px max(16px, 5vw) 40px; }
+.slide > .inner { max-width: 1240px; width: 100%; margin: 0 auto; }
+.num { font-family: var(--display); color: var(--accent); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; }
+.slide h2 { font-size: clamp(26px, 4.2vw, 52px); margin: 10px 0 24px; }
+.slide.pending .body { display: none; }
+.slide:not(.pending) .skel { display: none; }
+.skel { display: grid; gap: 12px; }
+.skel i { display: block; height: 70px; border-radius: 18px; background: linear-gradient(90deg, var(--card), #2e2017, var(--card)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+.skel i:nth-child(2) { height: 140px; }
+.skel span { color: var(--muted); font-size: 14px; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.body { animation: rise .7s both; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+.grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; min-width: 0; }
+.card h3 { font-size: 16px; margin-bottom: 14px; color: var(--accent); }
+.lead-card { font-size: clamp(18px, 2.2vw, 25px); line-height: 1.45; margin-bottom: 16px; }
+
+.bars { display: grid; gap: 14px; }
+.bars .row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+.bars .bar { grid-column: 1 / -1; height: 10px; border-radius: 10px; background: var(--line); overflow: hidden; }
+.bars .bar i { display: block; height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--accent2), var(--accent)); animation: grow 1.4s cubic-bezier(.2, .8, .2, 1) both; transform-origin: left; }
+@keyframes grow { from { transform: scaleX(0); } }
+.bars small { grid-column: 1 / -1; color: var(--muted); }
+.bars .row.top b, .bars .row.top span { color: var(--accent); }
+
+.swot { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.swot div { border-radius: 16px; padding: 14px; background: var(--bg2); font-size: 14px; }
+.swot b { display: block; margin-bottom: 6px; font-size: 13px; }
+.swot ul { margin: 0; padding-left: 18px; color: var(--muted); }
+.swot div:nth-child(1) b { color: var(--sage); }
+.swot div:nth-child(2) b { color: var(--danger); }
+.swot div:nth-child(3) b { color: var(--accent); }
+.swot div:nth-child(4) b { color: #d0a0e0; }
+
+.persona { display: flex; flex-direction: column; gap: 14px; }
+.ph-head { display: flex; gap: 12px; align-items: center; }
+.ph-head small { display: block; color: var(--muted); }
+.ava { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-size: 22px; color: #1a100a; flex: none; }
+.persona blockquote { margin: 0; font-size: 18px; line-height: 1.4; font-style: italic; }
+.persona ul { margin: 0; padding-left: 18px; color: var(--muted); display: grid; gap: 4px; }
+.hook { margin-top: auto; background: var(--bg2); border-radius: 14px; padding: 12px; font-size: 14px; }
+.hook span { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+
+.locgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+@media (max-width: 900px) { .locgrid { grid-template-columns: minmax(0, 1fr); } }
+.map-card svg { width: 100%; aspect-ratio: 1; border-radius: 14px; display: block; }
+.map .land { fill: #241911; }
+.map .street { stroke: #33251b; stroke-width: .7; }
+.map .main { stroke: #4a3628; stroke-width: 1.6; stroke-dasharray: 3 2; fill: none; }
+.map .center { fill: none; stroke: #4a3628; stroke-width: .5; stroke-dasharray: 1 1; }
+.map .pin circle { fill: var(--muted); }
+.map .pin text { fill: var(--muted); font-size: 3.6px; font-family: var(--body); font-weight: 600; }
+.map .pin.win circle { fill: var(--accent); }
+.map .pin.win text { fill: var(--accent); font-size: 4.4px; }
+.map .pulse { fill: none !important; stroke: var(--accent); stroke-width: .6; animation: pulse 1.8s ease-out infinite; }
+@keyframes pulse { from { r: 2.4; opacity: 1; } to { r: 9; opacity: 0; } }
+.win { border-color: var(--accent); background: linear-gradient(160deg, color-mix(in srgb, var(--accent2) 25%, var(--card)), var(--card)); }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.checks li::before { content: '✓  '; color: var(--sage); font-weight: 700; }
+.tablewrap { overflow-x: auto; }
+table.matrix { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.matrix th, .matrix td { padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.matrix th:first-child, .matrix td:first-child { text-align: left; }
+.matrix th { color: var(--muted); font-weight: 500; }
+.matrix .hl { background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent); font-weight: 600; }
+.matrix tr.total td { border: 0; font-weight: 700; padding-top: 12px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; }
+.kpi span { font-size: 13px; color: var(--muted); }
+.kpi b { display: block; font-family: var(--display); font-size: clamp(19px, 2.3vw, 28px); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kpi.hl b { color: var(--accent); }
+.fin { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+@media (max-width: 900px) { .fin { grid-template-columns: minmax(0, 1fr); } }
+canvas.chart { width: 100%; height: 320px; display: block; }
+.sliders { display: grid; gap: 16px; }
+.sliders label { display: grid; grid-template-columns: 1fr auto; font-size: 14px; color: var(--muted); gap: 6px; }
+.sliders output { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sliders input { grid-column: 1 / -1; accent-color: var(--accent); width: 100%; }
+table.inv { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+table.inv td { padding: 7px 0; border-bottom: 1px dashed var(--line); }
+table.inv td:last-child { text-align: right; white-space: nowrap; padding-left: 10px; }
+table.inv tr:last-child td { border: 0; font-weight: 700; color: var(--accent); padding-top: 10px; }
+
+.brand { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+@media (max-width: 900px) { .brand { grid-template-columns: minmax(0, 1fr); } }
+.logo-card { display: grid; place-items: center; gap: 14px; min-height: 360px; text-align: center; background: radial-gradient(circle at 50% 40%, #3a261a, var(--bg2)); }
+.logo-card .mark { width: 150px; height: 150px; color: var(--accent); }
+.logo-card .mark svg { width: 100%; height: 100%; }
+.logo-card .mark * { stroke-dasharray: 800; stroke-dashoffset: 800; animation: draw 2.4s ease forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.logo-card .wordmark { font-family: var(--display); font-size: clamp(26px, 3.4vw, 40px); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.logo-card .desc { color: var(--accent2); letter-spacing: .4em; text-transform: uppercase; font-size: 13px; }
+.swatches { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.sw { min-width: 0; overflow: hidden; border-radius: 14px; aspect-ratio: 1 / 1.25; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; font-size: 11px; border: 1px solid rgba(255, 255, 255, .06); }
+.sw b { font-size: 12px; }
+.tag-line { font-family: var(--display); font-size: clamp(20px, 2.4vw, 28px); line-height: 1.3; }
+
+.menu { grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); }
+.dish { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+.dish .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.dish .price { font-family: var(--display); color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dish .meta { font-size: 12.5px; color: var(--muted); margin-top: 8px; display: flex; justify-content: space-between; gap: 8px; }
+.dish .m { height: 5px; border-radius: 5px; background: var(--line); margin-top: 8px; overflow: hidden; }
+.dish .m i { display: block; height: 100%; background: var(--sage); }
+.dish .badge { position: absolute; top: -9px; right: 12px; font-size: 11px; background: var(--accent); color: #1a100a; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+
+.creatives { display: grid; grid-template-columns: 0.75fr 1fr 1fr 1.6fr; gap: 14px; align-items: end; }
+@media (max-width: 1000px) { .creatives { grid-template-columns: 1fr 1fr; } }
+.cr { position: relative; overflow: hidden; border-radius: 18px; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; box-shadow: 0 20px 50px rgba(0, 0, 0, .45); min-width: 0; }
+.cr.story { aspect-ratio: 9 / 16; }
+.cr.post { aspect-ratio: 1 / 1; }
+.cr.banner { aspect-ratio: 16 / 10; }
+.cr::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 38%, rgba(15, 10, 8, .78)); }
+.cr > * { position: relative; z-index: 1; }
+.cr .emo { position: absolute !important; top: 12%; right: 10%; font-size: clamp(48px, 7vw, 96px); filter: drop-shadow(0 10px 20px rgba(0,0,0,.35)); animation: floaty 4s ease-in-out infinite alternate; }
+@keyframes floaty { to { transform: translateY(-8px) rotate(-6deg); } }
+.cr .lg { position: absolute !important; top: 12px; left: 14px; font-family: var(--display); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; }
+.cr .k { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+.cr .t { font-family: var(--display); font-size: clamp(15px, 1.6vw, 22px); line-height: 1.15; margin: 6px 0; }
+.cr .c { font-size: 12px; opacity: .85; }
+.ad { background: var(--bg2); border-radius: 16px; padding: 14px; }
+.ad b { display: block; margin-bottom: 4px; }
+.ad p { margin: 0; font-size: 14px; color: var(--muted); }
+.ad .ctr { margin-top: 8px; font-size: 12px; color: var(--sage); }
+.ad.best { outline: 2px solid var(--sage); }
+.cplan { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.cplan div { background: var(--bg2); border-radius: 14px; padding: 12px; font-size: 13px; color: var(--muted); }
+.cplan b { display: block; color: var(--accent); font-family: var(--display); margin-bottom: 4px; }
+.lhead { display: flex; gap: 12px; align-items: center; }
+.lav { width: 48px; height: 48px; border-radius: 12px; background: var(--accent); color: #1a100a; display: grid; place-items: center; font-size: 24px; flex: none; }
+.lhead small { display: block; color: var(--sage); }
+.listing p { color: var(--muted); font-size: 14px; line-height: 1.5; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags span { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--bg2); border: 1px solid var(--line); }
+
+.vids { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px; align-items: start; }
+.vframe { position: relative; border-radius: 14px; overflow: hidden; display: grid; place-items: center; max-width: 100%; }
+.vframe.r169 { aspect-ratio: 16 / 9; }
+.vframe.r916 { aspect-ratio: 9 / 16; max-height: 360px; margin: 0 auto; }
+.vframe span { font-size: 54px; animation: floaty 4s ease-in-out infinite alternate; }
+.vframe em { position: absolute; left: 10px; bottom: 10px; font-style: normal; font-size: 11px; background: rgba(0, 0, 0, .45); padding: 3px 8px; border-radius: 999px; }
+.vcard { display: grid; gap: 12px; }
+.vcard code { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.5; display: block; }
+.copy { justify-self: start; border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+.copy:hover { border-color: var(--accent2); }
+
+.roadmap { list-style: none; margin: 0 0 16px; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; counter-reset: step; }
+@media (max-width: 1000px) { .roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.roadmap li { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 14px; display: grid; gap: 6px; align-content: start; }
+.roadmap li::before { counter-increment: step; content: counter(step); position: absolute; top: -12px; left: 14px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #1a100a; font-weight: 700; font-size: 13px; display: grid; place-items: center; }
+.roadmap span { font-size: 12px; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; margin-top: 6px; }
+.roadmap small { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.job { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 800px) { .job { grid-template-columns: minmax(0, 1fr); } }
+.jtitle { font-family: var(--display); font-size: 20px; }
+.job p { color: var(--muted); line-height: 1.5; }
+.qs { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+
+.botwrap { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 40px; align-items: center; }
+@media (max-width: 900px) { .botwrap { grid-template-columns: minmax(0, 1fr); } }
+.phone { width: 100%; max-width: 380px; margin: 0 auto; height: 600px; border-radius: 44px; border: 10px solid #0b0705; background: #f4ebdd; color: #2b1b14; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 40px 90px rgba(0, 0, 0, .6); }
+.phone .bh { padding: 18px 16px 12px; background: #2b1b14; color: #f4ebdd; display: flex; gap: 10px; align-items: center; }
+.phone .av { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; font-size: 20px; }
+.phone .bh small { display: block; color: var(--sage); font-size: 12px; }
+.msgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.msg { max-width: 82%; padding: 10px 13px; border-radius: 16px; font-size: 14.5px; line-height: 1.4; animation: rise .3s both; white-space: pre-wrap; }
+.msg.b { background: #fff; border-bottom-left-radius: 4px; align-self: flex-start; }
+.msg.u { background: var(--accent2); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+.msg.dots::after { content: '•••'; letter-spacing: 2px; animation: blink 1s infinite; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 12px 8px; }
+.chips button { border: 1px solid #d8c5ae; background: #fff; color: #2b1b14; border-radius: 999px; padding: 6px 10px; font-size: 12.5px; }
+.compose { display: flex; gap: 6px; padding: 10px; background: #fff; }
+.compose input { flex: 1; min-width: 0; border: 1px solid #e3d5c3; border-radius: 999px; padding: 10px 14px; font: inherit; font-size: 14px; outline: 0; color: #2b1b14; background: #fff; }
+.compose button { border: 0; border-radius: 50%; width: 42px; background: var(--accent2); color: #fff; font-size: 18px; }
+
+.final { text-align: center; }
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 980px; margin: 0 auto; text-align: left; }
+@media (max-width: 700px) { .vs { grid-template-columns: 1fr; } }
+.vs .ai { border-color: var(--accent); background: linear-gradient(160deg, color-mix(in srgb, var(--accent2) 25%, var(--card)), var(--card)); }
+.vs dl { margin: 0; display: grid; gap: 14px; }
+.vs dt { font-size: 13px; color: var(--muted); }
+.vs dd { margin: 2px 0 0; font-family: var(--display); font-size: clamp(18px, 2.6vw, 30px); }
+.vs .ai dd { color: var(--accent); }
+.vs .old h3 { color: var(--muted); }
+.vs .old dd { text-decoration: line-through; text-decoration-color: rgba(224, 138, 109, .7); color: var(--muted); }
+.cta-final { margin-top: 30px; font-size: clamp(18px, 2.2vw, 24px); }
+.confetti { position: fixed; top: -20px; width: 10px; height: 14px; z-index: 60; pointer-events: none; animation: fall linear forwards; }
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+.dots { position: fixed; right: 16px; top: 50%; transform: translateY(-50%); z-index: 40; display: grid; gap: 10px; }
+.dots button { width: 10px; height: 10px; border-radius: 50%; border: 0; background: var(--line); padding: 0; }
+.dots button.ready { background: #6b5444; }
+.dots button.on { background: var(--accent); transform: scale(1.4); }
+@media (max-width: 700px) { .dots { display: none; } }
+@media (max-width: 600px) {
+  .course { font-size: 12px; max-width: 50vw; }
+  .idea { flex-direction: column; } .go { padding: 14px; }
+  .kpis { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="course">AI <b>from zero to pro</b><span class="live">live</span></div>
+  <div class="tools">
+    <button class="tool hidden" id="btn-new" title="Start a new business (R)">＋ New</button>
+    <button class="tool" id="btn-full" title="Full screen (F)">⛶</button>
+  </div>
+</header>
+
+<section class="screen start" id="start">
+  <span class="eyebrow">4 AI teams · real time</span>
+  <h1>Type any business. <em>Watch AI build it.</em></h1>
+  <p class="lead">Business plan, location analysis, financial model, brand and logo, products, ads, video scripts, launch plan and a working chatbot. Written live, from scratch.</p>
+  <form class="idea" id="idea-form">
+    <textarea id="idea" rows="3" aria-label="Your business idea" placeholder="e.g. A bubble tea kiosk near a university in Cebu City"></textarea>
+    <button class="go" id="btn-go" type="submit">Build it ✨</button>
+  </form>
+  <div class="chips-row" id="examples"></div>
+  <p class="note" id="note">Runs on <b>your Claude account</b>. The first run asks you to allow it. A full build takes about 1–2 minutes.</p>
+  <div class="fallback hidden" id="fallback">Live AI works when this page is opened on claude.ai. <button type="button" id="btn-example">Show a ready example</button></div>
+</section>
+
+<section class="board hidden" id="board">
+  <div class="board-head">
+    <div><h2 id="board-title">The AI teams are on it</h2><div class="q" id="board-q"></div></div>
+    <div class="clock"><span id="clock">0:00</span><small id="clock-label">elapsed</small></div>
+  </div>
+  <div class="teams" id="teams"></div>
+  <div class="board-actions"><button class="tool" id="btn-stop">■ Stop</button></div>
+</section>
+
+<main id="out" class="hidden"></main>
+<nav class="dots hidden" id="dots"></nav>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
+  const arr = (v) => (Array.isArray(v) ? v : []);
+
+  const EXAMPLES = [
+    'Specialty coffee shop in Davao City, open late for BPO night-shift workers',
+    'Bubble tea kiosk near a university in Cebu City',
+    'Pet grooming salon in Makati',
+    'Surf school and hostel in Siargao',
+    'Korean BBQ restaurant in Almaty',
+    'Kids coding school in Dubai',
+  ];
+
+  /* ---------------- state ---------------- */
+  let S = {};          // results by team: A strategy, B location, C finance, D marketing
+  let idea = '';
+  let t0 = 0, clockTimer = null, endTime = 0;
+  let controllers = [];
+  let sample = null;
+  let running = false;
+
+  const TEAMS = [
+    { id: 'A', icon: '🧭', name: 'Strategy team', roles: 'Market analyst · Brand designer · Customer researcher' },
+    { id: 'B', icon: '📍', name: 'Location team', roles: 'Location scout · Launch planner' },
+    { id: 'C', icon: '📊', name: 'Finance team', roles: 'Financial analyst · Product manager' },
+    { id: 'D', icon: '📣', name: 'Marketing team', roles: 'SMM · Video producer · HR · Chatbot' },
+  ];
+
+  // Sections in page order and the team that fills each one
+  const SECTIONS = [
+    { id: 'plan', title: 'Business plan', team: 'A' },
+    { id: 'personas', title: 'Customers', team: 'A' },
+    { id: 'location', title: 'Location', team: 'B' },
+    { id: 'finance', title: 'Financials', team: 'C' },
+    { id: 'brand', title: 'Brand', team: 'A' },
+    { id: 'products', title: 'Products', team: 'C' },
+    { id: 'marketing', title: 'Marketing', team: 'D' },
+    { id: 'video', title: 'Video scripts', team: 'D' },
+    { id: 'launch', title: 'Launch plan', team: 'B' },
+    { id: 'bot', title: 'AI assistant', team: 'D' },
+    { id: 'final', title: 'Summary', team: '*' },
+  ];
+
+  /* ---------------- prompts ---------------- */
+  const BASE = `You are a team of sharp startup consultants doing a LIVE demo for an AI course audience. Be concrete and local: use real neighborhood names, local habits, local currency and realistic local prices. Write in English. Keep every string short and punchy. Numbers are plain integers (no separators).`;
+
+  const promptA = (idea) => `${BASE}
+
+Business idea from the audience: """${idea}"""
+If no city is given, pick a fitting real city and mention it in the summary.
+
+Reply with only JSON in exactly this shape:
+{
+ "name": "brand name, 1-3 words, catchy and local",
+ "descriptor": "2-3 word descriptor, e.g. davao coffee lab",
+ "tagline": "max 6 words",
+ "city": "city, country",
+ "currency": "currency symbol, e.g. ₱ or $ or ₸",
+ "summary": "2 sentences: the concept and its key insight",
+ "insights": ["3 short market facts used to justify the plan"],
+ "audience": [{"who": "segment", "share": 45, "note": "habit and typical spend"}],
+ "swot": {"Strengths": ["3 items"], "Weaknesses": ["2 items"], "Opportunities": ["3 items"], "Threats": ["2 items"]},
+ "personas": [{"name": "First name, age", "role": "who they are", "quote": "what they say", "facts": ["3 short facts"], "hook": "how we win them"}],
+ "palette": [{"name": "evocative name", "hex": "#RRGGBB"}],
+ "voice": "tone of voice in one sentence",
+ "logo_svg": "<svg viewBox=\\"0 0 100 100\\">...</svg>"
+}
+Rules: exactly 3 audience segments whose shares add up to 100; exactly 3 personas; exactly 5 palette colors, darkest first, at least two bright enough to read on a dark brown background; logo_svg is a simple monoline logo mark (no text) using only path, circle, ellipse, rect, line, polyline or polygon, with fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round", under 700 characters.`;
+
+  const ctxA = () => JSON.stringify({ idea, name: S.A.name, city: S.A.city, currency: S.A.currency, summary: S.A.summary, audience: S.A.audience });
+
+  const promptB = () => `${BASE}
+
+Our business: ${ctxA()}
+
+Compare 4 real districts or areas of this city for the location, then plan the launch. Reply with only JSON in exactly this shape:
+{
+ "candidates": [{"name": "district", "street": "street or landmark, short", "rent": 900, "x": 50, "y": 40, "traffic": 8, "rentScore": 6, "competition": 6, "demand": 9, "fit": 7}],
+ "weights": {"traffic": 0.25, "rentScore": 0.2, "competition": 0.15, "demand": 0.25, "fit": 0.15},
+ "why": ["4 short reasons the best district wins"],
+ "roadmap": [{"when": "Weeks 1–2", "what": "step", "detail": "short detail with real local permit or platform names"}]
+}
+Rules: exactly 4 candidates; rent is monthly rent per square meter in local currency; all scores 1-10 where higher is better (rentScore 10 = cheapest, competition 10 = fewest competitors, demand = demand from our target customers, fit = fit with the concept); x and y are rough positions on a north-up city map from 10 to 90; weights add up to 1; exactly 6 roadmap steps covering about 90 days.`;
+
+  const promptC = () => `${BASE}
+
+Our business: ${ctxA()}
+
+Build the financial model and the product line. Reply with only JSON in exactly this shape:
+{
+ "checkLabel": "Average check",
+ "volumeLabel": "Customers per day",
+ "productsTitle": "Menu",
+ "investments": [["item", 800000]],
+ "model": {"avgCheck": 210, "perDay": 160, "rampMonths": 6, "cogsShare": 0.28, "fixedMonthly": 360000},
+ "products": [{"name": "product or service", "price": 180, "cost": 45, "tag": "optional short badge or empty"}]
+}
+Rules: exactly 6 startup investment lines in local currency; model uses local currency per month (fixedMonthly = rent + salaries + utilities + marketing + other); perDay = sales per day at full speed; cogsShare between 0.1 and 0.6; exactly 10 products with realistic local prices and unit costs; at most 4 tags, the rest empty; labels fit this business (e.g. "Patients per day", "Services").`;
+
+  const promptD = () => `${BASE}
+
+Our business: ${ctxA()}
+
+Create the marketing kit. Reply with only JSON in exactly this shape:
+{
+ "creatives": [{"kicker": "2-4 words", "title": "max 7 words", "cta": "max 8 words", "emoji": "one emoji"}],
+ "ads": [{"h": "headline", "t": "one or two sentences", "ctr": "3.1%"}],
+ "contentPlan": [["Mon", "post idea"]],
+ "listing": {"platform": "the most relevant local platform, e.g. GrabFood or Google Maps", "title": "listing title", "text": "2-3 sentences", "tags": ["4 short tags"]},
+ "hiring": {"title": "job post title with an emoji", "text": "2 sentences", "perks": ["3 perks incl. local salary range"], "questions": ["3 interview questions"]},
+ "video": [{"title": "short title", "ratio": "16:9 or 9:16", "prompt": "a vivid 2-3 sentence prompt for an AI video generator: scene, action, camera, light, sound"}],
+ "bot": {"hello": "chatbot greeting, local flavor", "chips": ["4 short questions customers would ask"]},
+ "old": {"time": "how long this work takes a human team, e.g. 3–4 weeks", "cost": "what agencies would charge, with currency", "people": "roles, comma separated"}
+}
+Rules: exactly 4 creatives (opening offer, meet the team, signature product with price, subscription or loyalty deal); exactly 3 ads with forecast CTR; 7 content plan days Mon–Sun; exactly 3 video prompts.`;
+
+  /* ---------------- sample ---------------- */
+  async function getSample() {
+    try { return window.claude?.use ? await window.claude.use('sample') : null; } catch { return null; }
+  }
+
+  function teamCard(id) { return $(`.team[data-id="${id}"]`); }
+  function setTeam(id, state, label) {
+    const c = teamCard(id);
+    c.className = 'team ' + state;
+    $('.state', c).innerHTML = (state === 'working' ? '<i class="spin"></i>' : '') + esc(label);
+    $('.retry', c).classList.toggle('hidden', state !== 'failed');
+  }
+
+  const ERRORS = {
+    not_granted: 'Claude access was not allowed for this page.',
+    sampling_disabled: 'Claude is not available for this account.',
+    rate_limited: 'Usage limit reached. Wait a bit and try again.',
+    session_expired: 'Please sign in to claude.ai again.',
+    refused: 'Claude declined this idea. Try rewording it.',
+    invalid_json: 'The answer came back malformed. Try again.',
+    cancelled: 'Stopped.',
+  };
+
+  async function callTeam(id, prompt) {
+    const ctl = new AbortController();
+    controllers.push(ctl);
+    const tail = $('.tail', teamCard(id));
+    setTeam(id, 'working', 'thinking…');
+    tail.textContent = '';
+    let chars = 0;
+    try {
+      const data = await sample.json(prompt, {
+        signal: ctl.signal,
+        cache: false,
+        onText: ({ text }) => {
+          chars = text.length;
+          setTeam(id, 'working', `writing… ${Math.round(chars / 4)} tokens`);
+          tail.textContent = text.slice(-260);
+        },
+      });
+      setTeam(id, 'done', `✓ done · ${Math.round(chars / 4)} tokens`);
+      return data;
+    } catch (e) {
+      setTeam(id, 'failed', ERRORS[e?.code] || 'Something went wrong. Try again.');
+      if (['not_granted', 'sampling_disabled', 'session_expired'].includes(e?.code)) $$('.team .retry').forEach((b) => b.classList.add('hidden'));
+      throw e;
+    }
+  }
+
+  /* ---------------- flow ---------------- */
+  function buildSkeleton() {
+    $('#teams').innerHTML = TEAMS.map((t) => `<div class="team" data-id="${t.id}">
+      <div class="head"><span class="ico">${t.icon}</span><div><b>${t.name}</b><small>${t.roles}</small></div></div>
+      <div class="state">waiting</div><div class="tail"></div>
+      <button class="retry hidden" type="button">↻ Try again</button></div>`).join('');
+    $$('.team .retry').forEach((b) => (b.onclick = () => retry(b.closest('.team').dataset.id)));
+    $('#out').innerHTML = SECTIONS.map((s, i) => `<section class="slide pending" id="s-${s.id}" data-title="${s.title}">
+      <div class="inner"><div class="num">${String(i + 1).padStart(2, '0')} · ${s.title}</div>
+      <div class="skel"><span>${s.team === '*' ? 'Waiting for all teams…' : TEAMS.find((t) => t.id === s.team).name + ' is working on this…'}</span><i></i><i></i></div>
+      <div class="body"></div></div></section>`).join('');
+    $('#dots').innerHTML = SECTIONS.map((s) => `<button type="button" title="${s.title}"></button>`).join('');
+    $$('#dots button').forEach((b, i) => (b.onclick = () => go(i)));
+    $('#out').classList.remove('hidden');
+    $('#dots').classList.remove('hidden');
+    $$('.slide').forEach((s) => io.observe(s));
+  }
+
+  function startClock() {
+    t0 = Date.now(); endTime = 0;
+    clearInterval(clockTimer);
+    clockTimer = setInterval(() => {
+      const s = Math.floor(((endTime || Date.now()) - t0) / 1000);
+      $('#clock').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }, 250);
+  }
+
+  async function runA() { S.A = await callTeam('A', promptA(idea)); onA(); }
+  async function runTeam(id) {
+    const p = { B: promptB, C: promptC, D: promptD }[id];
+    S[id] = await callTeam(id, p());
+    ({ B: onB, C: onC, D: onD })[id]();
+  }
+
+  async function build(text) {
+    idea = text.trim();
+    if (!idea || running) return;
+    running = true;
+    S = {}; controllers = [];
+    resetAccent();
+    $('#start').classList.add('hidden');
+    $('#board').classList.remove('hidden');
+    $('#btn-new').classList.remove('hidden');
+    $('#btn-stop').classList.remove('hidden');
+    $('#board-title').textContent = 'The AI teams are on it';
+    $('#board-q').textContent = '“' + idea + '”';
+    $('#clock-label').textContent = 'elapsed';
+    buildSkeleton();
+    window.scrollTo(0, 0);
+    startClock();
+    try {
+      await runA();
+      await Promise.allSettled(['B', 'C', 'D'].map(runTeam));
+    } catch { /* team card shows the error */ }
+    finish();
+  }
+
+  async function retry(id) {
+    if (running) return;
+    running = true;
+    try {
+      if (id === 'A') { await runA(); await Promise.allSettled(['B', 'C', 'D'].filter((t) => !S[t]).map(runTeam)); }
+      else if (S.A) await runTeam(id);
+    } catch {}
+    finish();
+  }
+
+  function finish() {
+    running = false;
+    $('#btn-stop').classList.add('hidden');
+    if (S.A && S.B && S.C && S.D) {
+      endTime = Date.now();
+      $('#clock-label').textContent = 'built in';
+      $('#board-title').textContent = `${S.A.name} is ready`;
+      renderFinal();
+    }
+  }
+
+  $('#btn-stop').onclick = () => controllers.forEach((c) => c.abort());
+
+  /* ---------------- rendering helpers ---------------- */
+  const cur = () => S.A?.currency || '$';
+  const money = (n) => cur() + Math.round(num(n)).toLocaleString('en-US');
+  const short = (n) => {
+    const a = Math.abs(n);
+    const s = a >= 1e9 ? (a / 1e9).toFixed(1) + 'B' : a >= 1e6 ? (a / 1e6).toFixed(1) + 'M' : a >= 1e3 ? Math.round(a / 1e3) + 'K' : Math.round(a) + '';
+    return (n < 0 ? '−' : '') + cur() + s;
+  };
+  const ord = (n) => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
+
+  function fill(id, h2, html) {
+    const s = $('#s-' + id);
+    $('.body', s).innerHTML = `<h2>${h2}</h2>` + html;
+    s.classList.remove('pending');
+    const i = SECTIONS.findIndex((x) => x.id === id);
+    $$('#dots button')[i]?.classList.add('ready');
+    return s;
+  }
+
+  // color helpers: pick readable accents from the AI palette
+  function lum(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+    if (!m) return -1;
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+  function resetAccent() { document.documentElement.style.removeProperty('--accent'); document.documentElement.style.removeProperty('--accent2'); }
+  function applyAccent(pal) {
+    const bright = pal.map((p) => ({ hex: p.hex, l: lum(p.hex) })).filter((p) => p.l > 0.32 && p.l < 0.9).sort((a, b) => b.l - a.l);
+    if (bright[0]) document.documentElement.style.setProperty('--accent', bright[0].hex);
+    if (bright[1]) document.documentElement.style.setProperty('--accent2', bright[1].hex);
+  }
+
+  // Only geometric SVG from the model reaches the page
+  const SVG_TAGS = ['svg', 'g', 'path', 'circle', 'ellipse', 'rect', 'line', 'polyline', 'polygon'];
+  const SVG_ATTRS = ['viewBox', 'd', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'width', 'height', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'opacity', 'fill-rule'];
+  function safeSvg(src) {
+    try {
+      const doc = new DOMParser().parseFromString(String(src || ''), 'image/svg+xml');
+      const root = doc.documentElement;
+      if (root.nodeName !== 'svg' || doc.querySelector('parsererror')) return null;
+      const NS = 'http://www.w3.org/2000/svg';
+      const copy = (node) => {
+        if (!SVG_TAGS.includes(node.nodeName)) return null;
+        const out = document.createElementNS(NS, node.nodeName);
+        for (const a of node.attributes) {
+          if (SVG_ATTRS.includes(a.name) && !/url\(|javascript|data:/i.test(a.value)) out.setAttribute(a.name, a.value);
+        }
+        for (const ch of node.children) { const c = copy(ch); if (c) out.append(c); }
+        return out;
+      };
+      const svg = copy(root);
+      if (!svg || !svg.children.length) return null;
+      if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', '0 0 100 100');
+      svg.removeAttribute('width'); svg.removeAttribute('height');
+      return svg;
+    } catch { return null; }
+  }
+
+  /* ---------------- team A: plan, personas, brand ---------------- */
+  function onA() {
+    const A = S.A;
+    applyAccent(arr(A.palette));
+    $('#board-title').textContent = `Building ${A.name}`;
+    // plan
+    const aud = arr(A.audience);
+    fill('plan', `${esc(A.name)} · ${esc(A.city)}`, `
+      <div class="card lead-card">${esc(A.summary)}</div>
+      <div class="grid g2">
+        <div class="card"><h3>Target audience</h3><div class="bars">${aud.map((a) => `<div class="row"><b>${esc(a.who)}</b><span>${num(a.share)}%</span><div class="bar"><i style="width:${Math.min(100, num(a.share))}%"></i></div><small>${esc(a.note)}</small></div>`).join('')}</div></div>
+        <div class="card"><h3>SWOT analysis</h3><div class="swot">${Object.entries(A.swot || {}).slice(0, 4).map(([k, l]) => `<div><b>${esc(k)}</b><ul>${arr(l).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</div></div>
+      </div>
+      ${arr(A.insights).length ? `<div class="card" style="margin-top:16px"><h3>Market insights</h3><ul class="checks">${arr(A.insights).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}`);
+    // personas
+    const colors = arr(A.palette).map((p) => p.hex).filter((h) => lum(h) > 0.3);
+    fill('personas', 'Who will buy from us', `<div class="grid g3">${arr(A.personas).map((p, i) => `<div class="card persona">
+      <div class="ph-head"><div class="ava" style="background:${esc(colors[i % colors.length] || '#e9b872')}">${esc(String(p.name || '?')[0])}</div><div><b>${esc(p.name)}</b><small>${esc(p.role)}</small></div></div>
+      <blockquote>“${esc(p.quote)}”</blockquote><ul>${arr(p.facts).map((f) => `<li>${esc(f)}</li>`).join('')}</ul>
+      <div class="hook"><span>How we win them</span>${esc(p.hook)}</div></div>`).join('')}</div>`);
+    // brand
+    const s = fill('brand', 'Name, logo, style', `<div class="grid brand">
+      <div class="card logo-card"><div class="mark"></div><div><div class="wordmark">${esc(A.name)}</div><div class="desc">${esc(A.descriptor)}</div></div></div>
+      <div class="grid">
+        <div class="card"><h3>Tagline</h3><div class="tag-line">“${esc(A.tagline)}”</div></div>
+        <div class="card"><h3>Palette</h3><div class="swatches">${arr(A.palette).slice(0, 5).map((p) => { const ok = lum(p.hex) >= 0; const l = lum(p.hex); return `<div class="sw" style="background:${ok ? esc(p.hex) : '#444'};color:${l > 0.5 ? '#2b1b14' : '#f4ebdd'}"><b>${esc(p.name)}</b>${esc(p.hex)}</div>`; }).join('')}</div></div>
+        <div class="card"><h3>Tone of voice</h3><p class="muted" style="margin:0">${esc(A.voice)}</p></div>
+      </div></div>`);
+    const svg = safeSvg(A.logo_svg);
+    const mark = $('.mark', s);
+    if (svg) mark.append(svg);
+    else mark.innerHTML = `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5"><circle cx="50" cy="50" r="40"/></svg>`;
+  }
+
+  /* ---------------- team B: location, launch ---------------- */
+  function onB() {
+    const B = S.B;
+    const W = B.weights || {};
+    const keys = ['traffic', 'rentScore', 'competition', 'demand', 'fit'];
+    const labels = { traffic: 'Foot traffic', rentScore: 'Affordable rent', competition: 'Few competitors', demand: 'Target-customer demand', fit: 'Fits the concept' };
+    const wsum = keys.reduce((t, k) => t + num(W[k]), 0) || 1;
+    const spots = arr(B.candidates).slice(0, 4).map((c) => ({ ...c, score: keys.reduce((t, k) => t + (num(W[k]) / wsum) * num(c[k]), 0) })).sort((a, b) => b.score - a.score);
+    const win = spots[0] || {};
+    const clamp = (v) => Math.max(8, Math.min(70, num(v, 50)));
+    const streets = Array.from({ length: 9 }, (_, i) => `<line class="street" x1="${i * 12 + 4}" y1="0" x2="${i * 12 + 4}" y2="100"/><line class="street" x1="0" y1="${i * 12 + 4}" x2="100" y2="${i * 12 + 4}"/>`).join('');
+    fill('location', `Why ${esc(win.name)}?`, `
+      <div class="grid locgrid">
+        <div class="card map-card"><svg class="map" viewBox="0 0 100 100" role="img" aria-label="Schematic map of candidate districts">
+          <rect class="land" width="100" height="100"/>${streets}
+          <path class="main" d="M5 80 C 30 60, 55 55, 95 15"/><circle class="center" cx="50" cy="50" r="22"/>
+          ${spots.slice().reverse().map((s) => `<g class="pin${s === win ? ' win' : ''}" transform="translate(${clamp(s.x)} ${Math.max(8, Math.min(92, num(s.y, 50)))})">${s === win ? '<circle class="pulse" r="4"/>' : ''}<circle r="2.4"/><text x="4" y="1.4">${esc(s.name)} · ${s.score.toFixed(1)}</text></g>`).join('')}
+        </svg><small class="muted">Schematic map, not to scale</small></div>
+        <div class="grid">
+          <div class="card"><h3>Score by district, out of 10</h3><div class="bars">${spots.map((s, i) => `<div class="row${i === 0 ? ' top' : ''}"><b>${esc(s.name)}</b><span>${s.score.toFixed(1)}</span><div class="bar"><i style="width:${s.score * 10}%"></i></div><small>${esc(s.street)} · rent ≈ ${money(s.rent)}/m²</small></div>`).join('')}</div></div>
+          <div class="card win"><h3>Winner: ${esc(win.name)} · ${esc(win.street)}</h3><ul class="checks">${arr(B.why).map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>How the AI compared the districts</h3><div class="tablewrap"><table class="matrix">
+        <thead><tr><th>Factor</th><th>Weight</th>${spots.map((s, i) => `<th${i ? '' : ' class="hl"'}>${esc(s.name)}</th>`).join('')}</tr></thead><tbody>
+        ${keys.map((k) => `<tr><td>${labels[k]}</td><td>${Math.round((num(W[k]) / wsum) * 100)}%</td>${spots.map((s, i) => `<td${i ? '' : ' class="hl"'}>${num(s[k])}</td>`).join('')}</tr>`).join('')}
+        <tr class="total"><td>Weighted score</td><td></td>${spots.map((s, i) => `<td${i ? '' : ' class="hl"'}>${s.score.toFixed(1)}</td>`).join('')}</tr></tbody></table></div></div>`);
+    renderLaunch();
+  }
+
+  function renderLaunch() {
+    if (!S.B) return;
+    const H = S.D?.hiring;
+    fill('launch', 'From idea to opening in 90 days', `
+      <ol class="roadmap">${arr(S.B.roadmap).slice(0, 6).map((r) => `<li><span>${esc(r.when)}</span><b>${esc(r.what)}</b><small>${esc(r.detail)}</small></li>`).join('')}</ol>
+      ${H ? `<div class="card job"><div><h3>Job post written by AI</h3><div class="jtitle">${esc(H.title)}</div><p>${esc(H.text)}</p><div class="tags">${arr(H.perks).map((p) => `<span>${esc(p)}</span>`).join('')}</div></div>
+        <div><h3>Interview questions</h3><ol class="qs">${arr(H.questions).map((q) => `<li>${esc(q)}</li>`).join('')}</ol></div></div>` : ''}`);
+  }
+
+  /* ---------------- team C: finance, products ---------------- */
+  let model = null, invest = 0;
+  function simulate() {
+    const rows = [];
+    let cum = -invest, breakeven = null, payback = null;
+    for (let m = 1; m <= 24; m++) {
+      const ramp = Math.min(1, 0.45 + 0.55 * (m - 1) / Math.max(1, model.rampMonths - 1));
+      const revenue = model.perDay * ramp * model.avgCheck * 30;
+      const profit = revenue * (1 - model.cogsShare) - model.fixedMonthly;
+      cum += profit;
+      if (breakeven == null && profit > 0) breakeven = m;
+      if (payback == null && cum >= 0) payback = m;
+      rows.push({ revenue, profit, cum });
+    }
+    return { rows, breakeven, payback, full: rows[23] };
+  }
+  function renderFinance() {
+    const r = simulate();
+    $('#payback-h').textContent = r.payback ? `${r.payback} month${r.payback > 1 ? 's' : ''}` : 'more than 2 years';
+    $('#o-check').textContent = money(model.avgCheck);
+    $('#o-vol').textContent = Math.round(model.perDay);
+    $('#kpis').innerHTML = [
+      ['Startup budget', short(invest)],
+      ['Monthly revenue', short(r.full.revenue)],
+      ['Monthly profit', short(r.full.profit)],
+      ['Break-even', r.breakeven ? `${ord(r.breakeven)} month` : '—'],
+      ['Payback', r.payback ? `${ord(r.payback)} month` : '> 24 mo', true],
+    ].map(([k, v, hl]) => `<div class="kpi${hl ? ' hl' : ''}"><span>${k}</span><b>${v}</b></div>`).join('');
+    drawChart(r);
+  }
+  function drawChart(r) {
+    const c = $('#chart');
+    if (!c) return;
+    const dpr = window.devicePixelRatio || 1;
+    const Wd = c.clientWidth, H = c.clientHeight;
+    if (!Wd) return;
+    c.width = Wd * dpr; c.height = H * dpr;
+    const g = c.getContext('2d');
+    g.scale(dpr, dpr);
+    const cs = getComputedStyle(document.documentElement);
+    const accent = cs.getPropertyValue('--accent').trim() || '#e9b872';
+    const pad = { l: 62, r: 12, t: 12, b: 28 };
+    const vals = r.rows.map((x) => x.cum);
+    const max = Math.max(...vals, 0), min = Math.min(...vals, 0);
+    const x = (i) => pad.l + (i / 23) * (Wd - pad.l - pad.r);
+    const y = (v) => pad.t + (1 - (v - min) / (max - min || 1)) * (H - pad.t - pad.b);
+    g.font = '12px Inter, sans-serif';
+    g.fillStyle = '#b9a593'; g.strokeStyle = '#3a2a20'; g.lineWidth = 1;
+    const span = max - min || 1;
+    const mag = Math.pow(10, Math.floor(Math.log10(span / 5)));
+    const step = [1, 2, 5, 10].map((k) => k * mag).find((s) => span / s <= 6) || 10 * mag;
+    for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
+      g.beginPath(); g.moveTo(pad.l, y(v)); g.lineTo(Wd - pad.r, y(v)); g.stroke();
+      g.fillText(Math.abs(v) < step / 2 ? '0' : short(v), 4, y(v) + 4);
+    }
+    g.textAlign = 'center';
+    [1, 6, 12, 18, 24].forEach((m) => g.fillText('mo ' + m, Math.min(x(m - 1), Wd - 24), H - 8));
+    g.textAlign = 'left';
+    g.strokeStyle = '#8fa37e'; g.setLineDash([5, 5]);
+    g.beginPath(); g.moveTo(pad.l, y(0)); g.lineTo(Wd - pad.r, y(0)); g.stroke(); g.setLineDash([]);
+    g.globalAlpha = 0.25; g.fillStyle = accent;
+    g.beginPath(); g.moveTo(x(0), y(0)); vals.forEach((v, i) => g.lineTo(x(i), y(v))); g.lineTo(x(23), y(0)); g.closePath(); g.fill();
+    g.globalAlpha = 1;
+    g.beginPath(); vals.forEach((v, i) => (i ? g.lineTo(x(i), y(v)) : g.moveTo(x(i), y(v))));
+    g.strokeStyle = accent; g.lineWidth = 3; g.stroke();
+    if (r.payback) {
+      const i = r.payback - 1;
+      g.fillStyle = accent; g.beginPath(); g.arc(x(i), y(vals[i]), 6, 0, 7); g.fill();
+      g.fillStyle = '#f4ebdd'; g.font = '600 13px Inter, sans-serif';
+      g.fillText('paid back', Math.min(x(i) + 10, Wd - 80), y(vals[i]) - 10);
+    }
+  }
+  window.addEventListener('resize', () => model && renderFinance());
+
+  function onC() {
+    const C = S.C;
+    const m = C.model || {};
+    model = { avgCheck: num(m.avgCheck, 100), perDay: num(m.perDay, 50), rampMonths: Math.max(1, num(m.rampMonths, 6)), cogsShare: Math.min(0.9, Math.max(0, num(m.cogsShare, 0.3))), fixedMonthly: num(m.fixedMonthly) };
+    const inv = arr(C.investments).slice(0, 8);
+    invest = inv.reduce((t, r) => t + num(arr(r)[1]), 0);
+    const nice = (v) => { const p = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.max(1, v))) - 1)); return Math.max(1, Math.round(v / p) * p); };
+    const cMin = nice(model.avgCheck * 0.4), cMax = nice(model.avgCheck * 2), vMin = Math.max(1, nice(model.perDay * 0.3)), vMax = nice(model.perDay * 2.2);
+    fill('finance', 'Payback in <span id="payback-h">—</span>', `
+      <div class="kpis" id="kpis"></div>
+      <div class="grid fin">
+        <div class="card"><h3>Cumulative cash, 24 months</h3><canvas class="chart" id="chart"></canvas></div>
+        <div class="card">
+          <h3>Move the sliders, the model updates</h3>
+          <div class="sliders">
+            <label>${esc(C.checkLabel || 'Average check')} <output id="o-check"></output><input type="range" id="s-check" min="${cMin}" max="${cMax}" step="${Math.max(1, nice(cMax / 100))}" value="${model.avgCheck}"></label>
+            <label>${esc(C.volumeLabel || 'Customers per day')} <output id="o-vol"></output><input type="range" id="s-vol" min="${vMin}" max="${vMax}" step="${Math.max(1, nice(vMax / 100))}" value="${model.perDay}"></label>
+          </div>
+          <h3 style="margin-top:22px">Startup budget</h3>
+          <table class="inv">${inv.map((r) => `<tr><td>${esc(arr(r)[0])}</td><td>${money(arr(r)[1])}</td></tr>`).join('')}<tr><td>Total</td><td>${money(invest)}</td></tr></table>
+        </div>
+      </div>`);
+    $('#s-check').oninput = (e) => { model.avgCheck = +e.target.value; renderFinance(); };
+    $('#s-vol').oninput = (e) => { model.perDay = +e.target.value; renderFinance(); };
+    requestAnimationFrame(renderFinance);
+
+    let sum = 0, n = 0;
+    const items = arr(C.products).slice(0, 12).map((d) => {
+      const price = num(d.price), cost = num(d.cost);
+      const margin = price > 0 ? Math.round((1 - cost / price) * 100) : 0;
+      if (price > 0) { sum += margin; n++; }
+      return `<div class="dish">${d.tag ? `<span class="badge">${esc(d.tag)}</span>` : ''}
+        <div class="top"><b>${esc(d.name)}</b><span class="price">${money(price)}</span></div>
+        <div class="meta"><span>unit cost ${money(cost)}</span><span>margin ${margin}%</span></div>
+        <div class="m"><i style="width:${Math.max(0, Math.min(100, margin))}%"></i></div></div>`;
+    }).join('');
+    fill('products', `${esc(C.productsTitle || 'Products')}: ${arr(C.products).length} items, ${n ? Math.round(sum / n) : 0}% margin`, `<div class="grid menu">${items}</div>`);
+  }
+
+  /* ---------------- team D: marketing, video, bot ---------------- */
+  function onD() {
+    const D = S.D, A = S.A;
+    const pal = arr(A.palette).map((p) => p.hex).filter((h) => lum(h) >= 0);
+    const g = (i) => `linear-gradient(150deg, ${pal[(i + 1) % pal.length] || '#c8874a'}, ${pal[i % pal.length] || '#2b1b14'} 70%)`;
+    const kinds = ['story', 'post', 'post', 'banner'];
+    const best = arr(D.ads).reduce((b, a, i, all) => (parseFloat(a.ctr) > parseFloat(all[b]?.ctr) ? i : b), 0);
+    const L = D.listing || {};
+    fill('marketing', 'Ready to post', `
+      <div class="creatives">${arr(D.creatives).slice(0, 4).map((c, i) => `<div class="cr ${kinds[i]}" style="background:${g(i + 1)}">
+        <div class="lg">${esc(A.name)}</div><div class="emo">${esc(c.emoji)}</div>
+        <div class="k">${esc(c.kicker)}</div><div class="t">${esc(c.title)}</div><div class="c">${esc(c.cta)}</div></div>`).join('')}</div>
+      <div class="grid g3" style="margin-top:16px">${arr(D.ads).slice(0, 3).map((a, i) => `<div class="ad${i === best ? ' best' : ''}"><b>${esc(a.h)}</b><p>${esc(a.t)}</p><div class="ctr">Forecast CTR: ${esc(a.ctr)}${i === best ? ' · A/B winner' : ''}</div></div>`).join('')}</div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><h3>7-day content plan</h3><div class="cplan">${arr(D.contentPlan).slice(0, 7).map((d) => `<div><b>${esc(arr(d)[0])}</b>${esc(arr(d)[1])}</div>`).join('')}</div></div>
+        <div class="card"><h3>${esc(L.platform || 'Listing')} listing</h3><div class="listing"><div class="lhead"><div class="lav">★</div><div><b>${esc(L.title)}</b><small>★ 4.9 · new</small></div></div><p>${esc(L.text)}</p><div class="tags">${arr(L.tags).map((t) => `<span>${esc(t)}</span>`).join('')}</div></div></div>
+      </div>`);
+
+    const emojis = ['🎬', '📱', '🎥'];
+    fill('video', 'Video scripts, ready for Vivix', `
+      <div class="vids">${arr(D.video).slice(0, 3).map((v, i) => `<div class="card vcard">
+        <div class="vframe ${String(v.ratio).startsWith('9') ? 'r916' : 'r169'}" style="background:${g(i)}"><span>${emojis[i]}</span><em>${esc(v.ratio)} · Vivix W1</em></div>
+        <b>${esc(v.title)}</b><code>${esc(v.prompt)}</code>
+        <button class="copy" type="button" data-i="${i}">Copy prompt</button></div>`).join('')}</div>
+      <p class="muted" style="margin-top:14px">Paste a prompt into Vivix to render the clip in about a minute.</p>`);
+    $$('#s-video .copy').forEach((b) => (b.onclick = async () => {
+      const text = arr(S.D.video)[+b.dataset.i]?.prompt || '';
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied ✓'; }
+      catch { const code = b.previousElementSibling; const r = document.createRange(); r.selectNodeContents(code); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected, press Ctrl+C'; }
+      setTimeout(() => (b.textContent = 'Copy prompt'), 2000);
+    }));
+
+    renderLaunch();
+    renderBot();
+  }
+
+  /* ---------------- live chatbot ---------------- */
+  let turns = [];
+  function renderBot() {
+    const A = S.A, D = S.D;
+    fill('bot', 'An AI assistant answers customers 24/7', `<div class="botwrap">
+      <p class="muted" style="font-size:18px;max-width:44ch">This chat is live: every answer is written by Claude right now, using the plan above. Tap a question or ask your own.</p>
+      <div class="phone">
+        <div class="bh"><div class="av">💬</div><div><b>${esc(A.name)}</b><small>online</small></div></div>
+        <div class="msgs" id="msgs"></div>
+        <div class="chips" id="chips">${arr(D.bot?.chips).slice(0, 4).map((c) => `<button type="button">${esc(c)}</button>`).join('')}</div>
+        <form class="compose" id="compose"><input id="ask" placeholder="Ask a question…" autocomplete="off"><button aria-label="Send">↑</button></form>
+      </div></div>`);
+    turns = [];
+    push('b', D.bot?.hello || `Hi! Welcome to ${A.name}.`);
+    $$('#chips button').forEach((b) => (b.onclick = () => ask(b.textContent)));
+    $('#compose').onsubmit = (e) => { e.preventDefault(); const i = $('#ask'); ask(i.value); i.value = ''; };
+  }
+  function push(cls, text) { const m = document.createElement('div'); m.className = 'msg ' + cls; m.textContent = text; $('#msgs').append(m); $('#msgs').scrollTop = 1e6; return m; }
+  let chatBusy = false;
+  async function ask(q) {
+    q = q.trim();
+    if (!q || chatBusy) return;
+    if (!sample) { push('u', q); push('b', 'Live answers work when this page is opened on claude.ai.'); return; }
+    chatBusy = true;
+    push('u', q);
+    const bubble = push('b dots', '');
+    const facts = JSON.stringify({
+      business: S.A.name, city: S.A.city, concept: S.A.summary, tagline: S.A.tagline, voice: S.A.voice,
+      location: S.B?.candidates?.length ? [...S.B.candidates].sort((a, b) => num(b.demand) - num(a.demand))[0] : null,
+      products: arr(S.C?.products).map((p) => ({ name: p.name, price: S.A.currency + p.price })),
+      offers: arr(S.D?.creatives).map((c) => c.title),
+    });
+    const rules = `You are the friendly customer chat assistant of this business. Facts: ${facts}
+Answer the customer in 1-3 short sentences, in the brand's tone, using these facts. If a detail is missing (hours, parking), give a plausible friendly answer consistent with the concept. One emoji at most.`;
+    turns.push({ role: 'user', content: q });
+    try {
+      const { text } = await sample([{ role: 'user', content: rules }, ...turns.slice(-8)], {
+        cache: false, modelTier: 'quick',
+        onText: ({ text }) => { bubble.classList.remove('dots'); bubble.textContent = text; $('#msgs').scrollTop = 1e6; },
+      });
+      turns.push({ role: 'assistant', content: text });
+    } catch (e) {
+      bubble.classList.remove('dots');
+      bubble.textContent = e?.text || ERRORS[e?.code] || 'Sorry, I could not answer that. Try again.';
+      turns.pop();
+    }
+    chatBusy = false;
+  }
+
+  /* ---------------- final ---------------- */
+  function renderFinal() {
+    const secs = Math.round((endTime - t0) / 1000);
+    const time = secs < 120 ? `${secs} seconds` : `${Math.round(secs / 60)} minutes`;
+    const old = S.D?.old || {};
+    const dl = (o) => `<div><dt>Time</dt><dd>${esc(o.time)}</dd></div><div><dt>Cost</dt><dd>${esc(o.cost)}</dd></div><div><dt>Who did it</dt><dd style="font-size:clamp(14px,1.6vw,18px)">${esc(o.people)}</dd></div>`;
+    fill('final', 'AI did all of this, live', `
+      <div class="vs">
+        <div class="card ai"><h3>With AI</h3><dl>${dl({ time, cost: 'a few cents of AI usage', people: '1 person + 4 AI teams' })}</dl></div>
+        <div class="card old"><h3>The old way</h3><dl>${dl({ time: old.time || '3–4 weeks', cost: old.cost || 'thousands in agency fees', people: old.people || 'consultant, designer, analyst, marketer' })}</dl></div>
+      </div>
+      <p class="cta-final">Learn to do the same in <b style="color:var(--accent)">AI from zero to pro</b></p>`);
+  }
+  function confetti() {
+    const colors = [getComputedStyle(document.documentElement).getPropertyValue('--accent'), '#c8874a', '#8fa37e', '#f4ebdd'];
+    for (let i = 0; i < 90; i++) {
+      const c = document.createElement('i');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[i % 4];
+      c.style.animationDuration = 2.5 + Math.random() * 2.5 + 's';
+      c.style.animationDelay = Math.random() * 0.8 + 's';
+      document.body.append(c);
+      setTimeout(() => c.remove(), 6000);
+    }
+  }
+
+  /* ---------------- navigation ---------------- */
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    const i = $$('.slide').indexOf(e.target);
+    $$('#dots button').forEach((b, k) => b.classList.toggle('on', k === i));
+    if (e.target.id === 's-final' && !e.target.classList.contains('pending') && !e.target.dataset.party) { e.target.dataset.party = 1; confetti(); }
+  }), { threshold: 0.3 });
+  function current() {
+    const mid = innerHeight / 2;
+    const all = $$('.slide');
+    const i = all.findIndex((s) => { const r = s.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; });
+    return i;
+  }
+  function go(i) {
+    const all = $$('.slide');
+    if (i < 0) return $('#board').scrollIntoView({ behavior: 'smooth' });
+    all[Math.min(all.length - 1, i)]?.scrollIntoView({ behavior: 'smooth' });
+  }
+  const fullscreen = () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.().catch(() => {}));
+  $('#btn-full').onclick = fullscreen;
+
+  function reset() {
+    controllers.forEach((c) => c.abort());
+    running = false;
+    clearInterval(clockTimer);
+    S = {}; model = null;
+    resetAccent();
+    io.disconnect();
+    $('#out').innerHTML = ''; $('#out').classList.add('hidden');
+    $('#dots').classList.add('hidden');
+    $('#board').classList.add('hidden');
+    $('#btn-new').classList.add('hidden');
+    $('#start').classList.remove('hidden');
+    window.scrollTo(0, 0);
+    $('#idea').focus();
+  }
+  $('#btn-new').onclick = reset;
+
+  document.addEventListener('keydown', (e) => {
+    const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+    if (typing) return;
+    if (e.key === 'f') fullscreen();
+    if (e.key === 'r' && !$('#board').classList.contains('hidden')) reset();
+    if ($('#out').classList.contains('hidden')) return;
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(current() + 1); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(current() - 1); }
+  });
+
+  /* ---------------- start screen ---------------- */
+  $('#examples').innerHTML = EXAMPLES.map((x) => `<button type="button">${esc(x)}</button>`).join('');
+  $$('#examples button').forEach((b) => (b.onclick = () => { $('#idea').value = b.textContent; $('#idea').focus(); }));
+  const sampleReady = getSample();
+  $('#idea-form').onsubmit = async (e) => {
+    e.preventDefault();
+    $('#btn-go').disabled = true;
+    sample = await sampleReady;
+    $('#btn-go').disabled = false;
+    if (sample) build($('#idea').value); else showExample();
+  };
+  $('#idea').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#idea-form').requestSubmit(); } });
+
+  // Sample result shown when the page runs outside claude.ai
+  const EXAMPLE = {
+    A: { name: 'Kape Apo', descriptor: 'davao coffee lab', tagline: 'Mountain-grown. Davao-made.', city: 'Davao City, Philippines', currency: '₱',
+      summary: 'A specialty coffee shop for Davao’s night economy in Bajada, open 6 AM – 2 AM. Beans from Mt. Apo farmers and a Night Shift Pass for BPO teams.',
+      insights: ['40,000+ BPO agents work night shifts in Davao', 'Almost no specialty coffee is open after midnight', 'Mt. Apo arabica is grown 60 km from the city'],
+      audience: [{ who: 'BPO & office workers', share: 45, note: 'night shift, coffee to go, ₱240 per visit' }, { who: 'Students', share: 30, note: 'study with laptops, add a pastry' }, { who: 'Locals & tourists', share: 25, note: 'weekends, buy cacao as pasalubong' }],
+      swot: { Strengths: ['Open until 2 AM', 'Single-origin Mt. Apo beans', 'Night Shift Pass'], Weaknesses: ['Small seating area', 'New brand'], Opportunities: ['Delivery to BPO towers', 'Corporate passes', 'Own roastery'], Threats: ['Mall coffee chains', 'Rising bean prices'] },
+      personas: [{ name: 'Joy, 26', role: 'BPO team lead', quote: 'I need real coffee at 3 AM.', facts: ['Visits 5× a week', 'Spends ₱250', 'Finds places on Facebook'], hook: 'Night Shift Pass + pre-orders' }, { name: 'Paolo, 20', role: 'Ateneo student', quote: 'Fast Wi‑Fi and a coffee I can afford.', facts: ['Stays 3 hours', 'Budget ₱150', 'Lives on TikTok'], hook: 'Student discount, study corner' }, { name: 'Liza, 41', role: 'Business owner', quote: 'A nice place to meet clients.', facts: ['Weekly meetings', 'Check ₱450', 'Word of mouth'], hook: 'Meeting table, cacao gift boxes' }],
+      palette: [{ name: 'Volcanic', hex: '#2B1B14' }, { name: 'Crema', hex: '#C8874A' }, { name: 'Coconut', hex: '#F4EBDD' }, { name: 'Apo green', hex: '#8FA37E' }, { name: 'Cacao gold', hex: '#E9B872' }],
+      voice: 'Warm, friendly, a little Taglish, never snobby.',
+      logo_svg: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 78 L35 38 L48 54 L62 30 L92 78"/><ellipse cx="50" cy="64" rx="10" ry="14" transform="rotate(-28 50 64)"/><path d="M46 52 C 56 60, 44 68, 54 76"/></svg>' },
+    B: { candidates: [{ name: 'Bajada', street: 'J.P. Laurel Ave', rent: 950, x: 52, y: 40, traffic: 9, rentScore: 6, competition: 6, demand: 10, fit: 8 }, { name: 'Lanang', street: 'Near SM Lanang', rent: 1100, x: 72, y: 20, traffic: 8, rentScore: 5, competition: 5, demand: 9, fit: 6 }, { name: 'Poblacion', street: 'San Pedro St', rent: 650, x: 60, y: 70, traffic: 9, rentScore: 8, competition: 4, demand: 5, fit: 7 }, { name: 'Matina', street: 'MacArthur Hwy', rent: 600, x: 28, y: 78, traffic: 7, rentScore: 8, competition: 7, demand: 6, fit: 6 }],
+      weights: { traffic: 0.25, rentScore: 0.2, competition: 0.15, demand: 0.25, fit: 0.15 },
+      why: ['6 BPO towers within a 7-minute walk', 'Abreeza Mall brings weekend traffic', 'Only 2 specialty cafés nearby, both close by 10 PM', 'Jeepney routes stop at the door'],
+      roadmap: [{ when: 'Weeks 1–2', what: 'Register', detail: 'DTI, Mayor’s permit, BIR' }, { when: 'Weeks 3–6', what: 'Fit-out', detail: 'Interior, machine, POS' }, { when: 'Weeks 5–8', what: 'Hire & train', detail: '7 people, 2 shifts' }, { when: 'Week 8', what: 'Soft opening', detail: '3 partner BPOs' }, { when: 'Week 9', what: 'Grand opening', detail: 'First cup free' }, { when: 'Weeks 10–12', what: 'Grow', detail: 'GrabFood, corporate passes' }] },
+    C: { checkLabel: 'Average check', volumeLabel: 'Checks per day', productsTitle: 'Menu',
+      investments: [['Fit-out and interior', 800000], ['Espresso machine and equipment', 950000], ['Furniture and tableware', 300000], ['Launch marketing', 150000], ['Permits, first stock', 120000], ['Cash reserve', 330000]],
+      model: { avgCheck: 210, perDay: 160, rampMonths: 6, cogsShare: 0.28, fixedMonthly: 360000 },
+      products: [{ name: 'Espresso', price: 110, cost: 22, tag: '' }, { name: 'Cappuccino', price: 160, cost: 38, tag: '' }, { name: 'Spanish latte', price: 175, cost: 45, tag: 'bestseller' }, { name: 'Mt. Apo Latte', price: 185, cost: 48, tag: 'signature' }, { name: 'Calamansi cold brew', price: 170, cost: 35, tag: 'local' }, { name: 'Iced Davao cacao', price: 160, cost: 42, tag: '' }, { name: 'Durian frappe', price: 195, cost: 60, tag: 'brave' }, { name: 'Ensaymada', price: 95, cost: 32, tag: '' }, { name: 'Tuna pandesal melt', price: 120, cost: 40, tag: '' }, { name: 'Ube cheesecake', price: 165, cost: 58, tag: '' }] },
+    D: { creatives: [{ kicker: 'Grand opening', title: 'Your first cup is on us', cta: 'Save this & come by', emoji: '☕' }, { kicker: 'Meet Mika', title: 'The best Spanish latte in Bajada', cta: 'Open till 2 AM', emoji: '👋' }, { kicker: 'Signature', title: 'Mt. Apo Latte ₱185', cta: 'Davao cacao · muscovado', emoji: '⛰️' }, { kicker: 'Night Shift Pass', title: '20 coffees for ₱2,900', cta: 'For BPO teams', emoji: '🌙' }],
+      ads: [{ h: 'Real coffee at 2 AM', t: 'Night shift? We’re open till 2 AM, 5 minutes from your tower.', ctr: '3.1%' }, { h: 'Mt. Apo beans, Davao hands', t: 'Single-origin coffee from farmers 60 km away.', ctr: '2.6%' }, { h: 'Night Shift Pass −15%', t: '20 coffees for ₱2,900. Made for BPO teams.', ctr: '4.3%' }],
+      contentPlan: [['Mon', 'Reel: latte art'], ['Tue', 'Meet barista Mika'], ['Wed', 'Poll: durian frappe?'], ['Thu', 'Mt. Apo farm story'], ['Fri', 'Pass giveaway'], ['Sat', 'Guest reposts'], ['Sun', '3 AM barista life']],
+      listing: { platform: 'GrabFood', title: 'Kape Apo · Davao Coffee Lab', text: 'Specialty coffee from Mt. Apo beans. Try the Mt. Apo Latte or a calamansi cold brew. Open till 2 AM.', tags: ['Coffee', 'Local favorite', 'Open late', 'Free delivery to BPO towers'] },
+      hiring: { title: 'We’re hiring: night-shift barista ☕🌙', text: 'Two night owls who love coffee and people. We teach latte art.', perks: ['₱18,000–22,000 / month', 'Night differential', 'Paid training'], questions: ['A guest says the coffee is bitter. What do you do?', 'How do you stay energetic at 1 AM?', 'Make a drink for a stressed BPO agent.'] },
+      video: [{ title: 'Morning promo', ratio: '16:9', prompt: 'Cinematic morning in a cozy coffee shop, a barista pours latte art, steam rising, camera pushes in slowly.' }, { title: 'Latte art reel', ratio: '9:16', prompt: 'Macro shot of espresso into a glass cup, milk forms a heart, warm rim light, slow motion.' }, { title: 'From Mt. Apo', ratio: '16:9', prompt: 'Sunrise on a Mt. Apo coffee farm, a farmer picks red cherries, mist between the trees.' }],
+      bot: { hello: 'Hi, kumusta! Ask me about the menu or hours ☕', chips: ['What do you recommend?', 'What are your hours?', 'Any dairy-free drinks?', 'Do you have Wi‑Fi?'] },
+      old: { time: '3–4 weeks', cost: '≈ ₱250,000', people: 'consultant, designer, analyst, videographer, SMM' } },
+  };
+
+  async function showExample() {
+    if (running) return;
+    running = true;
+    idea = EXAMPLE_IDEA;
+    S = {};
+    resetAccent();
+    $('#start').classList.add('hidden');
+    $('#board').classList.remove('hidden');
+    $('#btn-new').classList.remove('hidden');
+    $('#btn-stop').classList.add('hidden');
+    $('#board-q').textContent = '“' + idea + '” · ready example';
+    buildSkeleton();
+    startClock();
+    const order = [['A', onA], ['B', onB], ['C', onC], ['D', onD]];
+    for (const [id, fn] of order) {
+      setTeam(id, 'working', 'writing…');
+      const json = JSON.stringify(EXAMPLE[id]);
+      for (let i = 0; i < json.length; i += 90) { $('.tail', teamCard(id)).textContent = json.slice(Math.max(0, i - 170), i + 90); await sleep(30); }
+      S[id] = EXAMPLE[id];
+      fn();
+      setTeam(id, 'done', '✓ done');
+    }
+    finish();
+  }
+  const EXAMPLE_IDEA = EXAMPLES[0];
+  $('#btn-example').onclick = showExample;
+
+  // Light up live mode when the page can reach Claude
+  sampleReady.then((s) => {
+    sample = s;
+    if (!s) { $('#note').classList.add('hidden'); $('#fallback').classList.remove('hidden'); }
+  });
+})();
+</script>
+</body>
+</html>

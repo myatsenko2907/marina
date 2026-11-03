@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ТукТук Киев AI Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="course">ИИ <b>с нуля до про</b> · живое демо</div>
+    <div class="tools">
+      <button class="tool" id="btn-auto" title="Автопоказ: слайды листаются сами">▶ Автопоказ</button>
+      <button class="tool" id="btn-full" title="Полный экран (F)">⛶</button>
+      <button class="tool" id="btn-reset" title="Начать заново (R)">↺</button>
+    </div>
+  </header>
+
+  <!-- 1. Старт -->
+  <section class="screen start" id="start">
+    <span class="eyebrow">Команда из 8 ИИ-агентов · Киев</span>
+    <h1>Бизнес <em>за 15 минут</em> вместо месяца</h1>
+    <p class="lead">Опишите идею одной фразой. ИИ сделает бизнес-план, сравнение с такси, выбор района, финмодель, бренд, тарифы, видеорекламу, креативы и чат-бота.</p>
+    <div class="idea">
+      <textarea id="idea" rows="3" aria-label="Идея бизнеса"></textarea>
+      <button class="go" id="btn-go">Запустить ИИ ✨</button>
+    </div>
+    <div class="hint"><kbd>Enter</kbd> или пробел — запуск · <kbd>→</kbd> <kbd>←</kbd> — листать слайды · <kbd>F</kbd> — полный экран</div>
+  </section>
+
+  <!-- 2. Конвейер агентов -->
+  <section class="screen run hidden" id="run">
+    <h2>ИИ-команда собирает «<span data-brand></span>»</h2>
+    <p class="sub">Каждый агент делает работу отдельного специалиста</p>
+    <div class="agents" id="agents"></div>
+    <div class="progress"><span id="pct">0%</span><div class="track"><div class="fill" id="fill"></div></div><span id="timer">00:00</span></div>
+  </section>
+
+  <!-- 3. Результаты -->
+  <main id="results" class="hidden">
+    <section class="slide" data-title="Бизнес-план">
+      <div class="inner">
+        <div class="num">01 · Бизнес-план</div>
+        <h2>«<span data-brand></span>»: поездки дешевле такси</h2>
+        <div class="card reveal" style="margin-bottom:16px"><div class="typed" id="summary"></div></div>
+        <div class="grid g2">
+          <div class="card reveal"><h3>Целевая аудитория</h3><div class="aud" id="aud"></div></div>
+          <div class="card reveal"><h3>SWOT-анализ</h3><div class="swot" id="swot"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Дешевле такси">
+      <div class="inner">
+        <div class="num">02 · Цена против такси</div>
+        <h2>В среднем на <span id="tx-avg"></span> дешевле такси</h2>
+        <div class="grid txgrid">
+          <div class="card reveal">
+            <h3>Посчитайте свою поездку</h3>
+            <div class="sliders"><label>Расстояние <output id="o-km"></output><input type="range" id="s-km" min="1" max="15" step="1" value="4"></label></div>
+            <div class="txcalc">
+              <div class="txbox tuk"><span>Туктук</span><b id="tx-tuk"></b></div>
+              <div class="txbox taxi"><span>Такси эконом</span><b id="tx-taxi"></b></div>
+            </div>
+            <div class="txsave" id="tx-save"></div>
+            <p class="muted" id="tx-note" style="margin:12px 0 0;font-size:13px"></p>
+          </div>
+          <div class="card reveal">
+            <h3>Типичные поездки</h3>
+            <div class="txbars" id="tx-bars"></div>
+          </div>
+        </div>
+        <div class="grid g3" id="tx-why" style="margin-top:16px"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Район">
+      <div class="inner">
+        <div class="num">03 · Где запускаться</div>
+        <h2>Почему <span id="loc-winner"></span>?</h2>
+        <div class="grid locgrid">
+          <div class="card reveal map-card">
+            <svg id="map" viewBox="0 0 100 100" role="img" aria-label="Схема районов Киева"></svg>
+            <small class="muted">Схема, без масштаба</small>
+          </div>
+          <div class="grid">
+            <div class="card reveal"><h3>Оценка районов, из 10</h3><div class="loc-rank" id="loc-rank"></div></div>
+            <div class="card reveal win"><h3 id="loc-title"></h3><ul class="checks" id="loc-why"></ul></div>
+          </div>
+        </div>
+        <div class="card reveal" style="margin-top:16px">
+          <h3>Как ИИ сравнил районы</h3>
+          <div class="tablewrap"><table class="matrix" id="loc-matrix"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Клиенты">
+      <div class="inner">
+        <div class="num">04 · Портреты клиентов</div>
+        <h2>Кто будет ездить</h2>
+        <div class="grid g3" id="personas"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Финмодель">
+      <div class="inner">
+        <div class="num">05 · Финансовая модель</div>
+        <h2>Окупаемость за <span id="payback-h">—</span></h2>
+        <div class="kpis reveal" id="kpis"></div>
+        <div class="grid fin">
+          <div class="card reveal">
+            <h3>Деньги нарастающим итогом, 24 месяца</h3>
+            <canvas class="chart" id="chart"></canvas>
+          </div>
+          <div class="card reveal">
+            <h3>Двигайте, модель пересчитается</h3>
+            <div class="sliders">
+              <label>Средний чек поездки <output id="o-check"></output><input type="range" id="s-check" min="60" max="200" step="5"></label>
+              <label>Поездок в день (весь парк) <output id="o-checks"></output><input type="range" id="s-checks" min="80" max="500" step="10"></label>
+            </div>
+            <h3 style="margin-top:22px">Стартовые вложения</h3>
+            <table class="inv" id="inv"></table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Бренд">
+      <div class="inner">
+        <div class="num">06 · Бренд</div>
+        <h2>Название, логотип, стиль</h2>
+        <div class="grid brand">
+          <div class="card logo-card reveal" id="logo"></div>
+          <div class="grid">
+            <div class="card reveal"><h3>Слоган</h3><div class="tag-line" id="tagline"></div></div>
+            <div class="card reveal"><h3>Палитра</h3><div class="swatches" id="palette"></div></div>
+            <div class="card reveal"><h3>Шрифты и тон</h3><p id="fonts" style="margin:0 0 8px"></p><p class="muted" id="voice" style="margin:0"></p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Тарифы">
+      <div class="inner">
+        <div class="num">07 · Тарифы и юнит-экономика</div>
+        <h2>12 услуг, маржа <span id="avg-margin"></span></h2>
+        <div class="grid menu" id="menu"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Видео Vivix">
+      <div class="inner">
+        <div class="num">08 · Видео · сгенерировано в Vivix</div>
+        <h2>Реклама без съёмочной группы</h2>
+        <div class="videos" id="videos"></div>
+        <div class="live hidden" id="live">
+          <input id="live-prompt" placeholder="Опишите видео, и Vivix сгенерирует его прямо сейчас">
+          <button class="go" id="live-go">Сгенерировать вживую</button>
+          <div class="live-status" id="live-status"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Рекламный ролик">
+      <div class="inner">
+        <div class="num">09 · Рекламный ролик 15 секунд · Vivix W1</div>
+        <h2>Один запрос, один ролик</h2>
+        <div class="adwrap">
+          <div class="adplayer" id="adplayer">
+            <video id="advideo" playsinline preload="metadata"></video>
+            <div class="endcard" id="endcard"></div>
+            <button class="adplay" id="adplay" type="button">▶ Смотреть со звуком</button>
+            <div class="adbar"><i id="adprogress"></i><div id="admarks"></div></div>
+          </div>
+          <div class="adside">
+            <div class="card"><h3>Раскадровка от ИИ</h3><ol class="shots" id="shots"></ol></div>
+            <div class="card"><h3>Закадровый текст</h3><p class="vo" id="vo"></p><p class="muted" id="admusic" style="margin:8px 0 0;font-size:14px"></p></div>
+          </div>
+        </div>
+        <div class="adstats" id="adstats"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Креативы">
+      <div class="inner">
+        <div class="num">10 · Креативы и соцсети</div>
+        <h2>Готово к публикации</h2>
+        <div class="creatives" id="creatives"></div>
+        <div class="grid g3 ads" id="ads"></div>
+        <div class="grid g2" style="margin-top:16px">
+          <div class="card"><h3>Контент-план на неделю</h3><div class="cplan" id="cplan"></div></div>
+          <div class="card"><h3>Карточка в Google Maps</h3><div class="listing" id="listing"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="План запуска">
+      <div class="inner">
+        <div class="num">11 · План запуска</div>
+        <h2>От идеи до первых поездок за 90 дней</h2>
+        <ol class="roadmap reveal" id="roadmap"></ol>
+        <div class="card reveal job" id="job"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Чат-бот">
+      <div class="inner botwrap">
+        <div>
+          <div class="num">12 · Чат-бот</div>
+          <h2>ИИ-диспетчер принимает заказы 24/7</h2>
+          <p class="muted" style="font-size:18px;max-width:44ch">Знает тарифы, районы, время подачи и абонементы. Нажмите на подсказку или задайте свой вопрос.</p>
+        </div>
+        <div class="phone">
+          <div class="bh"><div class="av">🛺</div><div><b data-brand></b><small>онлайн</small></div></div>
+          <div class="msgs" id="msgs"></div>
+          <div class="chips" id="chips"></div>
+          <form class="compose" id="compose"><input id="ask" placeholder="Спросить диспетчера…" autocomplete="off"><button aria-label="Отправить">↑</button></form>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide final" data-title="Итог">
+      <div class="inner">
+        <div class="num">Итог</div>
+        <h2>Всё это сделал ИИ</h2>
+        <div class="vs">
+          <div class="card ai"><h3>С ИИ</h3><dl id="vs-ai"></dl></div>
+          <div class="card old"><h3>Как раньше</h3><dl id="vs-old"></dl></div>
+        </div>
+        <p class="cta-final">Научим так же на курсе <b style="color:var(--accent)">«ИИ с нуля до про»</b></p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="dots hidden" id="dots"></nav>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

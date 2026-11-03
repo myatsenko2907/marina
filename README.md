@@ -64,3 +64,15 @@ const vivix = new Vivix();                       // reads VIVIX_API_KEY
 const job = await vivix.generateVideo({ prompt: '...', duration: 8, aspect_ratio: '9:16' });
 console.log(job.video_url);
 ```
+
+## Демо для презентации курса «ИИ с нуля до про»
+
+Папка [`coffee-demo/`](coffee-demo/README.md) — интерактивное демо на английском «Kape Apo AI Studio» (кофейня в Давао): бизнес-план, анализ локации, финмодель, бренд, меню, видео Vivix, креативы, план запуска и чат-бот. Откройте `coffee-demo/index.html` в браузере.
+
+Папка [`studio-live/`](studio-live/README.md) — версия 2: вписываете любой бизнес, и ИИ пишет полное решение в реальном времени (работает как опубликованная страница claude.ai).
+
+Папка [`pharmacy-demo/`](pharmacy-demo/README.md) — вариант 3: аптека из Toril (Давао) открывает второе отделение — анализ локации, финмодель филиала, видео Vivix и чат-бот.
+
+Папка [`tshirt-demo/`](tshirt-demo/README.md) — вариант 4: студия печати на футболках Tatak Prints в Давао.
+
+Папка [`tuktuk-demo/`](tuktuk-demo/README.md) — вариант 5 (на русском): сервис туктуков в Киеве, в два раза дешевле такси.

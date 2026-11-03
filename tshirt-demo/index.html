@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tatak Prints AI Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="course">AI <b>from zero to pro</b> · live demo</div>
+    <div class="tools">
+      <button class="tool" id="btn-auto" title="Autoplay: slides advance on their own">▶ Autoplay</button>
+      <button class="tool" id="btn-full" title="Full screen (F)">⛶</button>
+      <button class="tool" id="btn-reset" title="Start over (R)">↺</button>
+    </div>
+  </header>
+
+  <!-- 1. Start -->
+  <section class="screen start" id="start">
+    <span class="eyebrow">A team of 8 AI agents · Davao City</span>
+    <h1>A business <em>in 15 minutes</em>, not a month</h1>
+    <p class="lead">Describe your idea in one sentence. AI builds the business plan, location analysis, financial model, brand, menu, video ads, creatives and a chatbot.</p>
+    <div class="idea">
+      <textarea id="idea" rows="3" aria-label="Business idea"></textarea>
+      <button class="go" id="btn-go">Run the AI ✨</button>
+    </div>
+    <div class="hint"><kbd>Enter</kbd> or Space to start · <kbd>→</kbd> <kbd>←</kbd> to change slides · <kbd>F</kbd> for full screen</div>
+  </section>
+
+  <!-- 2. Agent pipeline -->
+  <section class="screen run hidden" id="run">
+    <h2>The AI team is building <span data-brand></span></h2>
+    <p class="sub">Each agent does the work of a full-time specialist</p>
+    <div class="agents" id="agents"></div>
+    <div class="progress"><span id="pct">0%</span><div class="track"><div class="fill" id="fill"></div></div><span id="timer">00:00</span></div>
+  </section>
+
+  <!-- 3. Results -->
+  <main id="results" class="hidden">
+    <section class="slide" data-title="Business plan">
+      <div class="inner">
+        <div class="num">01 · Business plan</div>
+        <h2><span data-brand></span>, Davao City</h2>
+        <div class="card reveal" style="margin-bottom:16px"><div class="typed" id="summary"></div></div>
+        <div class="grid g2">
+          <div class="card reveal"><h3>Target audience</h3><div class="aud" id="aud"></div></div>
+          <div class="card reveal"><h3>SWOT analysis</h3><div class="swot" id="swot"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Location">
+      <div class="inner">
+        <div class="num">02 · Location analysis</div>
+        <h2>Why <span id="loc-winner"></span>?</h2>
+        <div class="grid locgrid">
+          <div class="card reveal map-card">
+            <svg id="map" viewBox="0 0 100 100" role="img" aria-label="Schematic map of Davao City districts"></svg>
+            <small class="muted">Schematic map, not to scale</small>
+          </div>
+          <div class="grid">
+            <div class="card reveal"><h3>Score by district, out of 10</h3><div class="loc-rank" id="loc-rank"></div></div>
+            <div class="card reveal win"><h3 id="loc-title"></h3><ul class="checks" id="loc-why"></ul></div>
+          </div>
+        </div>
+        <div class="card reveal" style="margin-top:16px">
+          <h3>How the AI compared the districts</h3>
+          <div class="tablewrap"><table class="matrix" id="loc-matrix"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Customers">
+      <div class="inner">
+        <div class="num">03 · Customer personas</div>
+        <h2>Who will order our shirts</h2>
+        <div class="grid g3" id="personas"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Financials">
+      <div class="inner">
+        <div class="num">04 · Financial model</div>
+        <h2>Payback in <span id="payback-h">—</span></h2>
+        <div class="kpis reveal" id="kpis"></div>
+        <div class="grid fin">
+          <div class="card reveal">
+            <h3>Cumulative cash, 24 months</h3>
+            <canvas class="chart" id="chart"></canvas>
+          </div>
+          <div class="card reveal">
+            <h3>Move the sliders, the model updates</h3>
+            <div class="sliders">
+              <label>Average order <output id="o-check"></output><input type="range" id="s-check" min="600" max="3500" step="50"></label>
+              <label>Orders per day <output id="o-checks"></output><input type="range" id="s-checks" min="5" max="50" step="1"></label>
+            </div>
+            <h3 style="margin-top:22px">Startup budget</h3>
+            <table class="inv" id="inv"></table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Brand">
+      <div class="inner">
+        <div class="num">05 · Brand</div>
+        <h2>Name, logo, style</h2>
+        <div class="grid brand">
+          <div class="card logo-card reveal" id="logo"></div>
+          <div class="grid">
+            <div class="card reveal"><h3>Tagline</h3><div class="tag-line" id="tagline"></div></div>
+            <div class="card reveal"><h3>Palette</h3><div class="swatches" id="palette"></div></div>
+            <div class="card reveal"><h3>Fonts and tone of voice</h3><p id="fonts" style="margin:0 0 8px"></p><p class="muted" id="voice" style="margin:0"></p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Menu">
+      <div class="inner">
+        <div class="num">06 · Products and unit economics</div>
+        <h2>12 products, <span id="avg-margin"></span> margin</h2>
+        <div class="grid menu" id="menu"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Vivix video">
+      <div class="inner">
+        <div class="num">07 · Video · generated with Vivix</div>
+        <h2>Ads without a film crew</h2>
+        <div class="videos" id="videos"></div>
+        <div class="live hidden" id="live">
+          <input id="live-prompt" placeholder="Describe a video and Vivix will generate it right now">
+          <button class="go" id="live-go">Generate live</button>
+          <div class="live-status" id="live-status"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="TV ad">
+      <div class="inner">
+        <div class="num">08 · 15-second TV ad · Vivix W1</div>
+        <h2>One prompt, one commercial</h2>
+        <div class="adwrap">
+          <div class="adplayer" id="adplayer">
+            <video id="advideo" playsinline preload="metadata"></video>
+            <div class="endcard" id="endcard"></div>
+            <button class="adplay" id="adplay" type="button">▶ Play with sound</button>
+            <div class="adbar"><i id="adprogress"></i><div id="admarks"></div></div>
+          </div>
+          <div class="adside">
+            <div class="card"><h3>Storyboard written by AI</h3><ol class="shots" id="shots"></ol></div>
+            <div class="card"><h3>Voiceover</h3><p class="vo" id="vo"></p><p class="muted" id="admusic" style="margin:8px 0 0;font-size:14px"></p></div>
+          </div>
+        </div>
+        <div class="adstats" id="adstats"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Creatives">
+      <div class="inner">
+        <div class="num">09 · Creatives and social media</div>
+        <h2>Ready to post</h2>
+        <div class="creatives" id="creatives"></div>
+        <div class="grid g3 ads" id="ads"></div>
+        <div class="grid g2" style="margin-top:16px">
+          <div class="card"><h3>7-day content plan</h3><div class="cplan" id="cplan"></div></div>
+          <div class="card"><h3>Shopee store listing</h3><div class="listing" id="listing"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Launch plan">
+      <div class="inner">
+        <div class="num">10 · Launch plan</div>
+        <h2>From idea to opening in 90 days</h2>
+        <ol class="roadmap reveal" id="roadmap"></ol>
+        <div class="card reveal job" id="job"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="AI assistant">
+      <div class="inner botwrap">
+        <div>
+          <div class="num">11 · Chatbot</div>
+          <h2>An AI assistant takes orders 24/7</h2>
+          <p class="muted" style="font-size:18px;max-width:44ch">It knows prices, bulk packages, lead times and delivery, and quotes an org order in seconds. Tap a suggestion or type your own question.</p>
+        </div>
+        <div class="phone">
+          <div class="bh"><div class="av">👕</div><div><b data-brand></b><small>online</small></div></div>
+          <div class="msgs" id="msgs"></div>
+          <div class="chips" id="chips"></div>
+          <form class="compose" id="compose"><input id="ask" placeholder="Ask about your order…" autocomplete="off"><button aria-label="Send">↑</button></form>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide final" data-title="Summary">
+      <div class="inner">
+        <div class="num">Summary</div>
+        <h2>AI did all of this</h2>
+        <div class="vs">
+          <div class="card ai"><h3>With AI</h3><dl id="vs-ai"></dl></div>
+          <div class="card old"><h3>The old way</h3><dl id="vs-old"></dl></div>
+        </div>
+        <p class="cta-final">Learn to do the same in <b style="color:var(--accent)">AI from zero to pro</b></p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="dots hidden" id="dots"></nav>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
