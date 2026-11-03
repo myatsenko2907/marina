@@ -1,2 +1,4 @@
 node_modules/
 __pycache__/
+stt-crm/raw/
+stt-crm/dist/

@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STEP Travel CRM</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --ink:#1b1f24; --muted:#667085; --line:#e4e7ec;
+  --accent:#0b6bcb; --accent-soft:#e6f0fb; --good:#1a7f4b; --good-soft:#e5f4ec;
+  --warn:#b54708; --warn-soft:#fdf0e3; --bad:#c0262d; --bad-soft:#fbe9ea; --neutral-soft:#eef0f3;
+  --bar:#0b6bcb; --bar2:#7aa7d9;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#111418; --card:#1a1e24; --ink:#e7e9ec; --muted:#98a2b3; --line:#2b313a;
+  --accent:#5aa2f0; --accent-soft:#1c2c40; --good:#4cc38a; --good-soft:#163024; --warn:#f2a65a; --warn-soft:#3a2a17;
+  --bad:#f07178; --bad-soft:#3a1c1f; --neutral-soft:#242a32; --bar:#5aa2f0; --bar2:#35597f;
+}}
+:root[data-theme="dark"]{
+  --bg:#111418; --card:#1a1e24; --ink:#e7e9ec; --muted:#98a2b3; --line:#2b313a;
+  --accent:#5aa2f0; --accent-soft:#1c2c40; --good:#4cc38a; --good-soft:#163024; --warn:#f2a65a; --warn-soft:#3a2a17;
+  --bad:#f07178; --bad-soft:#3a1c1f; --neutral-soft:#242a32; --bar:#5aa2f0; --bar2:#35597f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:20px 16px 0;max-width:1280px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px}
+nav{display:flex;gap:4px;overflow-x:auto;padding:14px 16px 0;max-width:1280px;margin:0 auto;border-bottom:1px solid var(--line)}
+nav button{border:0;background:none;color:var(--muted);padding:10px 12px;font:inherit;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button.on{color:var(--accent);border-color:var(--accent)}
+main{max-width:1280px;margin:0 auto;padding:16px}
+section{display:none} section.on{display:block}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.kpi .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:12px}
+.kpi .s{color:var(--muted);font-size:12px;margin-top:2px}
+h2{font-size:16px;margin:22px 0 10px}
+h3{font-size:14px;margin:0 0 10px}
+.two{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.bars .row{display:grid;grid-template-columns:minmax(120px,190px) 1fr 70px;gap:8px;align-items:center;margin:5px 0;font-size:13px}
+.bars .track{background:var(--neutral-soft);border-radius:4px;height:14px;overflow:hidden;display:flex}
+.bars .fill{background:var(--bar);height:100%}
+.bars .fill2{background:var(--bar2);height:100%}
+.bars .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.tools input,.tools select{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);min-width:0}
+.tools input{flex:1 1 200px}
+.btn{font:inherit;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
+.tbl{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:var(--card);color:var(--muted);font-weight:600;font-size:12px;cursor:pointer;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;background:var(--neutral-soft);white-space:nowrap}
+.t-good{background:var(--good-soft);color:var(--good)} .t-warn{background:var(--warn-soft);color:var(--warn)}
+.t-bad{background:var(--bad-soft);color:var(--bad)} .t-acc{background:var(--accent-soft);color:var(--accent)}
+.muted{color:var(--muted)} .small{font-size:12px}
+.cm{max-width:380px;color:var(--muted);font-size:12px}
+a{color:var(--accent)}
+.note{background:var(--warn-soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:13px}
+.note.info{background:var(--accent-soft)}
+.funnel .step{display:grid;grid-template-columns:minmax(150px,240px) 1fr 110px;gap:10px;align-items:center;margin:6px 0}
+.funnel .track{height:22px;background:var(--neutral-soft);border-radius:4px;overflow:hidden}
+.funnel .fill{height:100%;background:var(--bar)}
+select.mark{font:inherit;font-size:12px;padding:3px 4px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+.count{color:var(--muted);font-size:12px;margin:6px 2px}
+@media (max-width:600px){.bars .row{grid-template-columns:110px 1fr 54px}.funnel .step{grid-template-columns:120px 1fr 80px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>STEP Travel CRM — выездные лагеря</h1>
+  <div class="sub" id="sub"></div>
+</header>
+<nav id="nav">
+  <button data-t="ov" class="on">Обзор</button>
+  <button data-t="call">Не позвонили / можно продать</button>
+  <button data-t="leads">Все лиды</button>
+  <button data-t="sales">Продажи ВЛ по филиалам</button>
+  <button data-t="meta">Meta реклама</button>
+  <button data-t="ig">Instagram и потери</button>
+</nav>
+<main>
+
+<section id="ov" class="on">
+  <div class="grid" id="kpis"></div>
+  <div class="two" style="margin-top:12px">
+    <div class="card"><h3>Лиды по странам (Step2Travel, с 01.04.2026)</h3><div class="bars" id="ovCountry"></div></div>
+    <div class="card"><h3>Статусы лидов</h3><div class="bars" id="ovStatus"></div></div>
+    <div class="card"><h3>Продажи ВЛ по странам (все филиалы, 2026)</h3><div class="bars" id="ovSalesCountry"></div></div>
+    <div class="card"><h3>Продажи ВЛ по филиалам</h3><div class="bars" id="ovSalesBranch"></div></div>
+  </div>
+  <div class="note" id="ovNote"></div>
+</section>
+
+<section id="call">
+  <div class="note info">Список для обзвона: лиды, которые не удалены, не отказались и не помечены как фейк. Сортировка по приоритету:
+    «Думает» → «Ждёт звонка» → ни разу не связывались → «Недозвон». Колонка «Пометка» сохраняется только в этом браузере — выгрузите CSV, чтобы передать менеджерам.</div>
+  <div class="tools">
+    <input id="cQ" placeholder="Поиск: имя, комментарий, продукт">
+    <select id="cCountry"></select>
+    <select id="cStatus"></select>
+    <button class="btn" id="cCsv">Скачать CSV</button>
+  </div>
+  <div class="count" id="cCount"></div>
+  <div class="tbl"><table id="cTbl"></table></div>
+</section>
+
+<section id="leads">
+  <div class="tools">
+    <input id="lQ" placeholder="Поиск: имя, комментарий, продукт">
+    <select id="lCountry"></select>
+    <select id="lStatus"></select>
+    <select id="lQuality"></select>
+    <select id="lSource"></select>
+    <button class="btn" id="lCsv">Скачать CSV</button>
+  </div>
+  <div class="count" id="lCount"></div>
+  <div class="tbl"><table id="lTbl"></table></div>
+</section>
+
+<section id="sales">
+  <div class="grid" id="sKpis"></div>
+  <div class="note info" id="sNote"></div>
+  <div class="two">
+    <div class="card"><h3>Выручка по странам, грн (оплаченные)</h3><div class="bars" id="sRevCountry"></div></div>
+    <div class="card"><h3>Договоры по месяцам</h3><div class="bars" id="sMonth"></div></div>
+    <div class="card"><h3>Менеджеры: договоры / оплачено</h3><div class="bars" id="sMgr"></div></div>
+    <div class="card"><h3>Статусы оплат</h3><div class="bars" id="sPay"></div></div>
+  </div>
+  <h2>Договоры</h2>
+  <div class="tools">
+    <input id="sQ" placeholder="Поиск: клиент, ребёнок, менеджер">
+    <select id="sBranch"></select>
+    <select id="sCountry"></select>
+    <select id="sPayF"></select>
+    <button class="btn" id="sCsv">Скачать CSV</button>
+  </div>
+  <div class="count" id="sCount"></div>
+  <div class="tbl"><table id="sTbl"></table></div>
+</section>
+
+<section id="meta">
+  <div class="grid" id="mKpis"></div>
+  <div class="two" style="margin-top:12px">
+    <div class="card"><h3>Расход по месяцам, $</h3><div class="bars" id="mMonth"></div></div>
+    <div class="card"><h3>Лиды Meta → качество в CRM, по странам</h3><div class="small muted" style="margin-bottom:6px">синий — целевые (дозвонились, есть интерес), светлый — все лиды CRM</div><div class="bars" id="mQual"></div></div>
+  </div>
+  <h2>Кампании: расход, лиды, качество и продажи</h2>
+  <div class="note info">«Лиды Meta» — по данным рекламного кабинета. «Лиды CRM», «Целевые», «Фейк» — по карточкам Step2Travel с той же страной.
+    «Продажи ВЛ» — договоры по этой стране во всех филиалах с апреля; CRM не связывает договор с рекламным лидом, поэтому это ориентир, а не точная атрибуция.</div>
+  <div class="tbl"><table id="mTbl"></table></div>
+</section>
+
+<section id="ig">
+  <div class="note" id="igGap"></div>
+  <div class="two">
+    <div class="card"><h3>Facebook vs Instagram (реклама, с 01.04)</h3><div id="igPlat"></div></div>
+    <div class="card"><h3>Воронка: где теряются лиды</h3><div class="funnel" id="funnel"></div></div>
+    <div class="card"><h3>Причины потерь</h3><div class="bars" id="lossBars"></div></div>
+    <div class="card"><h3>Скорость и глубина обработки</h3><div id="sla"></div></div>
+  </div>
+</section>
+
+</main>
+<script>
+const D = /*__DATA__*/null;
+const $ = s => document.querySelector(s);
+const fmt = n => (n==null||isNaN(n)) ? '—' : Math.round(n).toLocaleString('ru-RU');
+const money = n => '$' + (Math.round(n*100)/100).toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2});
+const uah = n => fmt(n) + ' ₴';
+const pct = (a,b) => b ? (Math.round(a/b*1000)/10)+'%' : '—';
+const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cn = k => D.countries[k] || k;
+const by = (arr, f) => arr.reduce((m,x)=>{const k=f(x);(m[k]=m[k]||[]).push(x);return m},{});
+const store = {
+  get(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const marks = store.get('stt_marks') || {};
+
+/* ---------- nav ---------- */
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on', x===b));
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on', s.id===b.dataset.t));
+  store.set('stt_tab', b.dataset.t);
+});
+const savedTab = store.get('stt_tab'); if (savedTab) { const b=document.querySelector(`#nav button[data-t="${savedTab}"]`); b && b.click(); }
+
+const L = D.leads, C = D.contracts, M = D.meta;
+const sinceApr = C.filter(c => c.date >= D.period_from);
+$('#sub').textContent = `Данные CRM (Step2Travel Ukraine + договоры ВЛ ${Object.keys(D.survey.counts).length} филиалов) и Meta Ads · период с 01.04.2026 по ${D.generated.split('-').reverse().join('.')}`;
+
+/* ---------- helpers ---------- */
+function bars(el, rows, opt={}) {
+  const max = Math.max(1, ...rows.map(r => r[1]));
+  el.innerHTML = rows.map(r => {
+    const w = r[1]/max*100, w2 = r[2]!=null ? r[2]/max*100 : null;
+    const fill = w2!=null ? `<div class="fill" style="width:${w2}%"></div><div class="fill2" style="width:${Math.max(0,w-w2)}%"></div>` : `<div class="fill" style="width:${w}%"></div>`;
+    return `<div class="row"><div>${esc(r[0])}</div><div class="track">${fill}</div><div class="n">${opt.f?opt.f(r[1]):fmt(r[1])}${r[3]?' <span class="small">'+r[3]+'</span>':''}</div></div>`;
+  }).join('') || '<div class="muted">нет данных</div>';
+}
+function options(sel, label, values, namer=x=>x) {
+  sel.innerHTML = `<option value="">${label}: все</option>` + values.map(v=>`<option value="${esc(v)}">${esc(namer(v))}</option>`).join('');
+}
+function uniq(a){return [...new Set(a)].filter(x=>x!==''&&x!=null)}
+function statusTag(s){
+  const c = {'Думает':'t-good','Ждёт звонка / перезвон':'t-acc','Недозвон':'t-warn','Отказ':'t-bad','Удалён':'t-bad','Не обработан':'t-warn'}[s]||'';
+  return `<span class="tag ${c}">${esc(s)}</span>`;
+}
+function qualTag(q){
+  const c = q.startsWith('Целевой, отказ')?'t-warn':q.startsWith('Целевой')?'t-good':(q.startsWith('Фейк')||q==='Дубль')?'t-bad':'';
+  return `<span class="tag ${c}">${esc(q)}</span>`;
+}
+function csv(name, head, rows){
+  const s = '﻿' + [head, ...rows].map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([s],{type:'text/csv'})); a.download = name; a.click();
+}
+function sortable(tbl, render){
+  tbl.addEventListener('click', e => { const th = e.target.closest('th[data-k]'); if(!th) return; render(th.dataset.k); });
+}
+
+/* ---------- overview ---------- */
+(function(){
+  const nonDel = L.filter(l => l.status_raw !== 'result_deleted');
+  const target = L.filter(l => l.quality.startsWith('Целевой'));
+  const pot = L.filter(l => l.potential);
+  const never = pot.filter(l => l.contacts === 0 || l.status_raw===null);
+  const noans = L.filter(l => l.status_raw === 'result_no_answer');
+  const paid = sinceApr.filter(c => c.paid);
+  const rev = paid.reduce((s,c)=>s+c.sum,0);
+  const spend = M.campaigns.reduce((s,c)=>s+c.spend,0);
+  const mLeads = M.campaigns.reduce((s,c)=>s+(c.leads||0),0);
+  const k = [
+    ['Лиды Step2Travel', L.length, `из них Meta-форм: ${L.filter(l=>l.source==='Meta lead-форма').length}`],
+    ['Удалены (фейк/дубль/прочее)', L.length-nonDel.length, pct(L.length-nonDel.length, L.length)+' от всех'],
+    ['Целевые (был разговор)', target.length, pct(target.length, nonDel.length)+' от неудалённых'],
+    ['Недозвон', noans.length, pct(noans.length, nonDel.length)+' от неудалённых'],
+    ['Можно продать — обзвонить', pot.length, `ни разу не связывались: ${never.length}`],
+    ['Договоры ВЛ с 01.04 (все филиалы)', sinceApr.length, `оплачено: ${paid.length}`],
+    ['Выручка ВЛ с 01.04 (оплачено)', uah(rev), `средний чек ${uah(rev/Math.max(1,paid.length))}`],
+    ['Расход Meta с 01.04', money(spend), `лидов Meta: ${mLeads}, CPL ${money(spend/mLeads)}`],
+    ['Связка лид → договор в CRM', L.filter(l=>l.sale).length, 'найдено по ФИО — в CRM связи нет'],
+  ];
+  $('#kpis').innerHTML = k.map(x=>`<div class="card kpi"><div class="l">${x[0]}</div><div class="v">${typeof x[1]==='number'?fmt(x[1]):x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
+  const bc = by(L, l=>l.country);
+  bars($('#ovCountry'), Object.entries(bc).map(([k,v])=>[cn(k), v.length, v.filter(l=>l.quality.startsWith('Целевой')).length]).sort((a,b)=>b[1]-a[1]));
+  const bs = by(L, l=>l.status);
+  bars($('#ovStatus'), Object.entries(bs).map(([k,v])=>[k, v.length, null, pct(v.length,L.length)]).sort((a,b)=>b[1]-a[1]));
+  const sc = by(sinceApr, c=>c.country);
+  bars($('#ovSalesCountry'), Object.entries(sc).map(([k,v])=>[cn(k), v.length, v.filter(c=>c.paid).length]).sort((a,b)=>b[1]-a[1]));
+  const sb = by(C, c=>c.branch_name);
+  bars($('#ovSalesBranch'), Object.entries(sb).map(([k,v])=>[k, v.length, v.filter(c=>c.paid).length]).sort((a,b)=>b[1]-a[1]));
+  $('#ovNote').innerHTML = `<b>Главное:</b> лиды по лагерям падают в CRM «Step2Travel Ukraine», а договоры ВЛ оформляются в филиалах (в основном Киев — ${sb['Киев']?.length||0} шт.).
+   В Step2Travel за период <b>0 договоров</b> и ни у одного лида нет связи со сделкой — поэтому окупаемость рекламы в CRM не видна.
+   ${noans.length} лидов висят в «Недозвоне», ${L.filter(l=>l.status_raw==='wait_call').length} — в «Ждёт звонка»; с июня реклама почти выключена, новые лиды идут только с сайта.`;
+})();
+
+/* ---------- call list ---------- */
+(function(){
+  const pot = L.filter(l=>l.potential);
+  options($('#cCountry'), 'Страна', uniq(pot.map(l=>l.country)).sort((a,b)=>cn(a).localeCompare(cn(b))), cn);
+  options($('#cStatus'), 'Статус', uniq(pot.map(l=>l.status)));
+  let sk = 'priority', dir = -1;
+  const MARKS = ['', 'Позвонить', 'Перезвонить', 'Отправили программу', 'Горячий', 'На след. сезон', 'Продано', 'Не актуально'];
+  function rows(){
+    const q = $('#cQ').value.toLowerCase(), c = $('#cCountry').value, s = $('#cStatus').value;
+    return pot.filter(l => (!c||l.country===c) && (!s||l.status===s) &&
+      (!q || (l.name+' '+l.comment+' '+l.product).toLowerCase().includes(q)))
+      .sort((a,b)=> (a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*dir || b.priority-a.priority);
+  }
+  function render(k){
+    if (k) { dir = (sk===k) ? -dir : -1; sk = k; }
+    const r = rows();
+    $('#cCount').textContent = `${r.length} лидов · ни разу не связывались: ${r.filter(l=>l.contacts===0).length}`;
+    $('#cTbl').innerHTML = `<tr><th data-k="priority" class="num">Приор.</th><th data-k="name">Клиент</th><th data-k="country">Страна</th><th data-k="status">Статус</th>
+      <th data-k="contacts" class="num">Контактов</th><th data-k="date">Дата лида</th><th>Комментарий менеджера</th><th>Пометка</th><th>CRM</th></tr>` +
+      r.map(l=>`<tr><td class="num">${l.priority}</td><td>${esc(l.name)}<div class="small muted">${esc(l.source)}</div></td><td><span class="tag">${esc(cn(l.country))}</span></td>
+      <td>${statusTag(l.status)}${l.sale?'<div class="small" style="margin-top:3px"><span class="tag t-good">похоже, купил: '+esc(l.sale.branch)+'</span></div>':''}</td><td class="num">${l.contacts}</td><td>${l.date}</td>
+      <td class="cm">${esc(l.comment)}</td>
+      <td><select class="mark" data-id="${l.id}">${MARKS.map(m=>`<option ${marks[l.id]===m?'selected':''}>${m}</option>`).join('')}</select></td>
+      <td>${l.crm?`<a href="${l.crm}" target="_blank" rel="noopener">карточка</a>`:'<span class="muted">—</span>'}</td></tr>`).join('');
+  }
+  $('#cTbl').addEventListener('change', e => { if (e.target.matches('select.mark')) { marks[e.target.dataset.id] = e.target.value; store.set('stt_marks', marks); }});
+  ['#cQ','#cCountry','#cStatus'].forEach(s=>$(s).addEventListener('input',()=>render()));
+  sortable($('#cTbl'), render); render();
+  $('#cCsv').onclick = () => csv('stt_obzvon.csv', ['Приоритет','Клиент','Страна','Статус','Контактов','Дата','Комментарий','Пометка','CRM'],
+    rows().map(l=>[l.priority,l.name,cn(l.country),l.status,l.contacts,l.date,l.comment,marks[l.id]||'',l.crm||'']));
+})();
+
+/* ---------- all leads ---------- */
+(function(){
+  options($('#lCountry'), 'Страна', uniq(L.map(l=>l.country)).sort((a,b)=>cn(a).localeCompare(cn(b))), cn);
+  options($('#lStatus'), 'Статус', uniq(L.map(l=>l.status)));
+  options($('#lQuality'), 'Качество', uniq(L.map(l=>l.quality)));
+  options($('#lSource'), 'Источник', uniq(L.map(l=>l.source)));
+  let sk='date', dir=-1;
+  function rows(){
+    const q=$('#lQ').value.toLowerCase(), c=$('#lCountry').value, s=$('#lStatus').value, qq=$('#lQuality').value, so=$('#lSource').value;
+    return L.filter(l=>(!c||l.country===c)&&(!s||l.status===s)&&(!qq||l.quality===qq)&&(!so||l.source===so)&&
+      (!q||(l.name+' '+l.comment+' '+l.product).toLowerCase().includes(q)))
+      .sort((a,b)=>(a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*dir);
+  }
+  function render(k){
+    if (k) { dir = (sk===k) ? -dir : -1; sk = k; }
+    const r=rows();
+    $('#lCount').textContent = `${r.length} из ${L.length}`;
+    $('#lTbl').innerHTML = `<tr><th data-k="date">Дата</th><th data-k="name">Клиент</th><th data-k="country">Страна</th><th data-k="product">Продукт / форма</th>
+      <th data-k="source">Источник</th><th data-k="status">Статус</th><th data-k="quality">Качество</th><th data-k="contacts" class="num">Контактов</th><th>Комментарий</th><th>CRM</th></tr>`+
+      r.map(l=>`<tr><td>${l.date}</td><td>${esc(l.name)}</td><td><span class="tag">${esc(cn(l.country))}</span></td><td class="small">${esc(l.product)}</td>
+      <td class="small">${esc(l.source)}${l.placement?'<br><span class="muted">'+l.placement+'</span>':''}</td><td>${statusTag(l.status)}</td><td>${qualTag(l.quality)}</td>
+      <td class="num">${l.contacts}</td><td class="cm">${esc(l.comment)}</td><td>${l.crm?`<a href="${l.crm}" target="_blank" rel="noopener">карточка</a>`:'—'}</td></tr>`).join('');
+  }
+  ['#lQ','#lCountry','#lStatus','#lQuality','#lSource'].forEach(s=>$(s).addEventListener('input',()=>render()));
+  sortable($('#lTbl'), render); render();
+  $('#lCsv').onclick=()=>csv('stt_leads.csv',['Дата','Клиент','Страна','Продукт','Источник','Статус','Качество','Контактов','Комментарий','CRM'],
+    rows().map(l=>[l.date,l.name,cn(l.country),l.product,l.source,l.status,l.quality,l.contacts,l.comment,l.crm||'']));
+})();
+
+/* ---------- sales ---------- */
+(function(){
+  const paid = C.filter(c=>c.paid), aprPaid = sinceApr.filter(c=>c.paid);
+  const k = [
+    ['Договоров ВЛ в 2026', C.length, `из них с 01.04: ${sinceApr.length}`],
+    ['Оплачено', paid.length, pct(paid.length, C.length)],
+    ['Выручка (оплачено), 2026', uah(paid.reduce((s,c)=>s+c.sum,0)), ''],
+    ['Выручка с 01.04', uah(aprPaid.reduce((s,c)=>s+c.sum,0)), `${aprPaid.length} оплат`],
+    ['Отказы / аннулирования', C.filter(c=>!c.paid && c.payment!=='Не оплачен').length, ''],
+    ['Ждут оплаты', C.filter(c=>c.payment==='Не оплачен').length, 'контроль оплаты'],
+  ];
+  $('#sKpis').innerHTML = k.map(x=>`<div class="card kpi"><div class="l">${x[0]}</div><div class="v">${typeof x[1]==='number'?fmt(x[1]):x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
+  const sv = D.survey;
+  $('#sNote').innerHTML = `Проверено филиалов по форме «ВЛ»: <b>${Object.keys(sv.counts).length}</b> с договорами (${Object.entries(sv.counts).map(([b,n])=>esc(D.branches[b]||b)+': '+n).join(', ')}),
+    без договоров ВЛ: ${sv.zero.map(b=>esc(D.branches[b]||b)).join(', ')}; формы ВЛ нет в: ${sv.no_form_vl.join(', ')}.
+    ${C.length < Object.values(sv.counts).reduce((a,b)=>a+b,0) ? `В таблице ${C.length} из ${Object.values(sv.counts).reduce((a,b)=>a+b,0)} договоров — по Одессе, Хмельницкому, Кременчугу, Чернигову и облачному филиалу загружены не все карточки (только счётчики).` : ''}`;
+  const rc = by(paid, c=>c.country);
+  bars($('#sRevCountry'), Object.entries(rc).map(([k,v])=>[cn(k), v.reduce((s,c)=>s+c.sum,0), null, v.length+' шт']).sort((a,b)=>b[1]-a[1]), {f:uah});
+  const mo = by(C, c=>c.date.slice(0,7));
+  bars($('#sMonth'), Object.keys(mo).sort().map(k=>[k, mo[k].length, mo[k].filter(c=>c.paid).length]));
+  const mg = by(C, c=>c.manager+' · '+c.branch_name);
+  bars($('#sMgr'), Object.entries(mg).map(([k,v])=>[k, v.length, v.filter(c=>c.paid).length]).sort((a,b)=>b[1]-a[1]).slice(0,15));
+  const ps = by(C, c=>c.payment);
+  bars($('#sPay'), Object.entries(ps).map(([k,v])=>[k, v.length]).sort((a,b)=>b[1]-a[1]));
+  options($('#sBranch'),'Филиал',uniq(C.map(c=>c.branch_name)));
+  options($('#sCountry'),'Страна',uniq(C.map(c=>c.country)),cn);
+  options($('#sPayF'),'Оплата',uniq(C.map(c=>c.payment)));
+  let sk='date', dir=-1;
+  function rows(){
+    const q=$('#sQ').value.toLowerCase(), b=$('#sBranch').value, c=$('#sCountry').value, p=$('#sPayF').value;
+    return C.filter(x=>(!b||x.branch_name===b)&&(!c||x.country===c)&&(!p||x.payment===p)&&(!q||(x.customer+' '+x.child+' '+x.manager+' '+x.note).toLowerCase().includes(q)))
+      .sort((a,b)=>(a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*dir);
+  }
+  function render(k){
+    if (k) { dir = (sk===k) ? -dir : -1; sk = k; }
+    const r=rows();
+    $('#sCount').textContent=`${r.length} договоров · ${uah(r.filter(x=>x.paid).reduce((s,x)=>s+x.sum,0))} оплачено`;
+    $('#sTbl').innerHTML=`<tr><th data-k="date">Дата</th><th data-k="branch_name">Филиал</th><th data-k="customer">Заказчик</th><th data-k="child">Ребёнок</th><th data-k="age" class="num">Возр.</th>
+      <th data-k="country">Страна</th><th>Смена / заметка</th><th data-k="sum" class="num">Сумма, ₴</th><th data-k="payment">Оплата</th><th data-k="manager">Менеджер</th><th>CRM</th></tr>`+
+      r.map(x=>`<tr><td>${x.date}</td><td>${esc(x.branch_name)}</td><td>${esc(x.customer)}</td><td>${esc(x.child)}</td><td class="num">${x.age??''}</td>
+      <td><span class="tag">${esc(cn(x.country))}</span></td><td class="small muted">${esc(x.note)}</td><td class="num">${fmt(x.sum)}</td>
+      <td><span class="tag ${x.paid?'t-good':x.payment==='Не оплачен'?'t-warn':'t-bad'}">${esc(x.payment)}</span></td><td class="small">${esc(x.manager)}</td>
+      <td>${x.crm?`<a href="${x.crm}" target="_blank" rel="noopener">карточка</a>`:'—'}</td></tr>`).join('');
+  }
+  ['#sQ','#sBranch','#sCountry','#sPayF'].forEach(s=>$(s).addEventListener('input',()=>render()));
+  sortable($('#sTbl'),render); render();
+  $('#sCsv').onclick=()=>csv('stt_dogovory_vl.csv',['Дата','Филиал','Заказчик','Ребёнок','Возраст','Страна','Заметка','Сумма','Оплата','Менеджер'],
+    rows().map(x=>[x.date,x.branch_name,x.customer,x.child,x.age??'',cn(x.country),x.note,x.sum,x.payment,x.manager]));
+})();
+
+/* ---------- meta ---------- */
+(function(){
+  const camps = M.campaigns, spend = camps.reduce((s,c)=>s+c.spend,0);
+  const leadCamps = camps.filter(c=>c.objective==='OUTCOME_LEADS'), mLeads = leadCamps.reduce((s,c)=>s+c.leads,0);
+  const fbLeads = L.filter(l=>l.source==='Meta lead-форма');
+  const fbTarget = fbLeads.filter(l=>l.quality.startsWith('Целевой'));
+  const fbFake = fbLeads.filter(l=>l.quality.startsWith('Фейк')||l.quality==='Дубль');
+  const aprSales = sinceApr;
+  const k = [
+    ['Расход', money(spend), M.account],
+    ['Лиды Meta', mLeads, 'CPL '+money(leadCamps.reduce((s,c)=>s+c.spend,0)/mLeads)],
+    ['Дошло в CRM (Meta-формы)', fbLeads.length, pct(fbLeads.length, mLeads)+' от лидов Meta'],
+    ['Целевые из Meta', fbTarget.length, 'цена целевого '+money(leadCamps.reduce((s,c)=>s+c.spend,0)/Math.max(1,fbTarget.length))],
+    ['Фейк / дубли из Meta', fbFake.length, pct(fbFake.length, fbLeads.length)],
+    ['Расход Meta ÷ все договоры ВЛ', money(spend/Math.max(1,aprSales.length)), `${aprSales.length} договоров с 01.04, не атрибуция`],
+  ];
+  $('#mKpis').innerHTML = k.map(x=>`<div class="card kpi"><div class="l">${x[0]}</div><div class="v">${typeof x[1]==='number'?fmt(x[1]):x[1]}</div><div class="s">${esc(x[2])}</div></div>`).join('');
+  bars($('#mMonth'), M.monthly.map(m=>[m[0], m[1], null, m[4]?m[4]+' лид.':'']), {f:money});
+  const lc = by(fbLeads, l=>l.country);
+  bars($('#mQual'), Object.entries(lc).map(([k,v])=>[cn(k), v.length, v.filter(l=>l.quality.startsWith('Целевой')).length, pct(v.filter(l=>l.quality.startsWith('Целевой')).length, v.length)]).sort((a,b)=>b[1]-a[1]));
+  // per campaign-country aggregation
+  const byC = by(camps, c=>c.country);
+  const rowsAll = Object.entries(byC).map(([k,cs])=>{
+    const sp=cs.reduce((s,c)=>s+c.spend,0), ml=cs.reduce((s,c)=>s+(c.leads||0),0);
+    const cl = L.filter(l=>l.country===k && l.source==='Meta lead-форма');
+    const tg = cl.filter(l=>l.quality.startsWith('Целевой')).length, fk = cl.filter(l=>l.quality.startsWith('Фейк')||l.quality==='Дубль').length;
+    const na = cl.filter(l=>l.status_raw==='result_no_answer').length;
+    const sales = aprSales.filter(c=>c.country===k);
+    return {k, names: cs.map(c=>c.name), sp, ml, cpl: ml? sp/ml : null, imp: cs.reduce((s,c)=>s+c.impressions,0), clicks: cs.reduce((s,c)=>s+c.link_clicks,0),
+      cl: cl.length, tg, fk, na, sales: sales.length, paid: sales.filter(c=>c.paid).length, rev: sales.filter(c=>c.paid).reduce((s,c)=>s+c.sum,0)};
+  }).sort((a,b)=>b.sp-a.sp);
+  $('#mTbl').innerHTML = `<tr><th>Направление / кампании</th><th class="num">Расход</th><th class="num">Показы</th><th class="num">Клики</th><th class="num">Лиды Meta</th><th class="num">CPL</th>
+    <th class="num">Лиды CRM</th><th class="num">Целевые</th><th class="num">Недозвон</th><th class="num">Фейк</th><th class="num">Цена целевого</th><th class="num">Продажи ВЛ / оплачено</th><th class="num">Выручка, ₴</th></tr>` +
+    rowsAll.map(r=>`<tr><td><b>${esc(cn(r.k))}</b><div class="small muted">${r.names.map(esc).join('<br>')}</div></td><td class="num">${money(r.sp)}</td><td class="num">${fmt(r.imp)}</td>
+      <td class="num">${fmt(r.clicks)}</td><td class="num">${r.ml||'—'}</td><td class="num">${r.cpl?money(r.cpl):'—'}</td><td class="num">${r.cl||'—'}</td>
+      <td class="num">${r.tg||'—'}</td><td class="num">${r.na||'—'}</td><td class="num">${r.fk||'—'}</td><td class="num">${r.tg?money(r.sp/r.tg):'—'}</td>
+      <td class="num">${r.sales?r.sales+' / '+r.paid:'—'}</td><td class="num">${r.rev?fmt(r.rev):'—'}</td></tr>`).join('');
+})();
+
+/* ---------- instagram & losses ---------- */
+(function(){
+  const p = M.platform;
+  $('#igGap').innerHTML = `<b>Переписки Instagram Direct недоступны.</b> В подключённых источниках нет доступа к сообщениям Instagram: CRM отдаёт только WhatsApp / Viber / Telegram / SMS,
+    рекламный API Meta — только статистику рекламы. Ниже — что можно оценить без переписок: Instagram как площадка рекламы, воронка лидов и причины потерь по комментариям менеджеров.
+    Чтобы добавить диалоги Direct, нужен доступ к Instagram Inbox (Meta Business Suite / Graph API messaging) или выгрузка чатов из сервиса, через который отвечают в Direct.`;
+  const row = (n,x) => `<tr><td>${n}</td><td class="num">${money(x.spend)}</td><td class="num">${fmt(x.reach)}</td><td class="num">${fmt(x.link_clicks)}</td><td class="num">${fmt(x.leads)}</td><td class="num">${money(x.cpl)}</td></tr>`;
+  const igCrm = L.filter(l=>l.placement==='Instagram').length, fbCrm = L.filter(l=>l.placement==='Facebook').length;
+  $('#igPlat').innerHTML = `<div class="tbl"><table><tr><th>Площадка</th><th class="num">Расход</th><th class="num">Охват</th><th class="num">Клики</th><th class="num">Лиды</th><th class="num">CPL</th></tr>
+    ${row('Facebook',p.facebook)}${row('Instagram',p.instagram)}</table></div>
+    <p class="small muted">Instagram: ${pct(p.instagram.spend, p.instagram.spend+p.facebook.spend)} бюджета и ${pct(p.instagram.leads, p.instagram.leads+p.facebook.leads)} лидов; лид из Instagram дороже на
+    ${pct(p.instagram.cpl-p.facebook.cpl, p.facebook.cpl)}. В CRM площадка (utm) проставлена только у ${igCrm+fbCrm} лидов сайта (Instagram: ${igCrm}) — у Meta-форм её нет, поэтому качество IG и FB по отдельности в CRM не сравнить.</p>`;
+  const mLeads = M.campaigns.reduce((s,c)=>s+(c.leads||0),0);
+  const fb = L.filter(l=>l.source==='Meta lead-форма');
+  const st = [
+    ['Лиды в рекламном кабинете', mLeads],
+    ['Дошли в CRM', fb.length],
+    ['Не удалены (не фейк/дубль)', fb.filter(l=>l.status_raw!=='result_deleted').length],
+    ['Дозвонились (был контакт)', fb.filter(l=>['wait_call','result_think','result_fail'].includes(l.status_raw)).length],
+    ['Целевой интерес', fb.filter(l=>l.quality==='Целевой').length],
+    ['Думает (тёплые)', fb.filter(l=>l.status_raw==='result_think').length],
+    ['Договор в Step2Travel', 0],
+  ];
+  $('#funnel').innerHTML = st.map((s,i)=>`<div class="step"><div class="small">${s[0]}</div><div class="track"><div class="fill" style="width:${s[1]/st[0][1]*100}%"></div></div>
+    <div class="num small">${fmt(s[1])}${i?` <span class="muted">(${pct(s[1], st[i-1][1])})</span>`:''}</div></div>`).join('') +
+    `<p class="small muted">Самые большие провалы: удаление как фейк/дубль и недозвон. В CRM Step2Travel нет ни одного договора — продажи оформлены в филиалах, связи с лидом нет.</p>`;
+  const lr = by(L.filter(l=>l.loss), l=>l.loss);
+  bars($('#lossBars'), Object.entries(lr).map(([k,v])=>[k, v.length, null, pct(v.length, L.length)]).sort((a,b)=>b[1]-a[1]));
+  const proc = L.filter(l=>l.processed).map(l=>(new Date(l.processed)-new Date(l.date))/864e5).sort((a,b)=>a-b);
+  const med = proc.length ? proc[Math.floor(proc.length/2)] : null;
+  const sameDay = proc.filter(x=>x<1).length;
+  const na = L.filter(l=>l.status_raw==='result_no_answer');
+  const att = na.map(l=>l.contacts);
+  $('#sla').innerHTML = `<ul class="small">
+    <li>Медиана от заявки до обработки: <b>${med!=null?Math.round(med*10)/10+' дн.':'—'}</b>, в тот же день обработано ${pct(sameDay, proc.length)}.</li>
+    <li>В «Недозвоне» ${na.length} лидов; попыток дозвона в среднем ${att.length?Math.round(att.reduce((a,b)=>a+b,0)/att.length*10)/10:'—'}, с 1 попыткой — ${att.filter(x=>x<=1).length}.</li>
+    <li>«Ждёт звонка» без движения: ${L.filter(l=>l.status_raw==='wait_call').length} лидов, самые старые с ${L.filter(l=>l.status_raw==='wait_call').map(l=>l.date).sort()[0]||'—'}.</li>
+    <li>Последний лид из Meta-формы: ${fb.map(l=>l.date).sort().slice(-1)[0]||'—'}; реклама с июня почти не крутится (июнь–сентябрь ${money(M.monthly.slice(2).reduce((s,m)=>s+m[1],0))}).</li>
+  </ul>`;
+})();
+</script>
+</body>
+</html>
