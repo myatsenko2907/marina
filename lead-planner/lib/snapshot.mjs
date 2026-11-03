@@ -1,0 +1,100 @@
+// Применение снимка данных CRM к хранилищу (общий код для скрипта и автообновления).
+// Формат снимка:
+//   branches: { alias: { name, adAccountId } }
+//   season:   { alias: { form: план набора } }                    — план набора текущего полугодия
+//   months:   { alias: { "YYYY-MM": { form: [план, факт договоров] } } }
+//   balls:    { alias: { "YYYY-MM": { form: факт лидобалов } } }  — отчёт «Маркетинг → Лидобалы» (необязательно)
+//   requests: { alias: { "YYYY-MM": { type_request: [всего, удалено, договоров] } } } — заявки CRM по типам
+//             (crm_internet_requests); факт лидобалов филиала = (заявки − удалённые − отказы сразу) × норма типа
+//   quality:  { alias: { "YYYY-MM": { total, deleted, spam, dup, other, reject, unanswered, contracts } } }
+//             — качество лидов: строка ALL отчёта по интернет-заявкам
+//   outcomes: { alias: { "YYYY-MM": { n, processed, firstReject, laterReject, laterRejectDays, noAnswerFirst, noAnswerReached, noAnswerNever } } }
+//             — судьба лидов по истории заявок (scripts/lead-outcomes.mjs)
+//   students: { alias: число студентов }                         — для плана отзывов KPI
+//   reviews:  { alias: { "YYYY-MM": новых отзывов Google } }      — факт отзывов для KPI
+import { seasonOf } from "./planner.mjs";
+
+const typeKey = (t) => String(t || "").replace(/^irt_/, "").toLowerCase().replace(/-/g, "_");
+
+// Лиды по типам из заявок: без удалённых и без отказов при первой обработке (outcomes.firstRejectByType).
+export function rebuildBranchLeads(fb) {
+  if (!fb?.requests) return fb;
+  const byType = fb.outcomes?.firstRejectByType || {};
+  const leads = {};
+  for (const [type, r] of Object.entries(fb.requests)) {
+    r.firstReject = Math.min(r.net, byType[typeKey(type)] || 0);
+    r.counted = r.net - r.firstReject;
+    if (r.typeId) leads[r.typeId] = (leads[r.typeId] || 0) + r.counted;
+  }
+  fb.leads = leads;
+  return fb;
+}
+
+export function applySnapshot(store, snap, seasonMonth = new Date().toISOString().slice(0, 7)) {
+  for (const [id, b] of Object.entries(snap.branches || {})) {
+    const cur = store.branch(id);
+    if (cur) Object.assign(cur, { name: b.name || cur.name, adAccountId: b.adAccountId || cur.adAccountId });
+    else store.data.branches.push({ id, name: b.name || id, adAccountId: b.adAccountId || "", fbCurrency: b.fbCurrency || "USD", aliases: b.aliases || [] });
+  }
+  const sid = snap.seasonId || seasonOf(seasonMonth).id;
+  for (const [id, plan] of Object.entries(snap.season || {})) store.data.seasons[`${id}|${sid}`] = { plan };
+  let n = 0;
+  for (const [id, months] of Object.entries(snap.months || {})) {
+    for (const [m, forms] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      for (const [form, [plan, fact]] of Object.entries(forms)) {
+        (rec.plan.products[form] ||= {}).plan = plan;
+        if (fact != null) (rec.facts.products[form] ||= {}).contracts = fact;
+        n++;
+      }
+    }
+  }
+  for (const [id, months] of Object.entries(snap.balls || {})) {
+    for (const [m, forms] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      for (const [form, balls] of Object.entries(forms)) {
+        (rec.facts.products[form] ||= {}).balls = balls;
+        n++;
+      }
+    }
+  }
+  // Заявки CRM по типам: { alias: { "YYYY-MM": { type_request: [всего, удалено, договоров] } } }
+  const map = store.data.settings.requestTypeMap || {};
+  for (const [id, months] of Object.entries(snap.requests || {})) {
+    for (const [m, types] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      const requests = {};
+      for (const [type, [total, deleted = 0, contracts = 0]] of Object.entries(types)) {
+        requests[type] = { net: Math.max(0, total - deleted), contracts, typeId: map[type] || null };
+      }
+      rec.facts.branch = rebuildBranchLeads({ requests, source: "crm_requests", quality: rec.facts.branch?.quality, outcomes: rec.facts.branch?.outcomes });
+      n++;
+    }
+  }
+  for (const [id, months] of Object.entries(snap.quality || {})) {
+    for (const [m, q] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      rec.facts.branch = { ...(rec.facts.branch || {}), quality: { ...q, fetchedAt: snap.fetchedAt || new Date().toISOString() } };
+      n++;
+    }
+  }
+  for (const [id, months] of Object.entries(snap.outcomes || {})) {
+    for (const [m, o] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      rec.facts.branch = rebuildBranchLeads({ ...(rec.facts.branch || {}), outcomes: { ...o, fetchedAt: snap.fetchedAt || new Date().toISOString() } });
+      n++;
+    }
+  }
+  for (const [id, v] of Object.entries(snap.students || {})) {
+    const b = store.branch(id);
+    if (b) (b.students = Number(v)), n++;
+  }
+  for (const [id, months] of Object.entries(snap.reviews || {})) {
+    for (const [m, v] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      rec.kpi = { ...(rec.kpi || {}), reviews: Number(v) };
+      n++;
+    }
+  }
+  return { branches: Object.keys(snap.branches || {}).length, records: n, season: sid };
+}

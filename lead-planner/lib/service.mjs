@@ -1,0 +1,226 @@
+// Общая логика API поверх данных хранилища (store.data). Без I/O — работает и на сервере, и в браузере.
+import { computeSeason, seasonOf, addMonths } from "./planner.mjs";
+import { spendReport, productCplFor } from "./spend.mjs";
+import { googleReport } from "./googlespend.mjs";
+import { marketerTasks } from "./tasks.mjs";
+import { branchKpi, kpiSummary } from "./kpi.mjs";
+
+export const canSee = (user, branchId) => user.role === "admin" || (user.branches || []).includes(branchId);
+
+export function seasonFor(data, branch, month, today = new Date()) {
+  const s = seasonOf(month);
+  return computeSeason({
+    settings: data.settings,
+    branch,
+    month,
+    today,
+    seasonPlan: data.seasons[`${branch.id}|${s.id}`]?.plan || null,
+    getMonth: (m) => {
+      const rec = data.months[`${branch.id}|${m}`];
+      return {
+        plan: rec?.plan,
+        facts: rec?.facts,
+        events: data.events.filter((e) => e.branchId === branch.id && (e.date || "").slice(0, 7) === m),
+        fb: data.fb?.[branch.id] || null,
+        productCpl: productCplFor(data, branch.id, m),
+      };
+    },
+  });
+}
+
+const ORDER = { fail: 0, low: 1, boost: 2, nodata: 3, branch: 3, good: 4, ok: 5, noplan: 6, future: 7 };
+
+export function overview(data, user, month, today = new Date()) {
+  const rows = [];
+  for (const b of data.branches) {
+    if (!canSee(user, b.id) || b.archived) continue;
+    const s = seasonFor(data, b, month, today);
+    const t = s.month.totals;
+    rows.push({
+      id: b.id,
+      name: b.name,
+      currency: s.month.currency,
+      fbConnected: !!b.adAccountId,
+      fbFetchedAt: data.fb?.[b.id]?.fetchedAt || null,
+      ...t,
+      season: s.totals,
+      seasonMonths: s.months.map((m) => ({ month: m.month, status: m.status, pace: m.pace, targetBalls: m.targetBalls, factBalls: m.factBalls })),
+      warnings: s.month.warnings.length,
+      budgetMissing: t.budget == null,
+    });
+  }
+  rows.sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.pace ?? 9) - (b.pace ?? 9));
+  return { month, season: seasonOf(month), branches: rows, quality: qualityFor(data, user, month) };
+}
+
+export function branchDetail(data, user, branch, month, today = new Date()) {
+  const s = seasonFor(data, branch, month, today);
+  const rec = data.months[`${branch.id}|${month}`];
+  return {
+    branch,
+    season: s,
+    inputs: {
+      plan: rec?.plan || { products: {} },
+      facts: rec?.facts || { products: {} },
+      seasonPlan: data.seasons[`${branch.id}|${s.season.id}`]?.plan || {},
+      events: data.events.filter((e) => e.branchId === branch.id && (e.date || "").slice(0, 7) === month),
+    },
+    spend: data.spend?.[branch.id] ? spendReport(data, { from: month, to: month, branchIds: [branch.id] }).branches[0] : null,
+    spendUntil: data.spendMeta?.until || null,
+    google: data.googleSpend?.[branch.id] ? googleReport(data, { from: month, to: month, branchIds: [branch.id] })?.branches[0] || null : null,
+    quality: (() => {
+      const q = qualityFor(data, user, month);
+      const mine = q?.branches.find((x) => x.id === branch.id);
+      return mine ? { ...q, branch: mine } : null;
+    })(),
+    tasks: marketerTasks(data, branch, s.month, today),
+    kpi: kpiOf(data, user, branch, s.month, rec),
+    canEdit: user.role === "admin",
+  };
+}
+
+// Качество лидов за месяц: доли удалённых (спам, дубли, другое), отказов и недозвонов — по филиалу и по сети.
+export const QUALITY_KEYS = [
+  ["deleted", "Удалены (спам, дубли, другое)"],
+  ["spam", "· спам"],
+  ["dup", "· дубли"],
+  ["other", "· удалены по другой причине"],
+  ["reject", "Отказ"],
+  ["unanswered", "Не дозвонились"],
+];
+// Судьба лидов (история заявок): доли от обработанных; «дозвонились» — от недозвонов при первой обработке.
+const OUTCOME_KEYS = ["n", "processed", "firstReject", "laterReject", "noAnswerFirst", "noAnswerReached", "noAnswerNever", "noAnswerLost"];
+function outcomeShares(o) {
+  const p = o.processed || 0;
+  return {
+    ...o,
+    firstRejectShare: p ? o.firstReject / p : null,
+    laterRejectShare: p ? o.laterReject / p : null,
+    noAnswerShare: p ? o.noAnswerFirst / p : null,
+    reachedShare: o.noAnswerFirst ? o.noAnswerReached / o.noAnswerFirst : null,
+  };
+}
+
+// Месяцы, за которые есть данные о качестве лидов.
+export const qualityMonths = (data) => [...new Set(Object.entries(data.months || {}).filter(([, r]) => r.facts?.branch?.quality).map(([k]) => k.slice(-7)))].sort();
+
+// Качество лидов за месяц или период [month, to]: суммы по месяцам периода.
+export function qualityFor(data, user, month, to = month) {
+  if (to < month) [month, to] = [to, month];
+  const rows = [];
+  const net = { total: 0 };
+  const netO = {};
+  const inPeriod = qualityMonths(data).filter((m) => m >= month && m <= to);
+  const outcomeMonths = new Set();
+  // в лиды: заявки − удалённые − отказы сразу (если по месяцу есть история заявок)
+  const toLeadsOf = (f) => (f.outcomes ? f.outcomes.n - f.outcomes.firstReject : (f.quality.total || 0) - (f.quality.deleted || 0));
+  for (const b of data.branches) {
+    if (b.archived) continue;
+    const recs = inPeriod.map((m) => data.months[`${b.id}|${m}`]?.facts?.branch).filter((f) => f?.quality);
+    if (!recs.length) continue;
+    const q = {};
+    for (const [k] of QUALITY_KEYS.concat([["total"], ["contracts"]])) q[k] = recs.reduce((a, f) => a + (f.quality[k] || 0), 0);
+    q.toLeads = recs.reduce((a, f) => a + toLeadsOf(f), 0);
+    for (const m of inPeriod) if (data.months[`${b.id}|${m}`]?.facts?.branch?.outcomes) outcomeMonths.add(m);
+    const os = recs.map((f) => f.outcomes).filter(Boolean);
+    let o = null;
+    if (os.length === 1 && recs.length === 1) o = os[0];
+    else if (os.length) {
+      o = { laterRejectDays: null, partial: os.length < recs.length };
+      for (const k of OUTCOME_KEYS) o[k] = os.reduce((a, x) => a + (x[k] || 0), 0);
+    }
+    net.total += q.total || 0;
+    net.toLeads = (net.toLeads || 0) + q.toLeads;
+    for (const [k] of QUALITY_KEYS) net[k] = (net[k] || 0) + (q[k] || 0);
+    if (o) for (const k of OUTCOME_KEYS) netO[k] = (netO[k] || 0) + (o[k] || 0);
+    if (canSee(user, b.id)) rows.push({ id: b.id, name: b.name, ...q, outcomes: o ? outcomeShares(o) : null });
+  }
+  if (!net.total) return null;
+  const share = (q, k) => (q.total ? (q[k] || 0) / q.total : null);
+  const netShare = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, share(net, k)]));
+  // подсветка: доля выше сети в 1,5 раза и минимум на 5 п.п.
+  const flag = (v, n) => (v != null && n != null && v >= n * 1.5 && v - n >= 0.05 ? (v >= n * 2 && v - n >= 0.1 ? "bad" : "warn") : null);
+  for (const r of rows) {
+    r.shares = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, share(r, k)]));
+    r.flags = Object.fromEntries(QUALITY_KEYS.map(([k]) => [k, flag(r.shares[k], netShare[k])]));
+  }
+  return { month, from: month, to, months: qualityMonths(data), outcomeMonths: [...outcomeMonths].sort(), keys: QUALITY_KEYS, network: { ...net, shares: netShare, outcomes: netO.processed ? outcomeShares(netO) : null }, branches: rows };
+}
+
+// Расход на рекламу по продуктам за период: только филиалы, доступные пользователю.
+export function spendFor(data, user, from, to) {
+  const ok = (m) => (/^20\d\d-(0[1-9]|1[0-2])$/.test(m || "") ? m : undefined);
+  const branchIds = data.branches.filter((b) => canSee(user, b.id)).map((b) => b.id);
+  const r = spendReport(data, { from: ok(from), to: ok(to), branchIds });
+  return { ...r, google: googleReport(data, { from: r.from, to: r.to, branchIds }) };
+}
+
+export const BRANCH_FIELDS = ["students", "kpiBonus", "name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note", "cpl", "spendDefault", "googleAccounts"];
+export const EVENT_FIELDS = ["name", "date", "productId", "registrationsPlan", "targetBalls", "registrationsFact", "ball", "paidShare", "cprOverride", "fbCampaignPattern", "note"];
+
+export function ensureMonth(data, branchId, month) {
+  const k = `${branchId}|${month}`;
+  return (data.months[k] ||= { plan: { products: {} }, facts: { products: {} } });
+}
+
+export function copyPlanFromPrev(data, branchId, month) {
+  const prev = data.months[`${branchId}|${addMonths(month, -1)}`];
+  if (!prev) return null;
+  const rec = ensureMonth(data, branchId, month);
+  for (const [pid, v] of Object.entries(prev.plan.products || {})) {
+    const cur = (rec.plan.products[pid] ||= {});
+    if (v.mix && !cur.mix) cur.mix = v.mix;
+    if (v.cplOverride && cur.cplOverride == null) cur.cplOverride = v.cplOverride;
+  }
+  return rec;
+}
+
+// ---------- KPI маркетологов ----------
+// Расход FB + Google за месяц, $ (null — нет данных расхода).
+function spendUsdOf(data, branchId, month) {
+  const fb = data.spend?.[branchId]?.[month];
+  const g = data.googleSpend?.[branchId] ? googleReport(data, { from: month, to: month, branchIds: [branchId] })?.branches[0]?.usd : null;
+  if (fb == null && g == null) return null;
+  return (fb ? fb.reduce((a, x) => a + (Number(x[1]) || 0), 0) : 0) + (g || 0);
+}
+
+function kpiOf(data, user, branch, m, rec, quality) {
+  const q = quality === undefined ? qualityFor(data, user, m.month) : quality;
+  const flag = q?.branches.find((x) => x.id === branch.id)?.flags?.deleted || null;
+  return branchKpi({ settings: data.settings, branch, m, rec, spendUsd: spendUsdOf(data, branch.id, m.month), qualityFlag: flag });
+}
+
+export function kpiReport(data, user, month, today = new Date()) {
+  const prev = addMonths(month, -1);
+  const rowsFor = (mm) => {
+    const q = qualityFor(data, { role: "admin" }, mm);
+    const out = [];
+    for (const b of data.branches) {
+      if (b.archived || !canSee(user, b.id)) continue;
+      const s = seasonFor(data, b, mm, today);
+      out.push(kpiOf(data, user, b, s.month, data.months[`${b.id}|${mm}`], q));
+    }
+    return out;
+  };
+  const rows = rowsFor(month);
+  const prevRows = rowsFor(prev);
+  const prevById = Object.fromEntries(prevRows.map((r) => [r.id, r]));
+  for (const r of rows) r.prev = prevById[r.id] ? { pct: prevById[r.id].pct, k: prevById[r.id].k, bonusBalls: prevById[r.id].bonusBalls } : null;
+  const ORDER_K = { ok: 0, good: 1, boost: 2, fail: 3, nodata: 4, noplan: 5 };
+  rows.sort((a, b) => ORDER_K[a.status] - ORDER_K[b.status] || (b.usePct ?? -1) - (a.usePct ?? -1));
+  return { month, rows, summary: kpiSummary(rows, prevRows, data.settings), canEdit: user.role === "admin" };
+}
+
+// Правка KPI филиала (админ): число студентов, свой целевой бонус, новые отзывы за месяц.
+export function updateKpi(data, branchId, month, body) {
+  const b = data.branches.find((x) => x.id === branchId);
+  if (!b) return null;
+  const n = (v) => (v === "" || v == null ? null : Number(v));
+  if ("students" in body) b.students = n(body.students);
+  if ("kpiBonus" in body) b.kpiBonus = n(body.kpiBonus);
+  if ("reviews" in body) {
+    const rec = ensureMonth(data, branchId, month);
+    rec.kpi = { ...(rec.kpi || {}), reviews: n(body.reviews) };
+  }
+  return b;
+}

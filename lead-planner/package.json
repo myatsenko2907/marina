@@ -1,0 +1,13 @@
+{
+  "name": "step-lead-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Планирование лидов, лидобалов и бюджета для маркетологов филиалов",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.mjs",
+    "seed": "node scripts/seed.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}
