@@ -681,6 +681,7 @@ async function renderBranch(id, tab = "dash") {
   const cur = r.currency;
   const tabs = [
     ["dash", "Дашборд"],
+    ["tasks", `Задачи маркетолога${data.tasks && !data.tasks.stale && data.tasks.tasks.length ? ` (${data.tasks.tasks.length})` : ""}`],
     ["plan", "План по продуктам"],
     ["events", `Ивенты${r.events.length ? ` (${r.events.length})` : ""}`],
     ["season", "Набор"],
@@ -693,6 +694,7 @@ async function renderBranch(id, tab = "dash") {
 
   let body = "";
   if (tab === "dash") body = branchDash(r, season, cur, data.tasks, id) + branchKpiCard(data.kpi) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
+  if (tab === "tasks") body = data.tasks ? tasksCard(data.tasks, id) : `<div class="card"><div class="empty">Задач пока нет: для этого филиала ещё не загружены данные кабинетов FB и Google. Они обновляются раз в день.</div></div>`;
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
   if (tab === "season") body = branchSeason(season, inputs);
@@ -754,7 +756,7 @@ function branchDash(r, season, cur, tasks, branchId) {
     <div class="card kpi"><div class="label">Лидов нужно за месяц</div><div class="value">${fmt(t.leads + t.registrations)}</div>
       <div class="foot">из них платных ${fmt(t.paidLeads + t.registrations)} · рег. на ивенты ${fmt(t.registrations)}</div></div>
   </div>
-  ${tasksCard(tasks, branchId)}
+  ${tasksTeaser(tasks, branchId)}
   <div class="grid cols-2">
     <div class="card"><h2>План и факт по продуктам</h2><div class="hint">Лидобалы месяца${S.settings.carryOver ? ", включая перенос недостачи" : ""}</div>${planFactChart(r.products)}</div>
     <div class="card"><h2>Набор: ${esc(season.season.name)}</h2><div class="hint">${S.settings.carryOver ? "Недостача закрытого месяца переносится в следующий" : "План и факт по месяцам полугодия"}</div>${seasonChart(season.months, r.month)}</div>
@@ -864,7 +866,15 @@ async function setDone(branch, month, t, asOf, on) {
   return true;
 }
 
-/** Блок «Задачи маркетолога» на странице филиала. */
+/** Строка-ссылка на вкладку задач на дашборде филиала. */
+function tasksTeaser(tk, id) {
+  if (!tk || tk.stale || !tk.tasks.length) return "";
+  const open = tk.tasks.filter((x) => !doneOf(id, tk.month, x.id));
+  const urgent = open.filter((x) => x.prio === 1).length;
+  return `<a class="card tteaser" href="#/b/${id}/tasks"><b>Задачи маркетолога</b>${urgent ? `<span class="tprio p1">Срочно · ${urgent}</span>` : ""}<span class="muted">не выполнено ${open.length} из ${tk.tasks.length}</span><span class="spacer"></span><span class="btn sm">Открыть →</span></a>`;
+}
+
+/** Блок «Задачи маркетолога» — вкладка на странице филиала. */
 function tasksCard(tk, id) {
   if (!tk) return "";
   S.curTasks = { id, tk };
