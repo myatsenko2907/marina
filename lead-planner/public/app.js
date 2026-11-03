@@ -343,11 +343,11 @@ function shell(active, inner) {
   const isAdmin = S.me.role === "admin";
   const links = [
     ["#/", isAdmin ? "Все филиалы" : "Мои филиалы", "home"],
+    isAdmin || (S.me.branches || []).length !== 1 ? ["#/tasks", isAdmin ? "Задачи маркетологов" : "Мои задачи", "tasks"] : [`#/b/${S.me.branches[0]}/tasks`, "Мои задачи", "mytasks"],
     ["#/spend", "Расход на рекламу", "spend"],
     ["#/kpi", "KPI маркетологов", "kpi"],
     ...(isAdmin
       ? [
-          ["#/tasks", "Задачи маркетологов", "tasks"],
           ...(window.LOCAL_MODE ? [] : [["#/admin/import", "Импорт", "import"]]),
           ["#/admin/branches", "Филиалы", "branches"],
           ["#/admin/users", "Доступы", "users"],
@@ -701,7 +701,7 @@ async function renderBranch(id, tab = "dash") {
   if (tab === "input") body = branchInput(r, inputs, branch, season);
 
   shell(
-    "home",
+    tab === "tasks" && S.me.role !== "admin" ? "mytasks" : "home",
     `<div class="head"><div><div class="crumbs"><a href="#/">${S.me.role === "admin" ? "Все филиалы" : "Мои филиалы"}</a> / ${esc(season.season.name)}</div>
       <h1>${esc(branch.name)} ${pill(t.status)}</h1><div class="sub">${esc(fbInfo)}</div></div>
       <span class="spacer"></span>${monthNav()}
