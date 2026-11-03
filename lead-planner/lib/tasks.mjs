@@ -263,21 +263,14 @@ export function marketerTasks(data, branch, r, today = new Date()) {
       gaps.push({ p, camps, weekNeed, got, def: (weekNeed - got) * ball.site });
     }
     for (const { p, camps, weekNeed, got } of gaps.sort((a, b) => b.def - a.def).slice(0, 3)) {
-      const withL = camps.filter((c) => c.leads > 0).sort((a, b) => cpl(a) - cpl(b));
-      const best = withL[0];
-      const unit = best ? cpl(best) : avgCpl;
-      const addLeads = Math.ceil(weekNeed - got);
       add({
         id: `prod-gap-${p.id}`,
         prio: 2,
         area: "Facebook",
         title: `Добрать заявки по «${p.name}»: ${plural(got, LEADS)} за неделю при нужных ${Math.ceil(weekNeed)}`,
         why: `План ${p.planContracts} дог. → ${Math.round(p.paidLeads)} платных лидов за месяц, то есть ~${Math.ceil(weekNeed)} в неделю. Кампании на продукт (${camps.map((c) => `«${c.name}»`).slice(0, 3).join(", ")}) дали ${got}.`,
-        steps: [
-          best ? `Поднять бюджет «${best.name}» (лучшая цена лида на продукт — ${usd(cpl(best))}) на ${usd(Math.min(best.spend * 0.5, (addLeads * unit) / 7))}/день.` : `Во всех кампаниях на «${p.name}» заменить креатив и оффер: лидов нет.`,
-          unit ? `Ещё ${plural(addLeads, LEADS)} в неделю по ~${usd(unit)} — это +${usd((addLeads * unit) / 7)}/день к бюджету продукта.` : null,
-          "Запустить вторую группу объявлений с другой аудиторией: родители 30–45 / интерес к продукту / лукалайк по договорам.",
-        ].filter(Boolean),
+        steps: [],
+        _plan: { camps, perDay: weekNeed / 7, p },
         check: `за последние 7 дней по «${p.name}» не меньше ${Math.ceil(weekNeed * 0.7)} лидов`,
       });
     }
@@ -349,10 +342,80 @@ export function marketerTasks(data, branch, r, today = new Date()) {
   }
 
   // источники заявок, которые отстают от плана, — с конкретным действием под тип
+  // План действий по кабинету FB, чтобы получать perDay лидов нужного вида в день:
+  // что выключить / урезать (неэффективно), где и на сколько поднять бюджет, что запустить. Цифры — по последним 7 дням.
+  const kindOf = (c) => (c.type === "site" ? "site" : c.type === "messenger" ? "messenger" : "lid_form");
+  const KIND_GOAL = { site: "«Лиды на сайте» (цель «Лиды», конверсия — пиксель Lead на сайте)", lid_form: "«Лиды» с мгновенной формой (тип «Повышенное намерение»)", messenger: "«Сообщения» (Instagram Direct + Messenger)" };
+  const endOf = (c) => {
+    const e = c.stop ? c.stop.slice(0, 10) : null;
+    const me = r.month + "-" + String(daysIn(r.month)).padStart(2, "0");
+    return e && e < me ? e : me;
+  };
+  const budgetStep = (c, add) => {
+    const days = Math.max(1, Math.round((Date.parse(endOf(c)) - Date.parse(asOf)) / DAY_MS) + 1);
+    if (c.dailyBudget) return `Ads Manager → «${c.name}» → Изменить → Бюджет кампании: ${usd(c.dailyBudget)} → ${usd(c.dailyBudget + add)} в день`;
+    if (c.lifetimeBudget) return `Ads Manager → «${c.name}» → Изменить → Бюджет на весь срок: ${usd(c.lifetimeBudget)} → ${usd(c.lifetimeBudget + add * days)} (+${usd(add)}/день × ${days} дн. до ${dm(endOf(c))})`;
+    return `Ads Manager → «${c.name}» → бюджет на уровне групп объявлений: +${usd(add)} в день суммарно`;
+  };
+  const ld = (x) => (Math.abs(x - Math.round(x)) < 0.05 ? plural(Math.round(x), LEADS) : `${n1(x)} лида`);
+  const fbPlan = (camps, perDay, { kind = null, productHint = null } = {}) => {
+    if (!fbCtx) return ["Данных кабинета FB нет — сначала проверить, что реклама запущена."];
+    const { cpl: cplOf } = fbCtx;
+    const cur = camps.reduce((s, c) => s + c.leads, 0) / 7;
+    const withL = camps.filter((c) => c.leads > 0);
+    const med = median(withL.map(cplOf)) ?? fbCtx.avgCpl ?? 15;
+    const steps = [];
+    if (kind && cur >= perDay * 0.9)
+      steps.push(`FB насчитывает ${n1(cur)} таких лидов в день (норма ${n1(perDay)}), а в CRM их меньше — сначала отправить тестовую заявку из каждой кампании ниже и проверить, что она появилась в CRM с нужным типом. Не дошла — исправить форму / интеграцию, это быстрее, чем докупать рекламу.`);
+    let freed = 0;
+    // 1. неэффективно — выключить / урезать
+    for (const c of camps) {
+      const day = c.spend / 7;
+      if (c.leads === 0 && c.spend >= Math.max(15, med * 1.5)) {
+        steps.push(`Выключить «${c.name}»: ${usd(c.spend)} за 7 дней и 0 лидов (неэффективно) — освобождает ${usd(day)}/день.`);
+        freed += day;
+      } else if (c.leads > 0 && cplOf(c) > med * 2 && c.spend >= 30) {
+        steps.push(`Урезать вдвое «${c.name}»: лид по ${usd(cplOf(c))} при медиане ${usd(med)} (неэффективно) — ${c.dailyBudget ? `бюджет ${usd(c.dailyBudget)} → ${usd(c.dailyBudget / 2)} в день` : "бюджет −50%"}, освобождает ${usd(day / 2)}/день.`);
+        freed += day / 2;
+      }
+    }
+    // 2. эффективные — поднять бюджет (по 30–50%, сначала самые дешёвые)
+    let need = Math.max(0, perDay - cur);
+    let gain = 0;
+    const good = withL.filter((c) => cplOf(c) <= med * 1.2).sort((a, b) => cplOf(a) - cplOf(b));
+    for (const c of good.slice(0, 3)) {
+      if (need - gain <= 0.05) break;
+      const day = c.dailyBudget || c.spend / 7;
+      const add = Math.max(5, Math.min(day * (cplOf(c) <= med * 0.7 ? 0.5 : 0.3), (need - gain) * cplOf(c)));
+      gain += add / cplOf(c);
+      steps.push(`${budgetStep(c, add)} — лид по ${usd(cplOf(c))}, это +${ld(add / cplOf(c))} в день.`);
+    }
+    if (freed > 0 && good.length) steps.push(`Освободившиеся ${usd(freed)}/день — в «${good[0].name}» (самый дешёвый лид), это ещё +${ld(freed / cplOf(good[0]))} в день.`);
+    if (freed > 0 && good.length) gain += freed / cplOf(good[0]);
+    // 3. не хватает — запустить новую кампанию
+    const rest = need - gain;
+    if (rest > 0.3 || !camps.length) {
+      const covered = new Set(camps.map((c) => ruleOf(c.name)?.productId).filter(Boolean));
+      const prod = productHint || [...r.products].filter((p) => p.planContracts && !covered.has(p.id)).sort((a, b) => b.planContracts - a.planContracts)[0] || [...r.products].sort((a, b) => (b.planContracts || 0) - (a.planContracts || 0))[0];
+      const add = Math.max(10, rest * med);
+      const src = good[0] || (fbCtx.active || []).filter((c) => c.leads > 0 && !fbCtx.isEvent(c)).sort((a, b) => cplOf(a) - cplOf(b))[0];
+      steps.push(`${src ? `Дублировать «${src.name}» (${good[0] ? "лучшая цена лида" : `лучшая цена лида в кабинете — ${usd(cplOf(src))}`}) и запустить копию` : "Создать кампанию"}${kind ? ` с целью ${KIND_GOAL[kind]}` : ""}${prod ? ` на «${prod.name}» (план ${prod.planContracts} дог.${covered.has(prod.id) ? "" : ", кампаний этого вида на продукт нет"})` : ""}: бюджет ${usd(add)} в день, 2–3 креатива, широкая аудитория + лукалайк по договорам — даст ≈ ${ld(add / med)} в день по ${usd(med)}.${fbCtx.allSpend && add > fbCtx.allSpend / 7 ? ` Это больше нынешнего расхода всего кабинета (${usd(fbCtx.allSpend / 7)}/день) — согласовать бюджет с руководителем сегодня; пока нет согласования — запустить на ${usd(Math.min(add, fbCtx.allSpend / 14))}/день.` : ""}`);
+      gain += add / med;
+    }
+    steps.push(`Итог: сейчас ${n1(cur)} в день → после изменений ≈ ${n1(cur + gain)} в день при норме ${n1(perDay)}. ${dm(addDays(asOf, 3))} сверить: где лид подорожал больше чем на 30% — вернуть бюджет назад.`);
+    return steps;
+  };
+  for (const x of tasks.filter((x) => x._plan)) {
+    const { camps, perDay, p } = x._plan;
+    x.steps = [...fbPlan(camps, perDay, { productHint: p }), "Вторая группа объявлений с другой аудиторией: родители 30–45 / интерес к продукту / лукалайк по договорам."];
+    delete x._plan;
+  }
+  const campsOf = (k) => (fbCtx?.active || []).filter((c) => !fbCtx.isEvent(c) && kindOf(c) === k);
+
   const SRC = {
-    site: { title: (n, d) => `Добрать ${plural(n, ["заявку", "заявки", "заявок"])} с сайта — ${d} в день`, steps: () => [best("site") ? `Поднять бюджет «${best("site").name}» на 30% — лучшая цена заявки с сайта (${usd(fbCtx.cpl(best("site")))}).` : "Запустить кампанию с целью «Лиды на сайте» на продукт с наибольшим планом.", "Отправить тестовую заявку с сайта и найти её в CRM — потерянные заявки с сайта не попадают в факт."], check: (d) => `за вчера — не меньше ${d} заявок с сайта в CRM` },
-    lid_form: { title: (n, d) => `Добрать ${plural(n, ["лид-форму", "лид-формы", "лид-форм"])} — ${d} в день`, steps: () => [best("lid_form") ? `Поднять бюджет «${best("lid_form").name}» на 30% — лучшая цена лида из формы (${usd(fbCtx.cpl(best("lid_form")))}).` : "Запустить кампанию с лид-формой на продукт с наибольшим планом.", "Лид-формы приходят в CRM типом «Лид-форма» — проверить одну заявку из формы."], check: (d) => `за вчера — не меньше ${d} лид-форм в CRM` },
-    messenger: { title: (n, d) => `Добрать ${plural(n, ["диалог", "диалога", "диалогов"])} в мессенджерах — ${d} в день`, steps: () => [best("messenger") ? `Поднять бюджет «${best("messenger").name}» на 30%.` : `Запустить кампанию с целью «Сообщения» (Instagram Direct + Messenger) на продукт с наибольшим планом, бюджет ${usd((fbCtx?.avgCpl || 10) * 2)}/день.`, "Настроить автоответ с вопросом о возрасте ребёнка и удобном времени звонка; каждый диалог — заявка в CRM типом «Мессенджер»."], check: () => "кампания «Сообщения» активна, диалоги заводятся в CRM" },
+    site: { title: (n, d) => `Добрать ${plural(n, ["заявку", "заявки", "заявок"])} с сайта — ${d} в день`, steps: (d) => [...fbPlan(campsOf("site"), d, { kind: "site" }), "Отправить тестовую заявку с сайта и найти её в CRM — потерянные заявки с сайта не попадают в факт."], check: (d) => `за вчера — не меньше ${d} заявок с сайта в CRM` },
+    lid_form: { title: (n, d) => `Добрать ${plural(n, ["лид-форму", "лид-формы", "лид-форм"])} — ${d} в день`, steps: (d) => [...fbPlan(campsOf("lid_form"), d, { kind: "lid_form" }), "Лид-формы приходят в CRM типом «Лид-форма» — проверить одну заявку из формы."], check: (d) => `за вчера — не меньше ${d} лид-форм в CRM` },
+    messenger: { title: (n, d) => `Добрать ${plural(n, ["диалог", "диалога", "диалогов"])} в мессенджерах — ${d} в день`, steps: (d) => [...fbPlan(campsOf("messenger"), d, { kind: "messenger" }), "Настроить автоответ с вопросом о возрасте ребёнка и удобном времени звонка; каждый диалог — заявка в CRM типом «Мессенджер»."], check: () => "кампания «Сообщения» активна, диалоги заводятся в CRM" },
     call: { title: (n, d) => `Получить ${plural(n, ["входящий звонок", "входящих звонка", "входящих звонков"])} — ${d} в день: номер и кнопка «Позвонить» в рекламе`, steps: () => ["FB: в 2 лучших объявлениях кнопка «Позвонить» вместо «Подробнее».", "Google: расширение «Звонок» во всех кампаниях; номер филиала в Профиле компании Google.", "Номер филиала — на первом экране сайта филиала; звонки заводятся в CRM типом «Входящий звонок»."], check: () => "кнопка «Позвонить» есть в рекламе FB и Google, номер на сайте" },
     visit: { title: (n, d) => `Пригласить в филиал ${plural(n, ["человека", "человека", "человек"])} до конца месяца — визит даёт ${b2(ball.visit)} ЛБ`, steps: () => [`Назначить день открытых дверей / экскурсию на ${dm(addDays(asOf, ((6 - new Date(asOf + "T00:00:00Z").getUTCDay() + 7) % 7) || 7))} и объявить в соцсетях филиала.`, "Менеджерам — приглашать на консультацию в филиал каждого, кто оставил заявку; визит заводится в CRM типом «Визит без заявки»."], check: () => "день открытых дверей объявлен, визиты заводятся в CRM" },
     study: { title: (n, d) => `Добрать ${plural(n, ["заявку", "заявки", "заявок"])} на обучение — ${d} в день`, steps: () => ["На сайте филиала и в шапке профиля Instagram — кнопка «Записаться на обучение» с формой.", "Пост и сторис с ближайшими стартами групп и ссылкой на запись — 2 раза в неделю."], check: () => "кнопка записи на обучение есть на сайте и в Instagram" },
@@ -373,7 +436,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
       area: "План",
       title: k.title(need, perDay),
       why: `«${typeName[x.typeId] || x.typeId}»: план ${Math.round(x.planLeads)} за месяц (${n1(x.planBalls)} ЛБ), факт ${x.factLeads}${share ? ` при ожидаемых к сегодня ${Math.round(x.planLeads * share)}` : ""}.`,
-      steps: k.steps(),
+      steps: k.steps(perDay),
       check: k.check(perDay),
     });
   }
