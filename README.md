@@ -29,7 +29,12 @@ All content and settings are in `src/data.mjs` (contacts, curricula, courses, FA
 npm run build   # regenerate docs/*.html (+ src/curricula.json)
 npm run pdf     # regenerate curriculum PDFs in docs/files (pip install reportlab)
 npm run serve   # preview at http://localhost:8080
+npm run tts -- "Text" docs/audio/name.mp3 [voiceId]   # ElevenLabs voice-over → MP3
 ```
+
+### ElevenLabs (text-to-speech)
+
+Copy `.env.example` to `.env` and set `ELEVENLABS_API_KEY`. `.env` is git-ignored. The key is used only at build time (`src/elevenlabs.mjs`); generated MP3s go to `docs/` and can be embedded with `<audio src="audio/name.mp3" controls>`. Never put the key into page JS — the site is static and anyone could read it.
 
 ## Before launch — replace placeholders
 
