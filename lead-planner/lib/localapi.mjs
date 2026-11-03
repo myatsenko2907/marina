@@ -56,6 +56,7 @@ export function createLocalApi(data, { persist = () => {}, today = () => new Dat
         return b;
       }
     }
+    if (p === "/api/tasks") return service.tasksBoard(data, me, month, today());
     if (p === "/api/quality") return service.qualityFor(data, me, url.searchParams.get("from") || month, url.searchParams.get("to") || url.searchParams.get("from") || month);
     if (p === "/api/spend") return service.spendFor(data, me, url.searchParams.get("from"), url.searchParams.get("to"));
     if (p === "/api/settings") {
