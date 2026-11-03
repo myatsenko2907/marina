@@ -344,6 +344,7 @@ function shell(active, inner) {
   const links = [
     ["#/", isAdmin ? "Все филиалы" : "Мои филиалы", "home"],
     ["#/spend", "Расход на рекламу", "spend"],
+    ["#/kpi", "KPI маркетологов", "kpi"],
     ...(isAdmin
       ? [
           ["#/tasks", "Задачи маркетологов", "tasks"],
@@ -691,7 +692,7 @@ async function renderBranch(id, tab = "dash") {
   ].join(" · ");
 
   let body = "";
-  if (tab === "dash") body = branchDash(r, season, cur, data.tasks, id) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
+  if (tab === "dash") body = branchDash(r, season, cur, data.tasks, id) + branchKpiCard(data.kpi) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
   if (tab === "season") body = branchSeason(season, inputs);
@@ -1763,6 +1764,194 @@ function bindQuality(q) {
   if (t) t.onchange = () => go(f.value, t.value);
 }
 
+// ---------- KPI маркетологов ----------
+const KST = {
+  ok: ["План выполнен", "ok", "var(--good)"],
+  good: ["Бонус есть", "good", "var(--good-2)"],
+  boost: ["Близко к порогу", "boost", "var(--warn)"],
+  fail: ["Ниже порога", "fail", "var(--bad)"],
+  nodata: ["Нет факта ЛБ", "nodata", "var(--idle)"],
+  noplan: ["Нет плана", "noplan", "var(--idle)"],
+};
+const kpill = (st) => `<span class="st ${KST[st][1]}">${KST[st][0]}</span>`;
+const uah = (n, ks) => (n == null || !Number.isFinite(n) ? "—" : `${n < 0 ? "−" : ""}${nf(0).format(Math.abs(Math.round(n)))} ${esc(ks?.currency || "грн")}`);
+const KBAR_MAX = 1.5;
+
+/** Полоса выполнения 0…150% с отметками порога и 100%. */
+function kpiBar(p, st, ks, { big = false } = {}) {
+  const w = (v) => `${(Math.min(KBAR_MAX, Math.max(0, v)) / KBAR_MAX) * 100}%`;
+  return `<div class="kbar ${big ? "big" : ""}"><b style="width:${w(p ?? 0)};background:${KST[st]?.[2] || "var(--idle)"}"></b>
+    <span class="tick" style="left:${w(ks.threshold)}" data-tip="Порог бонуса ${pct(ks.threshold)}"></span><span class="tick full" style="left:${w(1)}" data-tip="План 100%"></span></div>`;
+}
+
+/** Шкала «выполнение → % целевого бонуса» для подписи. */
+function kpiScaleText(ks) {
+  const top = 1 + (ks.cap - 1) / ks.accel;
+  return `< ${pct(ks.threshold)} — 0 · ${pct(ks.threshold)} → ${pct(ks.floorPayout)} бонуса · 100% → 100% · сверх плана +${fmt(ks.accel, 1)}% бонуса за каждый 1% · максимум ${pct(ks.cap)} (при ${pct(top)})`;
+}
+
+function kpiPersonalCard(r, ks) {
+  const p = r.usePct;
+  const perDay = r.daysLeft > 0 && r.toThreshold > 0 ? r.toThreshold / r.daysLeft : null;
+  const perDayPlan = r.daysLeft > 0 && r.toPlan > 0 ? r.toPlan / r.daysLeft : null;
+  const at = (x) => uah(r.targetBonus * Math.min(ks.cap, x < ks.threshold ? 0 : x < 1 ? ks.floorPayout + ((1 - ks.floorPayout) * (x - ks.threshold)) / (1 - ks.threshold) : 1 + (x - 1) * ks.accel), ks);
+  return `<div class="card kcard"><div class="card-head"><h2><a href="#/b/${r.id}">${esc(r.name)}</a></h2>${kpill(r.status)}<span class="spacer"></span><span class="muted">${r.closed ? "итог месяца" : `прогноз на конец месяца · осталось ${r.daysLeft} дн.`}</span></div>
+    <div class="kbig"><div><div class="label">Выполнение плана лидобалов</div><div class="value">${pct(p)}</div><div class="foot">${fmt(r.closed ? r.factBalls : r.forecastBalls, 1)} из ${fmt(r.planBalls, 1)} ЛБ${r.closed ? "" : ` · сейчас ${fmt(r.factBalls, 1)} (${pct(r.pct)})`}</div></div>
+      <div><div class="label">Бонус за лидобалы</div><div class="value">${uah(r.bonusBalls, ks)}</div><div class="foot">из целевых ${uah(r.targetBonus, ks)} · коэф. ${fmt(r.k, 2)}</div></div>
+      <div><div class="label">Отзывы Google</div><div class="value">${r.reviewsPlan == null ? "—" : `${fmt(r.reviewsFact)} <small>/ ${fmt(r.reviewsPlan)}</small>`}</div><div class="foot">${r.reviewsPlan == null ? "нет числа студентов" : r.reviewsAmount == null ? `факт не внесён · ${uah(r.reviewsReward, ks)}` : `${r.reviewsAmount >= 0 ? "+" : ""}${uah(r.reviewsAmount, ks)}`}</div></div>
+      <div><div class="label">Итого к выплате${r.closed ? "" : " (прогноз)"}</div><div class="value">${uah(r.total, ks)}</div><div class="foot">бонус + отзывы</div></div></div>
+    ${kpiBar(p, r.status, ks, { big: true })}
+    <div class="kscale"><span>0%</span><span style="left:${(ks.threshold / KBAR_MAX) * 100}%">${pct(ks.threshold)}</span><span style="left:${(1 / KBAR_MAX) * 100}%">100%</span><span style="left:100%">${pct(KBAR_MAX)}</span></div>
+    ${r.gates.map((g) => `<div class="alert-row ${g.id === "quality" ? "bad" : ""}" style="margin-top:8px">${esc(g.text)}</div>`).join("")}
+    ${
+      r.closed || r.planBalls <= 0
+        ? ""
+        : `<div class="ktodo">${r.toThreshold > 0 ? `<div>До порога ${pct(ks.threshold)}: ещё <b>${fmt(r.toThreshold, 1)} ЛБ</b>${perDay ? ` — ${fmt(perDay, 1)} в день` : ""} → бонус ${at(ks.threshold)}</div>` : `<div class="pos">Порог ${pct(ks.threshold)} уже пройден ✓</div>`}
+        ${r.toPlan > 0 ? `<div>До 100%: ещё <b>${fmt(r.toPlan, 1)} ЛБ</b>${perDayPlan ? ` — ${fmt(perDayPlan, 1)} в день` : ""} → бонус ${at(1)}</div>` : `<div class="pos">План выполнен ✓ · при 120% бонус ${at(1.2)}</div>`}</div>`
+    }</div>`;
+}
+
+async function renderKpi() {
+  shell("kpi", '<div class="empty">Загрузка…</div>');
+  const d = await api(`/api/kpi?month=${S.month}`);
+  const sm = d.summary;
+  const ks = sm.settings;
+  const isAdmin = S.me.role === "admin";
+  const rows = d.rows;
+  const closed = rows[0]?.closed;
+  const c = sm.calib;
+  const lowReach = c && c.n >= 5 && c.reached / c.n < 0.3;
+  const cell = (r, f, v, ph = "") => `<input class="cell kin" type="number" min="0" step="1" data-id="${r.id}" data-f="${f}" value="${v ?? ""}" placeholder="${esc(ph)}">`;
+  const gateTip = (r) => (r.gates.length ? ` <span class="q-warn" data-tip="${esc(r.gates.map((g) => g.text).join("<br>"))}">!</span>` : "");
+
+  shell(
+    "kpi",
+    `<div class="head"><div><h1>KPI маркетологов</h1><div class="sub">Бонус за выполнение плана лидобалов (порог ${pct(ks.threshold)}) и премия за отзывы Google · ${closed ? "итог закрытого месяца" : "текущий месяц — прогноз на конец месяца по темпу"}</div></div>
+      <span class="spacer"></span>${monthNav()}</div>
+    ${lowReach && isAdmin ? `<div class="alerts"><div class="alert-row bad"><div><b>Порог сейчас почти недостижим.</b> В ${monthName(c.month).toLowerCase()} порог ${pct(ks.threshold)} прошли ${c.reached} из ${c.n} филиалов, медиана выполнения ${pct(c.median)}. Факт лидобалов считается только по заявкам CRM: звонки, визиты и обращения без заявки в него не попадают, поэтому крупные филиалы набирают 50–90% лидобалов от договоров, а маленькие — 20–30%.
+      На переходный период (2–3 месяца) можно поставить долю плана для KPI ${pct(c.suggestShare)}: тогда порог пройдёт примерно половина филиалов. Параллельно стоит требовать, чтобы каждое обращение заводилось в CRM заявкой. <button class="btn sm" id="kApply">Поставить ${pct(c.suggestShare)}</button></div></div></div>` : ""}
+    ${!closed && rows[0]?.elapsedShare < 0.2 ? `<div class="alerts"><div class="alert-row info">Начало месяца: прогноз по ${Math.round((rows[0]?.elapsedShare || 0) * 30)} дн. пока неточный.</div></div>` : ""}
+    ${!isAdmin ? rows.map((r) => kpiPersonalCard(r, ks)).join("") : ""}
+    ${isAdmin ? `<div class="grid kpis">
+      <div class="card kpi"><div class="label">Дошли до порога ${pct(ks.threshold)}</div><div class="value">${sm.reached} <small>из ${sm.branches}</small></div><div class="foot">план выполнили: ${sm.reachedPlan}</div></div>
+      <div class="card kpi"><div class="label">Медиана выполнения</div><div class="value">${pct(sm.median)}</div><div class="foot">${fmt(sm.factBalls, 0)} из ${fmt(sm.planBalls, 0)} ЛБ по сети</div></div>
+      <div class="card kpi"><div class="label">Бонусы за лидобалы</div><div class="value">${uah(sm.bonusFund, ks)}</div><div class="foot">из целевых ${uah(sm.targetFund, ks)} (${pct(sm.targetFund ? sm.bonusFund / sm.targetFund : null)})</div></div>
+      <div class="card kpi"><div class="label">Отзывы Google</div><div class="value">${sm.reviewsDone} <small>из ${sm.reviewsKnown}</small></div><div class="foot">выполнили план · итого ${sm.reviewsFund >= 0 ? "+" : ""}${uah(sm.reviewsFund, ks)}</div></div>
+      <div class="card kpi"><div class="label">К выплате всего</div><div class="value">${uah(sm.total, ks)}</div><div class="foot">${closed ? "за месяц" : "прогноз на месяц"}</div></div>
+    </div>` : ""}
+    <div class="card"><div class="card-head"><h2>${isAdmin ? "Все филиалы" : "Мои филиалы"}</h2><span class="spacer"></span>${isAdmin ? `<span class="muted" style="font-size:12.5px">${window.LOCAL_MODE ? "Правки на странице по ссылке сохраняются только в этом браузере" : "Студенты, отзывы и свой бонус вносятся прямо в таблице"}</span>` : ""}</div>
+      <div class="hint">Шкала бонуса: ${esc(kpiScaleText(ks))}</div>
+      <div class="tbl-wrap"><table class="ktbl"><thead><tr><th>Филиал</th><th>Статус</th><th class="n">План ЛБ</th><th class="n">${closed ? "Факт ЛБ" : "Факт / прогноз"}</th><th style="min-width:150px">Выполнение</th><th class="n">Прошлый мес.</th><th class="n">Целевой бонус</th><th class="n">Коэф.</th><th class="n">Бонус за ЛБ</th>${isAdmin ? '<th class="n">Студентов</th>' : ""}<th class="n">Отзывы факт / план</th><th class="n">За отзывы</th><th class="n">Итого</th></tr></thead><tbody>
+      ${rows
+        .map(
+          (r) => `<tr class="${r.status === "fail" ? "fail" : r.status === "boost" ? "boost" : ""}"><td><a href="#/b/${r.id}">${esc(r.name)}</a></td><td>${kpill(r.status)}</td>
+        <td class="n">${fmt(r.planBalls, 1)}</td><td class="n">${fmt(r.factBalls, 1)}${r.closed ? "" : `<div class="muted" style="font-size:11.5px">→ ${fmt(r.forecastBalls, 1)}</div>`}</td>
+        <td data-sort="${r.usePct ?? ""}"><div class="kcell">${kpiBar(r.usePct, r.status, ks)}<b>${pct(r.usePct)}</b></div></td>
+        <td class="n">${pct(r.prev?.pct)}</td>
+        <td class="n" data-sort="${r.targetBonus}">${isAdmin ? cell(r, "kpiBonus", r.targetSource === "branch" ? r.targetBonus : "", fmt(r.targetBonus)) : uah(r.targetBonus, ks)}</td>
+        <td class="n">${fmt(r.k, 2)}${gateTip(r)}</td><td class="n"><b>${uah(r.bonusBalls, ks)}</b></td>
+        ${isAdmin ? `<td class="n" data-sort="${r.students ?? ""}">${cell(r, "students", r.students)}</td>` : ""}
+        <td class="n" data-sort="${r.reviewsFact ?? ""}">${isAdmin ? `${cell(r, "reviews", r.reviewsFact)} / ${fmt(r.reviewsPlan)}` : `${fmt(r.reviewsFact)} / ${fmt(r.reviewsPlan)}`}</td>
+        <td class="n ${r.reviewsAmount < 0 ? "neg" : r.reviewsAmount > 0 ? "pos" : ""}">${r.reviewsAmount == null ? "—" : (r.reviewsAmount > 0 ? "+" : "") + uah(r.reviewsAmount, ks)}</td>
+        <td class="n"><b>${uah(r.total, ks)}</b></td></tr>`,
+        )
+        .join("")}
+      </tbody></table></div></div>
+    ${kpiRulesCard(ks)}
+    ${isAdmin ? kpiSettingsCard(ks) : ""}`,
+  );
+  bindMonthNav();
+  for (const inp of document.querySelectorAll(".kin"))
+    inp.onchange = async () => {
+      try {
+        await api(`/api/kpi/${inp.dataset.id}?month=${S.month}`, { method: "PUT", body: { [inp.dataset.f]: inp.value } });
+        toast("Сохранено");
+        renderKpi();
+      } catch (e) {
+        toast(e.message, true);
+      }
+    };
+  const ap = document.getElementById("kApply");
+  if (ap) ap.onclick = () => saveKpiSettings({ ...ks, planShare: Math.round(c.suggestShare * 100) / 100 });
+  const f = document.getElementById("kf");
+  if (f)
+    f.onsubmit = (e) => {
+      e.preventDefault();
+      const g = (n) => Number(f.elements[n].value);
+      saveKpiSettings({
+        ...ks,
+        threshold: g("threshold") / 100,
+        floorPayout: g("floorPayout") / 100,
+        accel: g("accel"),
+        cap: g("cap") / 100,
+        planShare: g("planShare") / 100,
+        budgetGate: g("budgetGate") / 100,
+        qualityGate: g("qualityGate"),
+        currency: f.elements.currency.value || "грн",
+        bonusTiers: ks.bonusTiers.map((_, i) => ({ minPlan: g(`tp${i}`), bonus: g(`tb${i}`) })),
+        reviews: { ...ks.reviews, reward: g("reward"), rewardSmall: g("rewardSmall"), penalty: f.elements.penalty.checked, tiers: ks.reviews.tiers.map((_, i) => ({ minStudents: g(`rs${i}`), plan: g(`rp${i}`) })) },
+      });
+    };
+}
+
+async function saveKpiSettings(kpi) {
+  try {
+    S.settings = await api("/api/settings", { method: "PUT", body: { kpi } });
+    toast("Настройки KPI сохранены");
+    renderKpi();
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
+function kpiRulesCard(ks) {
+  const tiers = [...ks.bonusTiers].sort((a, b) => b.minPlan - a.minPlan);
+  const rt = [...ks.reviews.tiers].sort((a, b) => b.minStudents - a.minStudents);
+  const ex = [0.7, ks.threshold, 0.9, 1, 1.1, 1.2, 1.4].map((p) => [p, p < ks.threshold ? 0 : p < 1 ? ks.floorPayout + ((1 - ks.floorPayout) * (p - ks.threshold)) / (1 - ks.threshold) : Math.min(ks.cap, 1 + (p - 1) * ks.accel)]);
+  return `<div class="grid cols-2 mt">
+    <div class="card"><h2>Как считается бонус</h2><div class="hint">План KPI = план лидобалов месяца из «Плана лидобалов» (план договоров × ${pct(S.settings.ballsPlanFactor)}, без переноса недостачи)${ks.planShare !== 1 ? ` × ${pct(ks.planShare)} (переходный период)` : ""}. Факт — лидобалы по заявкам CRM.</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Выполнение плана ЛБ</th>${ex.map(([p]) => `<th class="n">${pct(p)}</th>`).join("")}</tr></thead><tbody>
+      <tr><td>% целевого бонуса</td>${ex.map(([, k]) => `<td class="n"><b>${pct(k)}</b></td>`).join("")}</tr>
+      <tr><td>при бонусе ${uah(7000, ks)}</td>${ex.map(([, k]) => `<td class="n">${uah(7000 * k, ks)}</td>`).join("")}</tr></tbody></table></div>
+      <ul class="krules"><li><b>Ворота бюджета:</b> сверх 100% платим, только если расход на рекламу (FB + Google) не выше бюджета плана × ${pct(ks.budgetGate)}.</li>
+      <li><b>Ворота качества:</b> если доля удалённых заявок (спам, дубли) в 2 раза выше сети — бонус × ${fmt(ks.qualityGate, 2)}.</li>
+      <li>Текущий месяц показывается прогнозом по темпу; выплата — по итогу закрытого месяца.</li></ul></div>
+    <div class="card"><h2>Целевой бонус и отзывы</h2><div class="hint">Целевой бонус — сумма при 100% плана, по размеру филиала (план договоров месяца). Для филиала можно задать свою сумму в таблице.</div>
+      <table><thead><tr><th>План договоров</th><th class="n">Целевой бонус</th></tr></thead><tbody>${tiers.map((t, i) => `<tr><td>${i === 0 ? `от ${t.minPlan}` : `${t.minPlan}–${tiers[i - 1].minPlan - 1}`}</td><td class="n">${uah(t.bonus, ks)}</td></tr>`).join("")}</tbody></table>
+      <table class="mt"><thead><tr><th>Студентов в филиале</th><th class="n">План новых отзывов</th></tr></thead><tbody>${rt.map((t, i) => `<tr><td>${i === 0 ? `${t.minStudents} и более` : i === rt.length - 1 ? `до ${rt[i - 1].minStudents - 1}` : `${t.minStudents}–${rt[i - 1].minStudents - 1}`}</td><td class="n">${t.plan}</td></tr>`).join("")}</tbody></table>
+      <div class="hint mt">План выполнен — +${uah(ks.reviews.reward, ks)} (до ${ks.reviews.smallBelow - 1} студентов — +${uah(ks.reviews.rewardSmall, ks)})${ks.reviews.penalty ? `; не выполнен — минус та же сумма` : "; не выполнен — 0"}.</div></div></div>`;
+}
+
+function kpiSettingsCard(ks) {
+  const n = (name, v, step = 1) => `<input type="number" step="${step}" name="${name}" value="${v}">`;
+  return `<details class="card mt"><summary><b>Настройки KPI</b> <span class="muted">— порог, шкала, целевые бонусы, отзывы</span></summary>
+  <form id="kf" class="mt"><div class="form-grid">
+    <label class="f">Порог бонуса, % плана ЛБ${n("threshold", Math.round(ks.threshold * 100))}</label>
+    <label class="f">Выплата на пороге, % бонуса${n("floorPayout", Math.round(ks.floorPayout * 100))}</label>
+    <label class="f">Ускоритель сверх 100% (× за 1%)${n("accel", ks.accel, 0.1)}</label>
+    <label class="f">Потолок, % бонуса${n("cap", Math.round(ks.cap * 100))}</label>
+    <label class="f">Доля плана ЛБ для KPI, %${n("planShare", Math.round(ks.planShare * 100))}</label>
+    <label class="f">Ворота бюджета, % от бюджета${n("budgetGate", Math.round(ks.budgetGate * 100))}</label>
+    <label class="f">Множитель при плохом качестве${n("qualityGate", ks.qualityGate, 0.05)}</label>
+    <label class="f">Валюта бонуса<input type="text" name="currency" value="${esc(ks.currency)}"></label>
+  </div>
+  <div class="grid cols-2 mt"><div><h3 class="kh3">Целевой бонус по плану договоров</h3><table><thead><tr><th>План договоров от</th><th>Бонус</th></tr></thead><tbody>${ks.bonusTiers.map((t, i) => `<tr><td>${n(`tp${i}`, t.minPlan)}</td><td>${n(`tb${i}`, t.bonus, 100)}</td></tr>`).join("")}</tbody></table></div>
+  <div><h3 class="kh3">Отзывы: план по числу студентов</h3><table><thead><tr><th>Студентов от</th><th>Отзывов</th></tr></thead><tbody>${ks.reviews.tiers.map((t, i) => `<tr><td>${n(`rs${i}`, t.minStudents)}</td><td>${n(`rp${i}`, t.plan)}</td></tr>`).join("")}</tbody></table>
+  <div class="form-grid mt"><label class="f">Премия за отзывы${n("reward", ks.reviews.reward, 100)}</label><label class="f">Премия, до ${ks.reviews.smallBelow - 1} студентов${n("rewardSmall", ks.reviews.rewardSmall, 100)}</label>
+  <label class="f" style="align-self:end"><span><input type="checkbox" name="penalty" ${ks.reviews.penalty ? "checked" : ""}> Не выполнен — минус сумма</span></label></div></div></div>
+  <div class="row-actions mt"><button class="btn primary">Сохранить настройки KPI</button></div></form></details>`;
+}
+
+/** Карточка KPI на дашборде филиала. */
+function branchKpiCard(r) {
+  if (!r) return "";
+  const ks = { ...{ threshold: 0.8, currency: "грн" }, ...(S.settings.kpi || {}) };
+  if (r.planBalls <= 0) return "";
+  return `<div class="card mt"><div class="card-head"><h2>KPI маркетолога</h2>${kpill(r.status)}<span class="spacer"></span><a class="btn sm" href="#/kpi">Подробнее →</a></div>
+    <div class="hint">${r.closed ? "Итог месяца" : "Прогноз на конец месяца по темпу"}: ${fmt(r.closed ? r.factBalls : r.forecastBalls, 1)} из ${fmt(r.planBalls, 1)} ЛБ (${pct(r.usePct)}) · бонус ${uah(r.bonusBalls, ks)} из ${uah(r.targetBonus, ks)}${r.reviewsPlan != null ? ` · отзывы ${fmt(r.reviewsFact)} / ${fmt(r.reviewsPlan)}` : ""}${!r.closed && r.toThreshold > 0 ? ` · до порога ${pct(ks.threshold ?? 0.8)} ещё ${fmt(r.toThreshold, 1)} ЛБ` : ""}</div>
+    ${kpiBar(r.usePct, r.status, { threshold: ks.threshold ?? 0.8 })}</div>`;
+}
+
 // ---------- router ----------
 async function route() {
   if (!S.me) return renderLogin();
@@ -1773,6 +1962,7 @@ async function route() {
     let m;
     if ((m = h.match(/^\/b\/([\w-]+)(?:\/(\w+))?/))) return await renderBranch(m[1], m[2] || "dash");
     if (h === "/spend") return await renderSpend();
+    if (h === "/kpi") return await renderKpi();
     if (S.me.role === "admin") {
       if (h === "/tasks") return await renderTasksBoard();
       if (h === "/admin/users") return await renderUsers();

@@ -10,6 +10,8 @@
 //             — качество лидов: строка ALL отчёта по интернет-заявкам
 //   outcomes: { alias: { "YYYY-MM": { n, processed, firstReject, laterReject, laterRejectDays, noAnswerFirst, noAnswerReached, noAnswerNever } } }
 //             — судьба лидов по истории заявок (scripts/lead-outcomes.mjs)
+//   students: { alias: число студентов }                         — для плана отзывов KPI
+//   reviews:  { alias: { "YYYY-MM": новых отзывов Google } }      — факт отзывов для KPI
 import { seasonOf } from "./planner.mjs";
 
 const typeKey = (t) => String(t || "").replace(/^irt_/, "").toLowerCase().replace(/-/g, "_");
@@ -80,6 +82,17 @@ export function applySnapshot(store, snap, seasonMonth = new Date().toISOString(
     for (const [m, o] of Object.entries(months)) {
       const rec = store.ensureMonth(id, m);
       rec.facts.branch = rebuildBranchLeads({ ...(rec.facts.branch || {}), outcomes: { ...o, fetchedAt: snap.fetchedAt || new Date().toISOString() } });
+      n++;
+    }
+  }
+  for (const [id, v] of Object.entries(snap.students || {})) {
+    const b = store.branch(id);
+    if (b) (b.students = Number(v)), n++;
+  }
+  for (const [id, months] of Object.entries(snap.reviews || {})) {
+    for (const [m, v] of Object.entries(months)) {
+      const rec = store.ensureMonth(id, m);
+      rec.kpi = { ...(rec.kpi || {}), reviews: Number(v) };
       n++;
     }
   }

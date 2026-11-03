@@ -48,6 +48,7 @@ const schedule = strip("lib/schedule.mjs");
 const spend = strip("lib/spend.mjs");
 const googlespend = strip("lib/googlespend.mjs");
 const tasks = strip("lib/tasks.mjs");
+const kpi = strip("lib/kpi.mjs");
 const service = strip("lib/service.mjs").replace(/service\./g, "");
 const localapi = strip("lib/localapi.mjs").replace(/service\./g, "");
 const app = fs.readFileSync(path.join(ROOT, "public/app.js"), "utf8");
@@ -95,6 +96,7 @@ ${schedule}
 ${spend}
 ${googlespend}
 ${tasks}
+${kpi}
 ${service}
 ${localapi}
 ${boot}

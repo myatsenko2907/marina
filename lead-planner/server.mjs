@@ -286,6 +286,18 @@ async function handleApi(req, res, url) {
     return send(res, 200, nb);
   }
 
+  if (p === "/api/kpi") return send(res, 200, service.kpiReport(store.data, user, month));
+  {
+    const km = p.match(/^\/api\/kpi\/([\w-]+)$/);
+    if (km && method === "PUT") {
+      needAdmin();
+      branchOr404(km[1]);
+      const b = service.updateKpi(store.data, km[1], month, await readJson(req));
+      store.save();
+      return send(res, 200, b);
+    }
+  }
+
   let m = p.match(/^\/api\/branches\/([\w-]+)$/);
   if (m) {
     const b = branchOr404(m[1]);

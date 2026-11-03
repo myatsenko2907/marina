@@ -3,6 +3,7 @@ import { computeSeason, seasonOf, addMonths } from "./planner.mjs";
 import { spendReport, productCplFor } from "./spend.mjs";
 import { googleReport } from "./googlespend.mjs";
 import { marketerTasks } from "./tasks.mjs";
+import { branchKpi, kpiSummary } from "./kpi.mjs";
 
 export const canSee = (user, branchId) => user.role === "admin" || (user.branches || []).includes(branchId);
 
@@ -73,6 +74,7 @@ export function branchDetail(data, user, branch, month, today = new Date()) {
       return mine ? { ...q, branch: mine } : null;
     })(),
     tasks: marketerTasks(data, branch, s.month, today),
+    kpi: kpiOf(data, user, branch, s.month, rec),
     canEdit: user.role === "admin",
   };
 }
@@ -165,7 +167,7 @@ export function spendFor(data, user, from, to) {
   return { ...r, google: googleReport(data, { from: r.from, to: r.to, branchIds }) };
 }
 
-export const BRANCH_FIELDS = ["name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note", "cpl", "spendDefault", "googleAccounts"];
+export const BRANCH_FIELDS = ["students", "kpiBonus", "name", "adAccountId", "fbCurrency", "aliases", "cplAdjust", "ballsPlanFactor", "archived", "note", "cpl", "spendDefault", "googleAccounts"];
 export const EVENT_FIELDS = ["name", "date", "productId", "registrationsPlan", "targetBalls", "registrationsFact", "ball", "paidShare", "cprOverride", "fbCampaignPattern", "note"];
 
 export function ensureMonth(data, branchId, month) {
@@ -183,4 +185,54 @@ export function copyPlanFromPrev(data, branchId, month) {
     if (v.cplOverride && cur.cplOverride == null) cur.cplOverride = v.cplOverride;
   }
   return rec;
+}
+
+// ---------- KPI маркетологов ----------
+// Расход FB + Google за месяц, $ (null — нет данных расхода).
+function spendUsdOf(data, branchId, month) {
+  const fb = data.spend?.[branchId]?.[month];
+  const g = data.googleSpend?.[branchId] ? googleReport(data, { from: month, to: month, branchIds: [branchId] })?.branches[0]?.usd : null;
+  if (fb == null && g == null) return null;
+  return (fb ? fb.reduce((a, x) => a + (Number(x[1]) || 0), 0) : 0) + (g || 0);
+}
+
+function kpiOf(data, user, branch, m, rec, quality) {
+  const q = quality === undefined ? qualityFor(data, user, m.month) : quality;
+  const flag = q?.branches.find((x) => x.id === branch.id)?.flags?.deleted || null;
+  return branchKpi({ settings: data.settings, branch, m, rec, spendUsd: spendUsdOf(data, branch.id, m.month), qualityFlag: flag });
+}
+
+export function kpiReport(data, user, month, today = new Date()) {
+  const prev = addMonths(month, -1);
+  const rowsFor = (mm) => {
+    const q = qualityFor(data, { role: "admin" }, mm);
+    const out = [];
+    for (const b of data.branches) {
+      if (b.archived || !canSee(user, b.id)) continue;
+      const s = seasonFor(data, b, mm, today);
+      out.push(kpiOf(data, user, b, s.month, data.months[`${b.id}|${mm}`], q));
+    }
+    return out;
+  };
+  const rows = rowsFor(month);
+  const prevRows = rowsFor(prev);
+  const prevById = Object.fromEntries(prevRows.map((r) => [r.id, r]));
+  for (const r of rows) r.prev = prevById[r.id] ? { pct: prevById[r.id].pct, k: prevById[r.id].k, bonusBalls: prevById[r.id].bonusBalls } : null;
+  const ORDER_K = { ok: 0, good: 1, boost: 2, fail: 3, nodata: 4, noplan: 5 };
+  rows.sort((a, b) => ORDER_K[a.status] - ORDER_K[b.status] || (b.usePct ?? -1) - (a.usePct ?? -1));
+  return { month, rows, summary: kpiSummary(rows, prevRows, data.settings), canEdit: user.role === "admin" };
+}
+
+// Правка KPI филиала (админ): число студентов, свой целевой бонус, новые отзывы за месяц.
+export function updateKpi(data, branchId, month, body) {
+  const b = data.branches.find((x) => x.id === branchId);
+  if (!b) return null;
+  const n = (v) => (v === "" || v == null ? null : Number(v));
+  if ("students" in body) b.students = n(body.students);
+  if ("kpiBonus" in body) b.kpiBonus = n(body.kpiBonus);
+  if ("reviews" in body) {
+    const rec = ensureMonth(data, branchId, month);
+    rec.kpi = { ...(rec.kpi || {}), reviews: n(body.reviews) };
+  }
+  return b;
 }

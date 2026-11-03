@@ -314,6 +314,31 @@ th.sort-desc::after, .bhead .sort-desc::after { content: "▼"; font-size: 9px; 
   .tbody { padding-left: 14px; }
 }
 
+/* KPI маркетологов */
+.kbar { position: relative; height: 10px; border-radius: 5px; background: var(--idle-soft); min-width: 80px; }
+.kbar.big { height: 16px; border-radius: 8px; margin-top: 14px; }
+.kbar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; }
+.kbar .tick { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 2px dashed var(--ink-2); opacity: .6; z-index: 1; }
+.kbar .tick.full { border-left-style: solid; }
+.kcell { display: grid; grid-template-columns: 1fr 44px; gap: 8px; align-items: center; }
+.kcell b { text-align: right; font-variant-numeric: tabular-nums; }
+.kcard { margin-bottom: 16px; }
+.kcard .card-head { flex-wrap: wrap; margin-bottom: 12px; }
+.kbig { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.kbig .label { color: var(--ink-2); font-size: 13px; }
+.kbig .value { font-size: 26px; font-weight: 650; letter-spacing: -.02em; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.kbig .value small { font-size: 15px; color: var(--muted); font-weight: 500; }
+.kbig .foot { font-size: 12.5px; color: var(--muted); }
+.kscale { position: relative; height: 16px; font-size: 11px; color: var(--muted); margin-top: 4px; }
+.kscale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.kscale span:first-child { transform: none; }
+.kscale span:last-child { transform: translateX(-100%); }
+.ktodo { display: grid; gap: 4px; margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 13.5px; }
+.krules { margin: 12px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 13px; display: grid; gap: 4px; }
+.kh3 { font-size: 13.5px; margin: 0 0 6px; font-weight: 620; }
+table.ktbl td { white-space: nowrap; }
+table.ktbl input.cell { width: 84px; }
+details.card > summary { cursor: pointer; }
 /* задачи: критерий готовности, общие отметки, дашборд администратора */
 .tmeta { font-size: 12.5px; color: var(--ink-2); margin: 2px 0 10px; }
 .tcheck { background: var(--good-soft); color: var(--good-ink); border-radius: 8px; padding: 6px 10px; }
