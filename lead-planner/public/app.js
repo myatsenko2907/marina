@@ -346,6 +346,7 @@ function shell(active, inner) {
     ["#/spend", "Расход на рекламу", "spend"],
     ...(isAdmin
       ? [
+          ["#/tasks", "Задачи маркетологов", "tasks"],
           ...(window.LOCAL_MODE ? [] : [["#/admin/import", "Импорт", "import"]]),
           ["#/admin/branches", "Филиалы", "branches"],
           ["#/admin/users", "Доступы", "users"],
@@ -766,43 +767,257 @@ function branchDash(r, season, cur, tasks, branchId) {
 
 // ---------- задачи маркетолога ----------
 const PRIO = { 1: ["Срочно", "p1"], 2: ["Важно", "p2"], 3: ["Улучшить", "p3"] };
-const tasksKey = (id, asOf) => `lp.tasks.${id}.${asOf}`;
+const todayIso = () => new Date(Date.now() + 2 * 36e5).toISOString().slice(0, 10); // дата по Киеву (≈)
+const ddmm = (d) => (d ? `${d.slice(8, 10)}.${d.slice(5, 7)}` : "");
+const hhmm = (iso) => (iso ? new Date(iso).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "");
 
-/** Дашборд филиала: что сделать маркетологу по данным кабинетов FB и Google, плану и CRM. */
-function tasksCard(tk, id) {
-  if (!tk) return "";
-  const asOf = tk.asOf ? `${tk.asOf.slice(8, 10)}.${tk.asOf.slice(5, 7)}` : "";
-  if (tk.stale) return `<div class="card mt tasks"><div class="card-head"><h2>Задачи маркетолога</h2></div><div class="hint">Задачи считаются по текущему месяцу — данные кабинетов на ${asOf}. Откройте текущий месяц.</div></div>`;
-  const done = new Set(lsGet(tasksKey(id, tk.asOf), "").split(",").filter(Boolean));
-  const cnt = (p) => tk.tasks.filter((x) => x.prio === p).length;
-  const g = tk.gap;
-  const items = [...tk.tasks].sort((a, b) => done.has(a.id) - done.has(b.id) || a.prio - b.prio);
-  const first = items.find((x) => !done.has(x.id))?.id;
-  return `<div class="card mt tasks" id="tasks"><div class="card-head"><h2>Задачи маркетолога</h2>
-    ${[1, 2, 3].map((p) => (cnt(p) ? `<span class="tprio ${PRIO[p][1]}">${PRIO[p][0]} · ${cnt(p)}</span>` : "")).join("")}
-    <span class="spacer"></span><span class="chip" id="tDone">выполнено ${tk.tasks.filter((x) => done.has(x.id)).length} из ${tk.tasks.length}</span></div>
-  <div class="hint">По данным кабинетов FB и Google на ${asOf} (обновляются каждое утро), плана лидобалов и заявок CRM. Отмеченное сохраняется в этом браузере до следующего обновления данных. Цена лидобала = расход ÷ (лиды × балл типа лида).</div>
-  ${g && g.gap > 0 ? `<div class="tgap">До плана не хватает <b>${fmt(g.gap, 1)} ЛБ</b>: нужно <b>${fmt(g.needPerDay, 1)} ЛБ/день</b>, сейчас ${fmt(g.runRate, 1)} в день — при таком темпе месяц закроется на <b>${pct(g.forecast)}</b> плана. Начните со срочных задач: они быстрее всего возвращают лиды.</div>` : g ? `<div class="tgap ok">План лидобалов уже выполнен — задачи ниже про эффективность.</div>` : ""}
-  ${items.length ? `<div class="tlist">${items.map((x) => `<details class="titem ${done.has(x.id) ? "done" : ""}" data-t="${esc(x.id)}" ${x.id === first ? "open" : ""}>
-    <summary><input type="checkbox" ${done.has(x.id) ? "checked" : ""} aria-label="Выполнено"><span class="tprio ${PRIO[x.prio][1]}">${PRIO[x.prio][0]}</span><span class="tarea">${esc(x.area)}</span><span class="ttitle">${esc(x.title)}</span><span class="tdue">${esc(x.due)}</span></summary>
-    <div class="tbody"><p>${esc(x.why)}</p><ol>${x.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>${x.impact ? `<p class="timpact">${esc(x.impact)}</p>` : ""}</div></details>`).join("")}</div>` : '<div class="empty">Срочных задач по кабинетам нет.</div>'}
-  </div>`;
+// Отметки «выполнено» и ответственные: общее хранилище страницы (видят все и админ) или, без него, этот браузер.
+//   done/<филиал>~<месяц>~<задача> = { branch, month, taskId, title, prio, asOf, by, at }
+//   assign/<филиал> = { userId, by, at }
+const TS = { db: null, user: null, meId: null, canAssign: false, shared: false, loading: true, stale: false, done: new Map(), assign: new Map(), names: {} };
+const doneKey = (branch, month, taskId) => `${branch}~${month}~${taskId}`;
+const LS_DONE = "lp.done";
+function lsDone() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_DONE) || "{}");
+  } catch {
+    return {};
+  }
+}
+function tsRefresh() {
+  if (/^#\/tasks/.test(location.hash) && S.board) paintBoard();
+  if (S.curTasks) paintTasks();
+}
+(async () => {
+  const c = window.claude;
+  if (!c?.use) return void (TS.loading = false);
+  try {
+    const [db, user] = await Promise.all([c.use("db"), c.use("user")]);
+    TS.user = user;
+    if (user) {
+      TS.meId = await user.id();
+      TS.canAssign = await user.canEdit();
+    }
+    if (!db || !TS.meId) {
+      TS.loading = false;
+      return tsRefresh();
+    }
+    TS.db = db;
+    TS.shared = true;
+    const timer = setTimeout(() => ((TS.stale = true), tsRefresh()), 10000);
+    const sub = (col, map) =>
+      db.collection(col).onSnapshot(
+        (snap) => {
+          map.clear();
+          for (const d of snap.docs) map.set(d.id, d.data());
+          if (!snap.metadata.fromCache) (clearTimeout(timer), (TS.stale = false));
+          TS.loading = false;
+          resolveNames().then(tsRefresh);
+        },
+        () => ((TS.loading = false), (TS.stale = true), tsRefresh()),
+      );
+    sub("done", TS.done);
+    sub("assign", TS.assign);
+  } catch {
+    TS.loading = false;
+  }
+  tsRefresh();
+})();
+
+async function resolveNames() {
+  if (!TS.user) return;
+  const ids = new Set();
+  for (const v of TS.done.values()) v.by && ids.add(v.by);
+  for (const v of TS.assign.values()) v.userId && ids.add(v.userId);
+  if (!ids.size) return;
+  try {
+    const ps = await TS.user.profiles([...ids]);
+    for (const [id, p] of Object.entries(ps)) TS.names[id] = p.isMe ? `${p.name || "вы"} (вы)` : p.name || "участник";
+  } catch {}
+}
+const who = (id) => (id ? TS.names[id] || "участник" : TS.shared ? "участник" : "в этом браузере");
+// срок относительно сегодняшней даты (задачи считаются по данным на вчера/сегодня)
+const dueLabel = (t, today = todayIso()) => (!t.dueDate ? t.due || "" : t.dueDate < today ? `просрочено, срок был ${ddmm(t.dueDate)}` : t.dueDate === today ? "сегодня" : `до ${ddmm(t.dueDate)}`);
+
+function doneOf(branch, month, taskId) {
+  const k = doneKey(branch, month, taskId);
+  return TS.shared ? TS.done.get(k) || null : lsDone()[k] || null;
+}
+async function setDone(branch, month, t, asOf, on) {
+  const k = doneKey(branch, month, t.id);
+  const rec = { branch, month, taskId: t.id, title: t.title, prio: t.prio, asOf, by: TS.meId || null, at: new Date().toISOString() };
+  if (TS.shared) {
+    try {
+      on ? await TS.db.doc(`done/${k}`).set(rec) : await TS.db.doc(`done/${k}`).delete();
+    } catch (e) {
+      toast(e?.code === "permission_denied" || e?.code === "not_granted" ? "Нет прав отмечать задачи на этой странице — попросите доступ «Участник»" : "Отметка не сохранилась — попробуйте ещё раз", true);
+      return false;
+    }
+    return true;
+  }
+  const all = lsDone();
+  on ? (all[k] = rec) : delete all[k];
+  try {
+    localStorage.setItem(LS_DONE, JSON.stringify(all));
+  } catch {}
+  return true;
 }
 
+/** Блок «Задачи маркетолога» на странице филиала. */
+function tasksCard(tk, id) {
+  if (!tk) return "";
+  S.curTasks = { id, tk };
+  return `<div class="card mt tasks" id="tasks">${tasksInner(tk, id)}</div>`;
+}
+function tasksInner(tk, id) {
+  const asOf = ddmm(tk.asOf);
+  if (tk.stale) return `<div class="card-head"><h2>Задачи маркетолога</h2></div><div class="hint">Задачи считаются по текущему месяцу — данные кабинетов на ${asOf}. Откройте текущий месяц.</div>`;
+  const d = (x) => doneOf(id, tk.month, x.id);
+  const nDone = tk.tasks.filter(d).length;
+  const cnt = (p) => tk.tasks.filter((x) => x.prio === p && !d(x)).length;
+  const g = tk.gap;
+  const items = [...tk.tasks].sort((a, b) => !!d(a) - !!d(b) || a.prio - b.prio);
+  const first = items.find((x) => !d(x))?.id;
+  const as = TS.assign.get(id);
+  const today = todayIso();
+  return `<div class="card-head"><h2>Задачи маркетолога</h2>
+    ${[1, 2, 3].map((p) => (cnt(p) ? `<span class="tprio ${PRIO[p][1]}">${PRIO[p][0]} · ${cnt(p)}</span>` : "")).join("")}
+    <span class="spacer"></span><span class="chip">выполнено ${nDone} из ${tk.tasks.length}</span></div>
+  <div class="tmeta">Ответственный: <b>${as ? esc(who(as.userId)) : '<span class="muted">не назначен</span>'}</b> · данные кабинетов FB и Google на ${asOf} · ${TS.shared ? (TS.stale ? '<span class="neg">отметки сейчас не загружаются — показаны сохранённые</span>' : "отметки видят администратор и коллеги") : TS.loading ? "загружаем отметки…" : "отметки сохраняются только в этом браузере"}</div>
+  ${g && g.gap > 0 ? `<div class="tgap">До плана не хватает <b>${fmt(g.gap, 1)} ЛБ</b>: нужно <b>${fmt(g.needPerDay, 1)} ЛБ/день</b>, сейчас ${fmt(g.runRate, 1)} в день — при таком темпе месяц закроется на <b>${pct(g.forecast)}</b> плана. Порядок работы — сверху вниз: сначала срочные.</div>` : g ? `<div class="tgap ok">План лидобалов уже выполнен — задачи ниже про эффективность.</div>` : ""}
+  ${items.length ? `<div class="tlist">${items.map((x) => {
+      const dn = d(x);
+      const late = !dn && x.dueDate && x.dueDate < today;
+      return `<details class="titem ${dn ? "done" : ""}" data-t="${esc(x.id)}" ${x.id === first ? "open" : ""}>
+    <summary><input type="checkbox" ${dn ? "checked" : ""} aria-label="Выполнено"><span class="tprio ${PRIO[x.prio][1]}">${PRIO[x.prio][0]}</span><span class="tarea">${esc(x.area)}</span><span class="ttitle">${esc(x.title)}</span><span class="tdue ${late ? "neg" : ""}">${dn ? `✓ ${esc(who(dn.by))}${dn.at ? `, ${hhmm(dn.at)}` : ""}` : esc(dueLabel(x, today))}</span></summary>
+    <div class="tbody"><p>${esc(x.why)}</p><ol>${x.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>${x.check ? `<p class="tcheck"><b>Готово, когда:</b> ${esc(x.check)}.</p>` : ""}${x.impact ? `<p class="timpact">${esc(x.impact)}</p>` : ""}${dn && dn.asOf && dn.asOf < tk.asOf ? `<p class="tagain">Отмечено ${ddmm(dn.asOf)}, но по данным на ${asOf} задача всё ещё актуальна — проверьте результат.</p>` : ""}</div></details>`;
+    }).join("")}</div>` : '<div class="empty">Задач по кабинетам нет.</div>'}`;
+}
+function paintTasks() {
+  const box = document.getElementById("tasks");
+  if (!box || !S.curTasks) return;
+  const open = new Set([...box.querySelectorAll(".titem[open]")].map((x) => x.dataset.t));
+  box.innerHTML = tasksInner(S.curTasks.tk, S.curTasks.id);
+  if (open.size) box.querySelectorAll(".titem").forEach((x) => (x.open = open.has(x.dataset.t)));
+  bindTasks(S.curTasks.id, S.curTasks.tk);
+}
 function bindTasks(id, tk) {
   const box = document.getElementById("tasks");
-  if (!box || !tk) return;
+  if (!box || !tk || tk.stale) return;
   box.querySelectorAll(".titem input[type=checkbox]").forEach((cb) => {
     cb.onclick = (e) => e.stopPropagation();
-    cb.onchange = () => {
-      const done = new Set(lsGet(tasksKey(id, tk.asOf), "").split(",").filter(Boolean));
-      const it = cb.closest(".titem");
-      cb.checked ? done.add(it.dataset.t) : done.delete(it.dataset.t);
-      lsSet(tasksKey(id, tk.asOf), [...done].join(","));
-      it.classList.toggle("done", cb.checked);
-      document.getElementById("tDone").textContent = `выполнено ${tk.tasks.filter((x) => done.has(x.id)).length} из ${tk.tasks.length}`;
+    cb.onchange = async () => {
+      const t = tk.tasks.find((x) => x.id === cb.closest(".titem").dataset.t);
+      cb.disabled = true;
+      const ok = await setDone(id, tk.month, t, tk.asOf, cb.checked);
+      if (!ok) cb.checked = !cb.checked;
+      cb.disabled = false;
+      if (!TS.shared || !ok) paintTasks();
     };
   });
+}
+
+// ---------- дашборд задач для администратора ----------
+async function renderTasksBoard() {
+  shell("tasks", '<div id="board"><div class="boot">Загрузка…</div></div>');
+  S.board = await api(`/api/tasks?month=${S.month}`);
+  paintBoard();
+}
+function boardStats(b) {
+  const tk = b.tasks;
+  if (!tk || tk.stale) return null;
+  const today = todayIso();
+  const st = { total: tk.tasks.length, done: 0, urgent: 0, late: 0, last: null };
+  for (const t of tk.tasks) {
+    const d = doneOf(b.id, tk.month, t.id);
+    if (d) {
+      st.done++;
+      if (!st.last || d.at > st.last.at) st.last = d;
+    } else {
+      if (t.prio === 1) st.urgent++;
+      if (t.dueDate && t.dueDate < today) st.late++;
+    }
+  }
+  return st;
+}
+function paintBoard() {
+  const main = document.getElementById("board");
+  if (!main || !S.board) return;
+  const open = new Set([...main.querySelectorAll("tr.bx[data-open]")].map((x) => x.dataset.b));
+  const rows = S.board.branches.map((b) => ({ b, st: boardStats(b) }));
+  const live = rows.filter((r) => r.st).sort((x, y) => y.st.urgent - x.st.urgent || y.st.late - x.st.late || x.st.done / x.st.total - y.st.done / y.st.total);
+  const none = rows.filter((r) => !r.st);
+  const sum = (k) => live.reduce((a, r) => a + r.st[k], 0);
+  const unassigned = live.filter((r) => !TS.assign.get(r.b.id)).length;
+  const asOf = live.map((r) => r.b.tasks.asOf).sort().at(-1);
+  const bar = (st) => `<div class="tbar"><i style="width:${st.total ? (100 * st.done) / st.total : 0}%"></i></div>`;
+  main.innerHTML = `<div class="head"><div><div class="crumbs">${monthName(S.month)}</div><h1>Задачи маркетологов</h1>
+    <div class="sub">Кто что должен сделать и прогресс по каждому филиалу. Данные кабинетов на ${ddmm(asOf) || "—"}.</div></div>
+    <div class="right">${monthNav()}</div></div>
+  ${TS.shared ? (TS.stale ? '<div class="alerts"><div class="alert-row bad">Отметки сейчас не загружаются — показано последнее сохранённое.</div></div>' : "") : `<div class="alerts"><div class="alert-row info">${TS.loading ? "Загружаем общие отметки…" : "Общие отметки недоступны на этой странице: видны только отметки, сделанные в этом браузере."}</div></div>`}
+  <div class="grid kpis">
+    <div class="card kpi"><div class="label">Выполнено задач</div><div class="value">${sum("done")} <small>из ${sum("total")}</small></div><div class="foot">${pct(sum("total") ? sum("done") / sum("total") : null)} по ${live.length} фил.</div></div>
+    <div class="card kpi ${sum("urgent") ? "alert" : ""}"><div class="label">Срочных не сделано</div><div class="value">${sum("urgent")}</div><div class="foot">срок — сегодня</div></div>
+    <div class="card kpi ${sum("late") ? "alert" : ""}"><div class="label">Просрочено</div><div class="value">${sum("late")}</div><div class="foot">срок прошёл, не отмечено</div></div>
+    <div class="card kpi"><div class="label">Без ответственного</div><div class="value">${unassigned}</div><div class="foot">${TS.canAssign ? "назначьте в таблице" : "назначает редактор страницы"}</div></div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table class="board"><thead><tr><th>Филиал</th><th>Ответственный</th><th>Прогресс</th><th class="n">Срочно</th><th class="n">Просрочено</th><th>Последняя отметка</th></tr></thead><tbody>
+  ${live.map(({ b, st }) => {
+      const as = TS.assign.get(b.id);
+      const tk = b.tasks;
+      const today = todayIso();
+      return `<tr class="bx click" data-b="${esc(b.id)}" ${open.has(b.id) ? "data-open" : ""}><td><b>${esc(b.name)}</b> <a href="#/b/${esc(b.id)}" class="muted" title="Открыть филиал">↗</a></td>
+      <td class="asg" data-b="${esc(b.id)}">${as ? esc(who(as.userId)) : '<span class="neg">не назначен</span>'}${TS.canAssign && TS.shared ? ` <button class="btn ghost sm" data-asg="${esc(b.id)}">${as ? "сменить" : "назначить"}</button>` : ""}</td>
+      <td><div class="tprog">${bar(st)}<span>${st.done} из ${st.total}</span></div></td>
+      <td class="n">${st.urgent ? `<span class="q-bad">${st.urgent}</span>` : "0"}</td><td class="n">${st.late ? `<span class="q-warn">${st.late}</span>` : "0"}</td>
+      <td>${st.last ? `${esc(who(st.last.by))}, ${hhmm(st.last.at)}` : '<span class="muted">ещё нет</span>'}</td></tr>
+      <tr class="bsub" ${open.has(b.id) ? "" : "hidden"}><td colspan="6"><ul class="blist">${[...tk.tasks].sort((x, y) => x.prio - y.prio).map((t) => {
+          const d = doneOf(b.id, tk.month, t.id);
+          const late = !d && t.dueDate && t.dueDate < today;
+          return `<li class="${d ? "done" : ""}"><span class="bmark">${d ? "✓" : "○"}</span><span class="tprio ${PRIO[t.prio][1]}">${PRIO[t.prio][0]}</span><span class="ttitle">${esc(t.title)}</span><span class="tdue ${late ? "neg" : ""}">${d ? `${esc(who(d.by))}, ${hhmm(d.at)}` : esc(dueLabel(t, today))}</span></li>`;
+        }).join("")}</ul></td></tr>`;
+    }).join("")}
+  </tbody></table></div>
+  ${none.length ? `<div class="hint mt">Без задач (нет данных кабинетов за этот месяц): ${none.map((r) => esc(r.b.name)).join(", ")}.</div>` : ""}</div>`;
+  bindMonthNav();
+  main.querySelectorAll("tr.bx").forEach((tr) => {
+    tr.onclick = (e) => {
+      if (e.target.closest("a,button,input")) return;
+      const sub = tr.nextElementSibling;
+      sub.hidden = !sub.hidden;
+      sub.hidden ? tr.removeAttribute("data-open") : tr.setAttribute("data-open", "");
+    };
+  });
+  main.querySelectorAll("[data-asg]").forEach((btn) => (btn.onclick = () => pickAssignee(btn.dataset.asg, btn.closest("td"))));
+}
+function pickAssignee(branch, td) {
+  td.innerHTML = `<div class="asgpick"><input type="search" placeholder="Имя или почта коллеги" aria-label="Ответственный"><div class="asglist"></div></div>`;
+  const inp = td.querySelector("input"), list = td.querySelector(".asglist");
+  const show = async (q) => {
+    const hits = await TS.user.search(q);
+    list.innerHTML = "";
+    if (!hits.length) list.innerHTML = `<span class="muted">${q ? "никого не нашли" : "начните вводить имя"}</span>`;
+    for (const h of hits) {
+      const b = document.createElement("button");
+      b.className = "btn sm";
+      b.textContent = h.name;
+      b.onclick = async (e) => {
+        e.stopPropagation();
+        try {
+          await TS.db.doc(`assign/${branch}`).set({ userId: h.id, by: TS.meId, at: new Date().toISOString() });
+          toast(`Ответственный: ${h.name}`);
+        } catch {
+          toast("Назначить не удалось — нужен доступ редактора страницы", true);
+          paintBoard();
+        }
+      };
+      list.append(b);
+    }
+  };
+  inp.onfocus = () => show("");
+  inp.oninput = () => show(inp.value.trim());
+  inp.onkeydown = (e) => e.key === "Escape" && paintBoard();
+  inp.focus();
 }
 
 /** Подсказка: откуда цена лида продукта. */
@@ -1552,11 +1767,14 @@ function bindQuality(q) {
 async function route() {
   if (!S.me) return renderLogin();
   const h = location.hash.replace(/^#/, "") || "/";
+  S.curTasks = null;
+  if (h !== "/tasks") S.board = null;
   try {
     let m;
     if ((m = h.match(/^\/b\/([\w-]+)(?:\/(\w+))?/))) return await renderBranch(m[1], m[2] || "dash");
     if (h === "/spend") return await renderSpend();
     if (S.me.role === "admin") {
+      if (h === "/tasks") return await renderTasksBoard();
       if (h === "/admin/users") return await renderUsers();
       if (h === "/admin/branches") return await renderBranches();
       if (h === "/admin/settings") return await renderSettings();

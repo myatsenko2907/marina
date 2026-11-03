@@ -77,6 +77,18 @@ export function branchDetail(data, user, branch, month, today = new Date()) {
   };
 }
 
+// Задачи маркетологов по всем видимым филиалам — для дашборда администратора.
+export function tasksBoard(data, user, month, today = new Date()) {
+  const rows = [];
+  for (const b of data.branches) {
+    if (!canSee(user, b.id) || b.archived) continue;
+    const s = seasonFor(data, b, month, today);
+    const tk = marketerTasks(data, b, s.month, today);
+    rows.push({ id: b.id, name: b.name, status: s.month.totals.status, pace: s.month.totals.pace, tasks: tk });
+  }
+  return { month, branches: rows };
+}
+
 // Качество лидов за месяц: доли удалённых (спам, дубли, другое), отказов и недозвонов — по филиалу и по сети.
 export const QUALITY_KEYS = [
   ["deleted", "Удалены (спам, дубли, другое)"],
