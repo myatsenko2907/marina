@@ -43,3 +43,24 @@ npm run serve   # preview at http://localhost:8080
 ## Hosting
 
 `docs/` is a ready static site: enable GitHub Pages → *Deploy from branch* → folder `/docs`, or upload the folder to any hosting.
+
+## Vivix video generation (`vivix/`)
+
+Client for the [Vivix World Video Generation API](https://docs.vivix.ai/video-generation/world-video-generation) (model W1). Node 18+, no dependencies. Create an API key at <https://platform.vivix.ai/> and keep it in the `VIVIX_API_KEY` environment variable — never commit it or put it into `docs/` (the site is public).
+
+```bash
+export VIVIX_API_KEY=...
+npm run video -- "Students code together in a bright classroom, camera slowly pans" --duration 8 --aspect 16:9
+npm run video -- "The student from image 1 waves at the camera" --image photo.png --model vivix-w1-fast
+```
+
+Prints the URL of the finished MP4. Local files passed to `--image`, `--audio`, `--first`, `--last` are uploaded automatically. Models: `vivix-w1` (cheapest, 1 W credit/sec), `vivix-w1-fast` (3), `vivix-w1-ultrafast` (4).
+
+From code:
+
+```js
+import { Vivix } from './vivix/client.mjs';
+const vivix = new Vivix();                       // reads VIVIX_API_KEY
+const job = await vivix.generateVideo({ prompt: '...', duration: 8, aspect_ratio: '9:16' });
+console.log(job.video_url);
+```
