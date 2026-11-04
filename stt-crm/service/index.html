@@ -329,13 +329,13 @@ tr:last-child td{border-bottom:0}
 
     <!-- TRAVELERS -->
     <section class="view" id="v-travelers">
-      <div class="banner info" id="trInfo"><div>Все, кто ездил в выездные лагеря: договоры формы «ВЛ» в 14 филиалах за 2025–2026 годы, кроме отказов и аннулированных. Поездки одного ребёнка объединены (по дате рождения, ФИО и карточке CRM). Год — по дате договора, сезон — по заметке в договоре.</div></div>
+      <div class="banner info" id="trInfo"><div>Все, кто ездил в выездные лагеря: договоры формы «ВЛ» в 14 филиалах за 2023–2026 годы, кроме отказов и аннулированных. Поездки одного ребёнка объединены (по дате рождения, ФИО и карточке CRM). Год — по дате договора, сезон — по заметке в договоре.</div></div>
       <div class="grid kpis" id="trKpis"></div>
       <h2>Ездили повторно <small class="muted small" id="trRepCount" style="font:400 13px var(--f-body)"></small></h2>
       <div class="rcards" id="trRepeat"></div>
       <div class="grid cols2" style="margin-top:14px">
         <div class="card"><h3>Поездки по годам</h3><div class="legend"><span><i style="background:#0fb5c9"></i>повторные клиенты</span><span><i style="background:#b6ecf3"></i>все поездки</span></div><div class="bars" id="trYear" style="--c1:#0fb5c9;--c2:#b6ecf3"></div></div>
-        <div class="card"><h3>Страны за 2025–2026</h3><div class="bars" id="trCountry" style="--c1:#0fb5c9"></div></div>
+        <div class="card"><h3>Страны за 2023–2026</h3><div class="bars" id="trCountry" style="--c1:#0fb5c9"></div></div>
       </div>
       <div class="card" style="margin-top:14px"><h3>Страна × год <small>число поездок</small></h3><div style="overflow-x:auto" id="trHeat"></div></div>
       <h2>Все путешественники</h2>
@@ -390,10 +390,10 @@ const CACHE = {staleTime: 6*3600e3, gcTime: 7*24*3600e3};
 const CONV_ID = (() => { const a="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"; let s=""; for(let i=0;i<20;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; })();
 
 const COUNTRIES = [
-  ["bali","Бали",/бал[иі]|bali/],["korea","Корея",/коре|korea/],["japan","Япония",/япон|japan/],["carpathians","Карпаты",/карпат|carpath/],
+  ["bali","Бали",/бал[иі]|bali/],["korea","Корея",/коре|korea/],["japan","Япония",/япон|japan|^ja$/],["lapland","Лапландия",/лапланд|lapland/],["ireland","Ирландия",/ірланд|ирланд|^irl$|ireland/],["carpathians","Карпаты",/карпат|carpath/],
   ["greece","Греция",/грец|греция|греці|^gr$/],["bulgaria","Болгария",/болгар|bulgar/],["london","Лондон",/лондон|london|англ/],
-  ["barcelona","Испания",/барсел|іспан|испан|barcelona|spain/],["china","Китай",/китай|пекін|пекин|hongkong|beijing/],
-  ["seattle","США: Сиэтл",/сиэтл|сіетл|калифор|seattle/],["newyork","США: Нью-Йорк",/нью.?йорк|флорид|new york|usa_2|сша|usa/],
+  ["barcelona","Испания",/барсел|іспан|испан|barcelona|spain|^sp_|валенс|valencia/],["china","Китай",/китай|пекін|пекин|hongkong|beijing/],
+  ["seattle","США: Сиэтл",/сиэтл|сіетл|калифор|seattle/],["newyork","США: Нью-Йорк",/нью.?йорк|флорид|new york|usa_2/],["usa","США",/сша|^usa$|\busa\b/],
   ["malaysia","Малайзия",/малайз|malaysia/],["kyiv_city","Городской (Оболонь)",/оболон/],
   ["webinar","Вебинар",/як обрати|как выбрать/],["general","Без страны",/общий|общая|літні табори|^вт\s*-\s*$/],
 ];
@@ -566,13 +566,13 @@ function normContract(x,b) {
   let c = countryOf(x.product); if (c==="unknown") c = countryOf(note);
   const p = x.payments?.payment;
   return {branch:b, branchName:BRANCHES[b]||b, id:String(x.id_source), date:(x.date_time||"").slice(0,10), customer:(x.fio_customer||"").trim(), child:(x.fio_listener||"").trim(),
-    age:x.contacts?.age||"", country:c, note, sum:parseFloat(d.total_cost_of_the_contract)||0, payment:PAYMENT[p]||p||"", paid:p==="1",
+    age:x.contacts?.age||"", country:c, note, sum:parseFloat(d.total_cost_of_the_contract)||parseFloat(d.sum2)||parseFloat(d.first_sum)||0, payment:PAYMENT[p]||p||"", paid:p==="1",
     manager:x.users?.fio_user||"", crm: x.id_uniq ? "https://crm.itstep.org/clients/"+x.id_uniq : null,
     uid: x.id_uniq ? b+":"+x.id_uniq : "", clientRaw: x.id_uniq ? String(x.id_uniq) : "", birth: d.datebirth && d.datebirth>"1990" ? d.datebirth : "", status:p||""};
 }
 
 /* ---------- history of trips ---------- */
-const HIST_FROM = "2025-01-01";
+const HIST_FROM = "2023-01-01";
 async function loadHistory(refresh) {
   if (!S.mcp) return;
   S.src.history = {st:"load", done:0}; renderStatus();
@@ -984,7 +984,7 @@ function renderTravelers(){
     ["Путешественников", P.length, `${uniq(P.flatMap(p=>p.branches)).length} филиалов`, "blue"],
     ["Поездок", trips.length, `оплачено ${trips.filter(t=>t.paid).length}`, "mint"],
     ["Ездили повторно", rep.length, pct(rep.length, P.length)+" клиентов", "coral"],
-    ["Стран", uniq(trips.map(t=>t.country)).length, "за 2025–2026", "violet"],
+    ["Стран", uniq(trips.map(t=>t.country)).length, "за 2023–2026", "violet"],
     ["Выручка с повторных", uah(rep.reduce((s,p)=>s+p.sum,0)), pct(rep.reduce((s,p)=>s+p.sum,0), P.reduce((s,p)=>s+p.sum,0))+" всей выручки ВЛ", "sun"],
   ]);
   $("#trRepCount").textContent = rep.length ? `· ${rep.length} клиентов` : "";
@@ -1215,6 +1215,7 @@ const PRESETS = [
   {k:"later", label:"Лиды: просили на следующий сезон", kind:"lead", f:l=>leadSt(l.id).mark==="На след. сезон" || LATER.test(l.comment+" "+(leadSt(l.id).note||""))},
   {k:"leads_all", label:"Лиды: все, кому можно продать", kind:"lead", f:l=>true},
   {k:"trav_lost", label:"Ездили в 2025, не купили в 2026", kind:"person", f:p=>p.years.includes("2025") && !p.years.includes("2026")},
+  {k:"trav_old", label:"Ездили в 2023–2025, не купили в 2026", kind:"person", f:p=>p.years.some(y=>y<"2026") && !p.years.includes("2026")},
   {k:"trav_summer", label:"Ездили летом 2026 → предложить зиму", kind:"person", f:p=>p.trips.some(t=>t.year==="2026" && (/Лето/.test(t.season) || ["04","05","06","07"].includes(t.date.slice(5,7))))},
   {k:"trav_rep", label:"Повторные путешественники", kind:"person", f:p=>p.nTrips>1},
   {k:"trav_all", label:"Все путешественники", kind:"person", f:p=>true},
