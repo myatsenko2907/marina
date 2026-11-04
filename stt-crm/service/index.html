@@ -149,6 +149,25 @@ tr:last-child td{border-bottom:0}
 .hits button:hover{background:var(--soft)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;z-index:60}
 
+.path{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.path .arr{color:var(--muted);font-size:12px}
+.rcards{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left}
+.rcard:hover{border-color:#9ee3ec;box-shadow:0 6px 20px rgba(15,181,201,.10)}
+.rcard .nm{font-weight:700}
+.rcard .badge{font:700 12px var(--f-display);background:#e2f7fa;color:#0b8494;border-radius:8px;padding:3px 8px;align-self:flex-start}
+.heat{border-collapse:separate;border-spacing:3px;width:auto;min-width:100%}
+.heat th,.heat td{border:0;padding:6px 8px;text-align:center;border-radius:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.heat th{position:static;background:none;cursor:default}
+.heat td.c{min-width:46px}
+.heat th.cn{text-align:left}
+.timeline{display:flex;flex-direction:column;gap:0;position:relative;padding-left:22px}
+.timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl{position:relative;padding:4px 0 16px}
+.tl::before{content:"";position:absolute;left:-20px;top:8px;width:12px;height:12px;border-radius:50%;background:#0fb5c9;box-shadow:0 0 0 3px #e2f7fa}
+.tl.off::before{background:var(--line);box-shadow:none}
+.tl .h{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tl .d{font-size:12px;color:var(--muted);margin-top:2px}
 @media (max-width:860px){
   .app{grid-template-columns:minmax(0,1fr)}
   aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding-block:14px 10px;padding-right:max(16px, env(safe-area-inset-right, 0px))}
@@ -173,6 +192,7 @@ tr:last-child td{border-bottom:0}
       <a href="#tasks" data-v="tasks"><span class="dot" style="background:var(--violet)"></span>Задачи<span class="cnt" id="cntTasks"></span></a>
       <a href="#leads" data-v="leads"><span class="dot" style="background:var(--sun)"></span>Все лиды<span class="cnt" id="cntLeads"></span></a>
       <a href="#sales" data-v="sales"><span class="dot" style="background:var(--mint)"></span>Продажи ВЛ</a>
+      <a href="#travelers" data-v="travelers"><span class="dot" style="background:#0fb5c9"></span>Путешественники<span class="cnt" id="cntTrav"></span></a>
       <a href="#ads" data-v="ads"><span class="dot" style="background:var(--blue)"></span>Реклама Meta</a>
       <a href="#losses" data-v="losses"><span class="dot" style="background:var(--red)"></span>Потери и Instagram</a>
     </nav>
@@ -259,6 +279,27 @@ tr:last-child td{border-bottom:0}
       <div class="tbl"><table id="sTbl"></table></div>
     </section>
 
+    <!-- TRAVELERS -->
+    <section class="view" id="v-travelers">
+      <div class="banner info" id="trInfo"><div>Все, кто ездил в выездные лагеря: договоры формы «ВЛ» в 14 филиалах за 2025–2026 годы, кроме отказов и аннулированных. Поездки одного ребёнка объединены (по дате рождения, ФИО и карточке CRM). Год — по дате договора, сезон — по заметке в договоре.</div></div>
+      <div class="grid kpis" id="trKpis"></div>
+      <h2>Ездили повторно <small class="muted small" id="trRepCount" style="font:400 13px var(--f-body)"></small></h2>
+      <div class="rcards" id="trRepeat"></div>
+      <div class="grid cols2" style="margin-top:14px">
+        <div class="card"><h3>Поездки по годам</h3><div class="legend"><span><i style="background:#0fb5c9"></i>повторные клиенты</span><span><i style="background:#b6ecf3"></i>все поездки</span></div><div class="bars" id="trYear" style="--c1:#0fb5c9;--c2:#b6ecf3"></div></div>
+        <div class="card"><h3>Страны за 2025–2026</h3><div class="bars" id="trCountry" style="--c1:#0fb5c9"></div></div>
+      </div>
+      <div class="card" style="margin-top:14px"><h3>Страна × год <small>число поездок</small></h3><div style="overflow-x:auto" id="trHeat"></div></div>
+      <h2>Все путешественники</h2>
+      <div class="tools">
+        <input type="search" id="trQ" placeholder="Ребёнок, родитель, менеджер">
+        <select id="trCountryF"></select><select id="trYearF"></select><select id="trBranchF"></select>
+        <div class="chips" id="trChips"></div>
+      </div>
+      <div class="count" id="trCount"></div>
+      <div class="tbl"><table id="trTbl"></table></div>
+    </section>
+
     <!-- ADS -->
     <section class="view" id="v-ads">
       <div class="grid kpis" id="mKpis"></div>
@@ -331,7 +372,7 @@ function toast(t){ const el=$("#toast"); el.textContent=t; el.hidden=false; clea
 /* ================= state ================= */
 const S = {
   leads: [], contracts: [], meta: null,
-  src: {crm_leads:{st:"idle"}, crm_sales:{st:"idle"}, meta:{st:"idle"}},
+  src: {crm_leads:{st:"idle"}, crm_sales:{st:"idle"}, meta:{st:"idle"}, history:{st:"idle"}}, history: [], people: [],
   leadState: {}, tasks: [], me: {id:null}, db: null, user: null, mcp: null,
   canWrite: null, dbOk: false,
 };
@@ -457,7 +498,73 @@ function normContract(x,b) {
   const p = x.payments?.payment;
   return {branch:b, branchName:BRANCHES[b]||b, id:String(x.id_source), date:(x.date_time||"").slice(0,10), customer:(x.fio_customer||"").trim(), child:(x.fio_listener||"").trim(),
     age:x.contacts?.age||"", country:c, note, sum:parseFloat(d.total_cost_of_the_contract)||0, payment:PAYMENT[p]||p||"", paid:p==="1",
-    manager:x.users?.fio_user||"", crm: x.id_uniq ? "https://crm.itstep.org/clients/"+x.id_uniq : null};
+    manager:x.users?.fio_user||"", crm: x.id_uniq ? "https://crm.itstep.org/clients/"+x.id_uniq : null,
+    uid: x.id_uniq ? b+":"+x.id_uniq : "", birth: d.datebirth && d.datebirth>"1990" ? d.datebirth : "", status:p||""};
+}
+
+/* ---------- history of trips ---------- */
+const HIST_FROM = "2025-01-01";
+async function loadHistory(refresh) {
+  if (!S.mcp) return;
+  S.src.history = {st:"load", done:0}; renderStatus();
+  const out = [], errs = []; let at = Infinity; const keys = Object.keys(BRANCHES); let i = 0;
+  const opts = refresh;
+  async function worker(){
+    while (i < keys.length) {
+      const b = keys[i++];
+      try {
+        let total = Infinity, got = 0;
+        for (let page=1; page<=40 && got < total; page++) {
+          const r = await call(CRM, "crm_contracts_list", {cityAlias:b, studyFormId:[20], dateFrom:HIST_FROM, dateTo:todayISO(), perPage:100, page}, opts);
+          const p = payload(r); at = Math.min(at, stamp(r));
+          const items = p?.items || []; total = p?.summary?.count_all ?? items.length; got += items.length;
+          out.push(...items.map(x=>normContract(x,b)));
+          if (!items.length) break;
+        }
+      } catch(e) { errs.push([b,e]); if (["server_not_connected","needs_reauth","not_in_manifest","approval_required","blocked_by_policy","selection_required"].includes(e?.code)) throw e; }
+      S.src.history.done++; renderStatus();
+    }
+  }
+  await Promise.all([worker(),worker(),worker()]);
+  const seen = new Set(); S.history = out.filter(c => !seen.has(c.branch+c.id) && seen.add(c.branch+c.id));
+  S.people = groupPeople(S.history);
+  S.src.history = {st: errs.length ? "partial":"ok", at, n:S.history.length, errs};
+}
+const normName = t => (t||"").toLowerCase().replace(/ё/g,"е").replace(/[^a-zа-яіїєґ\s]/gi," ").split(/\s+/).filter(x=>x.length>1).sort().join(" ");
+const surname = t => ((t||"").toLowerCase().replace(/ё/g,"е").split(/\s+/)[0]||"");
+function seasonOf(c){
+  const t = (c.note||"").toLowerCase(), y = (t.match(/20\d\d/)||[])[0] || c.date.slice(0,4);
+  const s = /зим/.test(t) ? "Зима" : /весн/.test(t) ? "Весна" : /літ|лет/.test(t) ? "Лето" : /осін|осен/.test(t) ? "Осень" : "";
+  return {year: c.date.slice(0,4), season: s ? s+" "+y : ""};
+}
+function groupPeople(list){
+  const par = list.map((_,i)=>i), f = i => par[i]===i ? i : (par[i]=f(par[i])), u = (a,b) => { a=f(a); b=f(b); if (a!==b) par[a]=b; };
+  const idx = {};
+  list.forEach((c,i) => {
+    const keys = [];
+    // карточка клиента в CRM — это родитель, у братьев и сестёр она общая, поэтому по ней не объединяем
+    if (c.birth) keys.push("b|"+c.birth+"|"+surname(c.customer));
+    const cn = normName(c.child); if (cn.split(" ").length>=2) keys.push("n|"+cn+"|"+(c.birth||surname(c.customer)));
+    keys.forEach(k => { if (idx[k]!=null) u(i, idx[k]); else idx[k]=i; });
+  });
+  const groups = by(list.map((c,i)=>({...c, g:f(i)})), c=>c.g);
+  return Object.values(groups).map(cs => {
+    cs.sort((a,b)=>a.date.localeCompare(b.date));
+    const valid = cs.filter(c => c.status==="1" || c.status==="0");
+    // одна поездка = страна + год; переоформленные дубли схлопываются, оплаченный приоритетнее
+    const trips = [];
+    valid.forEach(c => { const s = seasonOf(c);
+      const days = t => Math.abs((new Date(c.date)-new Date(t.date))/864e5);
+      const dup = trips.find(t => t.country===c.country && days(t)<=45 && (!t.paid || !c.paid || t.sum===c.sum));
+      if (!dup) trips.push({...c, ...s}); else if (!dup.paid && c.paid) trips[trips.indexOf(dup)] = {...c, ...s}; });
+    trips.sort((a,b)=>a.date.localeCompare(b.date));
+    const last = cs[cs.length-1];
+    const child = (cs.find(c=>/[а-яіїє]/i.test(c.child))||last).child;
+    return {key: cs[0].branch+cs[0].id, child, customer:last.customer, age:last.age, branchName:last.branchName, branches:uniq(cs.map(c=>c.branchName)),
+      contracts:cs, trips, nTrips:trips.length, paidTrips:trips.filter(t=>t.paid).length, countries:uniq(trips.map(t=>t.country)),
+      years:uniq(trips.map(t=>t.year)), sum:trips.filter(t=>t.paid).reduce((s,t)=>s+t.sum,0), first:trips[0]?.date||cs[0].date, lastDate:trips.length?trips[trips.length-1].date:last.date,
+      manager:last.manager, crm:last.crm};
+  }).filter(p=>p.trips.length);
 }
 
 async function loadAll(refresh) {
@@ -467,6 +574,7 @@ async function loadAll(refresh) {
     loadSales(refresh).catch(e => { S.src.crm_sales = {st:"err", e}; }),
     loadMeta(refresh).catch(e => { S.src.meta = {st:"err", e}; }),
   ];
+  if (S.src.history.st!=="idle") jobs.push(loadHistory(refresh).catch(e => { S.src.history = {st:"err", e}; }));
   jobs.forEach(j => j.then(renderAll));
   await Promise.all(jobs); renderAll();
 }
@@ -505,14 +613,15 @@ async function paintPeople(root=document) {
 const whoHtml = id => id ? `<span class="who" data-uid="${esc(id)}">…</span>` : `<span class="muted small">не назначен</span>`;
 
 /* ================= rendering ================= */
-const TITLES = {dashboard:"Дашборд",calls:"Обзвон",tasks:"Задачи",leads:"Все лиды",sales:"Продажи выездных лагерей",ads:"Реклама Meta",losses:"Потери и Instagram"};
+const TITLES = {dashboard:"Дашборд",calls:"Обзвон",tasks:"Задачи",leads:"Все лиды",sales:"Продажи выездных лагерей",travelers:"Путешественники",ads:"Реклама Meta",losses:"Потери и Instagram"};
 function route(){
   let v = (location.hash||"").slice(1); if (!TITLES[v]) v = "dashboard";
   document.querySelectorAll("section.view").forEach(s=>s.classList.toggle("on", s.id==="v-"+v));
   document.querySelectorAll("#menu a").forEach(a=>a.classList.toggle("on", a.dataset.v===v));
   $("#viewTitle").textContent = TITLES[v];
+  if (v==="travelers" && S.mcp && S.src.history.st==="idle") loadHistory(false).catch(e=>{ S.src.history={st:"err", e}; }).then(renderAll);
 }
-window.addEventListener("hashchange", route);
+window.addEventListener("hashchange", () => { if (!$("#drawer").hidden) closeDrawer(); route(); });
 
 function bars(el, rows, f=fmt) {
   if (!rows.length) { el.innerHTML = `<div class="empty">Нет данных за период</div>`; return; }
@@ -530,10 +639,10 @@ const loaded = k => S.src[k].st==="ok"||S.src[k].st==="partial";
 const inPeriod = c => c.date >= $("#dFrom").value && c.date <= $("#dTo").value;
 
 function renderStatus(){
-  const lab = {crm_leads:"Лиды CRM", crm_sales:"Продажи ВЛ", meta:"Meta"};
+  const lab = {crm_leads:"Лиды CRM", crm_sales:"Продажи ВЛ", meta:"Meta", history:"История ВЛ"};
   $("#srcStatus").innerHTML = Object.entries(S.src).map(([k,v]) => {
     const cls = v.st==="ok"?"ok":v.st==="partial"?"load":v.st==="load"?"load":v.st==="err"?"err":"";
-    const extra = v.st==="load" && k==="crm_sales" ? ` ${v.done||0}/${Object.keys(BRANCHES).length}` : v.st==="load" ? " · загрузка" : v.at ? " · "+new Date(v.at).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "";
+    const extra = v.st==="idle" ? " · по запросу" : v.st==="load" && (k==="crm_sales"||k==="history") ? ` ${v.done||0}/${Object.keys(BRANCHES).length}` : v.st==="load" ? " · загрузка" : v.at ? " · "+new Date(v.at).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "";
     return `<i class="${cls}">${lab[k]}${extra}</i>`; }).join("");
   const b = [];
   if (!S.mcp) b.push(`<div class="banner err"><div><b>Нет доступа к данным.</b>Эта страница берёт данные из ваших коннекторов «срм» и «Meta» в claude.ai. Откройте её на claude.ai под аккаунтом организации, где они подключены.</div></div>`);
@@ -551,7 +660,7 @@ function renderAll(){
   renderStatus();
   const L = S.leads;
   $("#cntLeads").textContent = loaded("crm_leads") ? L.length : "";
-  renderDashboard(); renderCalls(); renderTasks(); renderLeads(); renderSales(); renderAds(); renderLosses();
+  renderDashboard(); renderCalls(); renderTasks(); renderLeads(); renderSales(); renderTravelers(); renderAds(); renderLosses();
   paintPeople();
 }
 
@@ -806,6 +915,70 @@ function renderLosses(){
   $("#lIg").innerHTML = p?.instagram && p?.facebook ? `<div class="kv"><div>Доля бюджета</div><div><b>${pct(p.instagram.spend, p.instagram.spend+p.facebook.spend)}</b></div><div>Доля лидов</div><div><b>${pct(p.instagram.leads, p.instagram.leads+p.facebook.leads)}</b></div>
     <div>CPL Instagram</div><div><b>${money(p.instagram.spend/Math.max(1,p.instagram.leads))}</b> против ${money(p.facebook.spend/Math.max(1,p.facebook.leads))} в Facebook</div>
     <div>Лиды сайта с Instagram</div><div>${L.filter(l=>l.placement==="Instagram").length} (по utm)</div></div><p class="small muted">У лидов из Meta-форм площадка в CRM не передаётся, поэтому качество Instagram и Facebook отдельно в CRM не сравнить.</p>` : `<div class="empty">${S.src.meta.st==="err"?"Meta недоступна":"Загрузка Meta…"}</div>`;
+}
+
+/* ---------- travelers ---------- */
+const TR = {chip:"all", sk:"lastDate", dir:-1, limit:150};
+const countryPath = p => `<span class="path">${p.trips.map((t,i)=>`${i?'<span class="arr">→</span>':""}<span class="tag ${t.paid?"t-blue":""}" title="${esc(t.season||t.year)}">${esc(CN[t.country]||t.country)} ’${esc(t.year.slice(2))}</span>`).join("")}</span>`;
+function renderTravelers(){
+  const H = S.src.history, P = S.people;
+  $("#cntTrav").textContent = P.length || "";
+  if (H.st==="idle"||H.st==="load"||(H.st==="err"&&!P.length)) {
+    const msg = H.st==="err" ? "Не удалось загрузить историю договоров — см. сообщение вверху." : H.st==="load" ? `Загружаю историю выездных лагерей… ${H.done||0} из ${Object.keys(BRANCHES).length} филиалов` : "История загрузится при открытии раздела.";
+    ["#trRepeat","#trYear","#trCountry","#trHeat"].forEach(s=>$(s).innerHTML=`<div class="empty">${msg}</div>`); $("#trKpis").innerHTML=""; $("#trTbl").innerHTML=""; $("#trCount").textContent=""; return;
+  }
+  const trips = P.flatMap(p=>p.trips.map(t=>({...t, rep:p.nTrips>1})));
+  const rep = P.filter(p=>p.nTrips>1).sort((a,b)=>b.nTrips-a.nTrips||b.lastDate.localeCompare(a.lastDate));
+  kpis($("#trKpis"), [
+    ["Путешественников", P.length, `${uniq(P.flatMap(p=>p.branches)).length} филиалов`, "blue"],
+    ["Поездок", trips.length, `оплачено ${trips.filter(t=>t.paid).length}`, "mint"],
+    ["Ездили повторно", rep.length, pct(rep.length, P.length)+" клиентов", "coral"],
+    ["Стран", uniq(trips.map(t=>t.country)).length, "за 2025–2026", "violet"],
+    ["Выручка с повторных", uah(rep.reduce((s,p)=>s+p.sum,0)), pct(rep.reduce((s,p)=>s+p.sum,0), P.reduce((s,p)=>s+p.sum,0))+" всей выручки ВЛ", "sun"],
+  ]);
+  $("#trRepCount").textContent = rep.length ? `· ${rep.length} клиентов` : "";
+  $("#trRepeat").innerHTML = rep.length ? rep.slice(0,24).map(p=>`<button class="rcard" data-person="${esc(p.key)}"><div style="display:flex;gap:8px;align-items:center"><span class="nm" style="flex:1">${esc(p.child)}</span><span class="badge">${p.nTrips} поездки</span></div>
+     <div class="small muted">${esc(p.customer)} · ${esc(p.branches.join(", "))}</div>${countryPath(p)}<div class="small muted">с ${dmy(p.first)} · ${uah(p.sum)}</div></button>`).join("") + (rep.length>24?`<div class="empty">и ещё ${rep.length-24} — в таблице ниже, фильтр «Повторные»</div>`:"")
+    : `<div class="empty">Повторных поездок не найдено.</div>`;
+  const yrs = by(trips,t=>t.year); bars($("#trYear"), Object.keys(yrs).sort().map(y=>[y, yrs[y].length, yrs[y].filter(t=>t.rep).length]));
+  const cs = by(trips,t=>t.country); bars($("#trCountry"), Object.entries(cs).map(([k,v])=>[CN[k]||k, v.length, null, uniq(v.map(t=>t.year)).length+" г."]).sort((a,b)=>b[1]-a[1]));
+  // heatmap
+  const years = Object.keys(yrs).sort(), countries = Object.entries(cs).sort((a,b)=>b[1].length-a[1].length).map(x=>x[0]);
+  const mx = Math.max(1, ...countries.flatMap(c=>years.map(y=>cs[c].filter(t=>t.year===y).length)));
+  $("#trHeat").innerHTML = `<table class="heat"><thead><tr><th class="cn"></th>${years.map(y=>`<th>${y}</th>`).join("")}<th>Всего</th></tr></thead><tbody>${countries.map(c=>`<tr><th class="cn">${esc(CN[c]||c)}</th>${years.map(y=>{ const n=cs[c].filter(t=>t.year===y).length; const a = n? .12+.78*n/mx : 0;
+     return `<td class="c" style="background:${n?`rgba(15,181,201,${a.toFixed(2)})`:"var(--soft)"};color:${a>.55?"#fff":"var(--ink)"}">${n||""}</td>`; }).join("")}<td><b>${cs[c].length}</b></td></tr>`).join("")}</tbody></table>`;
+  // table
+  options($("#trCountryF"),"Страна",uniq(trips.map(t=>t.country)).sort((a,b)=>(CN[a]||a).localeCompare(CN[b]||b)),k=>CN[k]||k);
+  options($("#trYearF"),"Год",years.slice().reverse()); options($("#trBranchF"),"Филиал",uniq(P.flatMap(p=>p.branches)));
+  $("#trChips").innerHTML = [["all","Все"],["rep","Повторные"],["one","Один раз"]].map(c=>`<button class="chip ${TR.chip===c[0]?"on":""}" data-trchip="${c[0]}">${c[1]}</button>`).join("");
+  const q=$("#trQ").value.toLowerCase(), fc=$("#trCountryF").value, fy=$("#trYearF").value, fb=$("#trBranchF").value;
+  const rows = P.filter(p => (TR.chip==="rep"?p.nTrips>1:TR.chip==="one"?p.nTrips===1:true) && (!fc||p.countries.includes(fc)) && (!fy||p.years.includes(fy)) && (!fb||p.branches.includes(fb)) && (!q||(p.child+" "+p.customer+" "+p.manager).toLowerCase().includes(q)))
+    .sort((a,b)=>(a[TR.sk]>b[TR.sk]?1:a[TR.sk]<b[TR.sk]?-1:0)*TR.dir);
+  $("#trCount").textContent = `${rows.length} путешественников`+(H.st==="partial"?` · не загрузились: ${H.errs.map(e=>BRANCHES[e[0]]).join(", ")}`:"");
+  $("#trTbl").innerHTML = `<thead><tr><th data-k="child">Ребёнок</th><th data-k="customer">Родитель</th><th class="num" data-k="nTrips">Поездок</th><th>Путь по странам</th><th data-k="branchName">Филиал</th><th data-k="lastDate">Последняя</th><th class="num" data-k="sum">Оплачено</th></tr></thead><tbody>`+
+    rows.slice(0,TR.limit).map(p=>`<tr data-person="${esc(p.key)}"><td><b>${esc(p.child)}</b>${p.age?` <span class="muted small">${esc(p.age)} л.</span>`:""}</td><td>${esc(p.customer)}</td><td class="num">${p.nTrips>1?`<span class="tag t-coral">${p.nTrips}</span>`:p.nTrips}</td><td>${countryPath(p)}</td><td class="small">${esc(p.branches.join(", "))}</td><td>${dmy(p.lastDate)}</td><td class="num">${fmt(p.sum)} ₴</td></tr>`).join("")+`</tbody>`
+    + (rows.length>TR.limit?`<tfoot><tr><td colspan="7"><button class="btn sm" id="trMore">Показать ещё ${Math.min(150, rows.length-TR.limit)} из ${rows.length-TR.limit}</button></td></tr></tfoot>`:"");
+  $("#trMore") && ($("#trMore").onclick = () => { TR.limit += 150; renderTravelers(); });
+}
+$("#trChips").addEventListener("click", e=>{ const b=e.target.closest("[data-trchip]"); if(!b) return; TR.chip=b.dataset.trchip; renderTravelers(); });
+["#trQ","#trCountryF","#trYearF","#trBranchF"].forEach(s=>$(s).addEventListener("input",renderTravelers));
+$("#trTbl").addEventListener("click", e=>{ const th=e.target.closest("th[data-k]"); if (th){ TR.dir = TR.sk===th.dataset.k?-TR.dir:-1; TR.sk=th.dataset.k; renderTravelers(); return; } const tr=e.target.closest("tr[data-person]"); if (tr) openPerson(tr.dataset.person); });
+$("#trRepeat").addEventListener("click", e=>{ const c=e.target.closest("[data-person]"); if (c) openPerson(c.dataset.person); });
+function openPerson(key){
+  const p = S.people.find(x=>x.key===key); if (!p) return;
+  drawerFor = "person:"+key;
+  const tripIds = new Set(p.trips.map(t=>t.branch+t.id));
+  $("#panel").innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px"><h3 style="flex:1">${esc(p.child)}</h3><button class="btn sm" data-close>Закрыть</button></div>
+    <div class="chips"><span class="tag t-coral">${p.nTrips} ${p.nTrips===1?"поездка":p.nTrips<5?"поездки":"поездок"}</span><span class="tag">${p.countries.length} ${p.countries.length===1?"страна":"страны"}</span><span class="tag t-mint">${uah(p.sum)}</span></div>
+    <div class="kv"><div>Родитель</div><div>${esc(p.customer)}</div><div>Филиал</div><div>${esc(p.branches.join(", "))}</div><div>С нами</div><div>с ${dmy(p.first)}</div>${p.age?`<div>Возраст</div><div>${esc(p.age)} лет (по последней карточке)</div>`:""}
+      <div>Карточка</div><div>${p.crm?`<a href="${esc(p.crm)}" target="_blank" rel="noopener">открыть в CRM</a>`:"—"}</div></div>
+    <div class="field">Путь<div>${countryPath(p)}</div></div>
+    <div class="timeline">${p.contracts.map(c=>{ const isTrip = tripIds.has(c.branch+c.id); const s = seasonOf(c);
+      return `<div class="tl ${isTrip&&c.paid?"":"off"}"><div class="h">${esc(CN[c.country]||c.country)} <span class="tag ${c.paid?"t-mint":c.payment==="Не оплачен"?"t-sun":"t-red"}">${esc(c.payment)}</span>${!isTrip&&(c.status==="0"||c.status==="1")?`<span class="tag">дубль договора</span>`:""}</div>
+        <div class="d">${dmy(c.date)}${s.season?" · "+esc(s.season):""} · ${fmt(c.sum)} ₴ · ${esc(c.branchName)} · ${esc(c.manager)}</div>${c.note?`<div class="d">${esc(c.note)}</div>`:""}</div>`; }).join("")}</div>
+    <div class="small muted">Следующий шаг: предложить новую страну${p.countries.length?" — ещё не были: "+esc(Object.keys(CN).filter(k=>!["unknown","smm","general","webinar","kyiv_city"].includes(k)&&!p.countries.includes(k)).slice(0,4).map(k=>CN[k]).join(", ")):""}.</div>`;
+  $("#drawer").hidden = false;
 }
 
 /* ================= boot ================= */
