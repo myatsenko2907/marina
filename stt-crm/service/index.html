@@ -30,7 +30,7 @@ aside{background:var(--card);border-right:1px solid var(--line);padding-block:22
 .logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--coral),var(--sun));display:grid;place-items:center;color:#fff;font:700 15px var(--f-display)}
 .brand b{font:700 14px var(--f-display);letter-spacing:.01em;display:block}
 .brand span{color:var(--muted);font-size:12px}
-nav.menu{display:flex;flex-direction:column;gap:2px}
+nav.menu{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0}
 nav.menu a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:500}
 nav.menu a .dot{width:9px;height:9px;border-radius:3px;flex:none}
 nav.menu a .cnt{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -116,7 +116,8 @@ tr:last-child td{border-bottom:0}
 .t-blue{background:var(--blue-soft);color:var(--blue)} .t-coral{background:var(--coral-soft);color:#d63d1e} .t-mint{background:var(--mint-soft);color:#0b8a63}
 .t-sun{background:var(--sun-soft);color:#a26d00} .t-red{background:var(--red-soft);color:var(--red)} .t-violet{background:var(--violet-soft);color:var(--violet)}
 .who{display:inline-flex;align-items:center;gap:6px;font-size:12px}
-.who img{width:20px;height:20px;border-radius:50%}
+.who img,[data-uid] img{width:20px;height:20px;border-radius:50%;flex:none}
+[data-uid]{display:inline-flex;align-items:center;gap:6px;vertical-align:middle}
 .prio{font:700 12px var(--f-display);display:inline-grid;place-items:center;width:34px;height:24px;border-radius:8px;background:var(--soft)}
 .prio.hi{background:var(--coral-soft);color:#d63d1e} .prio.md{background:var(--sun-soft);color:#a26d00}
 
@@ -188,13 +189,18 @@ tr:last-child td{border-bottom:0}
     <div class="brand"><div class="logo">ST</div><div><b>STEP Travel</b><span>выездные лагеря · CRM</span></div></div>
     <nav class="menu" id="menu">
       <a href="#dashboard" data-v="dashboard"><span class="dot" style="background:var(--blue)"></span>Дашборд</a>
+      <a href="#myday" data-v="myday"><span class="dot" style="background:var(--coral)"></span>Мой день<span class="cnt" id="cntMyDay"></span></a>
       <a href="#calls" data-v="calls"><span class="dot" style="background:var(--coral)"></span>Обзвон<span class="cnt" id="cntCalls"></span></a>
+      <a href="#lists" data-v="lists"><span class="dot" style="background:#ff8a3d"></span>Списки прозвона</a>
       <a href="#tasks" data-v="tasks"><span class="dot" style="background:var(--violet)"></span>Задачи<span class="cnt" id="cntTasks"></span></a>
       <a href="#leads" data-v="leads"><span class="dot" style="background:var(--sun)"></span>Все лиды<span class="cnt" id="cntLeads"></span></a>
       <a href="#sales" data-v="sales"><span class="dot" style="background:var(--mint)"></span>Продажи ВЛ</a>
       <a href="#travelers" data-v="travelers"><span class="dot" style="background:#0fb5c9"></span>Путешественники<span class="cnt" id="cntTrav"></span></a>
+      <a href="#plan" data-v="plan"><span class="dot" style="background:var(--violet)"></span>План и факт</a>
+      <a href="#team" data-v="team"><span class="dot" style="background:var(--mint)"></span>Команда</a>
       <a href="#ads" data-v="ads"><span class="dot" style="background:var(--blue)"></span>Реклама Meta</a>
       <a href="#losses" data-v="losses"><span class="dot" style="background:var(--red)"></span>Потери и Instagram</a>
+      <a href="#templates" data-v="templates"><span class="dot" style="background:var(--sun)"></span>Шаблоны сообщений</a>
     </nav>
     <div class="side-foot">
       <div class="status" id="srcStatus"></div>
@@ -213,6 +219,7 @@ tr:last-child td{border-bottom:0}
 
     <!-- DASHBOARD -->
     <section class="view" id="v-dashboard">
+      <div id="alertsBox"></div>
       <div class="grid kpis" id="kpis"></div>
       <div class="grid cols3" style="margin-top:14px">
         <div class="card today"><h3>На сегодня <small id="todayDate"></small></h3><div id="todayList"></div></div>
@@ -225,6 +232,47 @@ tr:last-child td{border-bottom:0}
         <div class="card"><h3>Реклама Meta по месяцам <small>расход, $ · лиды</small></h3><div class="chart" id="dashMonth"></div></div>
         <div class="card"><h3>Продажи по филиалам</h3><div class="bars" id="dashBranch" style="--c1:var(--violet);--c2:#d5cbff"></div></div>
       </div>
+    </section>
+
+    <!-- MY DAY -->
+    <section class="view" id="v-myday">
+      <div class="grid kpis" id="mdKpis"></div>
+      <div id="mdBody" style="margin-top:14px"></div>
+    </section>
+
+    <!-- LISTS -->
+    <section class="view" id="v-lists">
+      <div class="tools"><button class="btn coral" id="btnNewList">+ Новый список</button><span class="muted small">Соберите контакты по условию, раздайте менеджерам и следите за прогрессом.</span></div>
+      <div class="rcards" id="lsCards"></div>
+      <div id="lsDetail"></div>
+    </section>
+
+    <!-- PLAN -->
+    <section class="view" id="v-plan">
+      <div class="tools"><select id="plMonth"></select></div>
+      <div class="grid kpis" id="plKpis"></div>
+      <div class="grid cols2" style="margin-top:14px">
+        <div class="card"><h3>Договоры по дням</h3><div class="chart" id="plChart"></div></div>
+        <div class="card"><h3>План на месяц</h3><div id="plEdit"></div></div>
+        <div class="card"><h3>По странам</h3><div class="tbl" style="border:0"><table id="plCountry"></table></div></div>
+        <div class="card"><h3>По менеджерам <small>договоры / оплачено</small></h3><div class="bars" id="plMgr" style="--c1:var(--violet);--c2:#d5cbff"></div></div>
+      </div>
+    </section>
+
+    <!-- TEAM -->
+    <section class="view" id="v-team">
+      <h2 style="margin-top:0">Работа в этой CRM</h2>
+      <div class="tbl"><table id="tmOurs"></table></div>
+      <h2>Звонки по данным CRM <small class="muted small" style="font:400 13px var(--f-body)">за период вверху</small></h2>
+      <div class="tbl"><table id="tmCrm"></table></div>
+      <h2>Продажи выездных лагерей по менеджерам</h2>
+      <div class="tbl"><table id="tmSales"></table></div>
+    </section>
+
+    <!-- TEMPLATES -->
+    <section class="view" id="v-templates">
+      <div class="tools"><button class="btn coral" id="btnNewTpl" hidden>+ Новый шаблон</button><span class="muted small">Тексты для Viber и Telegram. В карточке лида шаблоны подставляют имя клиента и страну.</span></div>
+      <div class="grid cols2" id="tplList"></div>
     </section>
 
     <!-- CALLS -->
@@ -310,6 +358,8 @@ tr:last-child td{border-bottom:0}
       <h2>Кампании по направлениям</h2>
       <div class="banner info"><div>«Лиды Meta» из рекламного кабинета. «Целевые», «Недозвон», «Фейк» по карточкам Step2Travel с той же страной. «Продажи ВЛ» — договоры по стране во всех филиалах за период: CRM не связывает договор с рекламным лидом, поэтому это ориентир.</div></div>
       <div class="tbl"><table id="mTbl"></table></div>
+      <h2>Кампании: от рекламы до договора</h2>
+      <div id="mAttr"></div>
     </section>
 
     <!-- LOSSES -->
@@ -332,16 +382,18 @@ tr:last-child td{border-bottom:0}
 (() => {
 /* ================= config ================= */
 const CRM = "срм", META = "Meta";
-const META_ACCOUNT = "1785823405700372";
+const META_ACCOUNTS = [{id:"967267919220982", name:"travel_camps_2"},{id:"1785823405700372", name:"travel_camps"}];
+const LEAD_BRANCHES = [{b:"stt_ukr", all:true, name:"Step2Travel"},{b:"kiev", all:false, name:"Киев"}];
+const CAMP_RX = /лагер|табір|табор|travel|виїзн|выездн|бал[иі]/i, CITY_RX = /міськ|городск|halloween|в києві|в киеве|it.?табір|it.?лагер|канікул|оболон/i;
 const BRANCHES = {kiev:"Киев",dp:"Днепр",kh:"Харьков",vn:"Винница",cher:"Чернигов",brovary:"Бровары",zp:"Запорожье",od:"Одесса",hm:"Хмельницкий",kremen:"Кременчуг",virt:"Облачный",bila:"Белая Церковь",rv:"Ровно",krog:"Кривой Рог"};
 const CACHE = {staleTime: 6*3600e3, gcTime: 7*24*3600e3};
 const CONV_ID = (() => { const a="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"; let s=""; for(let i=0;i<20;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; })();
 
 const COUNTRIES = [
-  ["korea","Корея",/коре|korea/],["japan","Япония",/япон|japan/],["carpathians","Карпаты",/карпат|carpath/],
+  ["bali","Бали",/бал[иі]|bali/],["korea","Корея",/коре|korea/],["japan","Япония",/япон|japan/],["carpathians","Карпаты",/карпат|carpath/],
   ["greece","Греция",/грец|греция|греці|^gr$/],["bulgaria","Болгария",/болгар|bulgar/],["london","Лондон",/лондон|london|англ/],
   ["barcelona","Испания",/барсел|іспан|испан|barcelona|spain/],["china","Китай",/китай|пекін|пекин|hongkong|beijing/],
-  ["seattle","США: Сиэтл",/сиэтл|сіетл|калифор|seattle/],["newyork","США: Нью-Йорк",/нью.?йорк|флорид|new york|usa_2/],
+  ["seattle","США: Сиэтл",/сиэтл|сіетл|калифор|seattle/],["newyork","США: Нью-Йорк",/нью.?йорк|флорид|new york|usa_2|сша|usa/],
   ["malaysia","Малайзия",/малайз|malaysia/],["kyiv_city","Городской (Оболонь)",/оболон/],
   ["webinar","Вебинар",/як обрати|как выбрать/],["general","Без страны",/общий|общая|літні табори|^вт\s*-\s*$/],
 ];
@@ -372,7 +424,7 @@ function toast(t){ const el=$("#toast"); el.textContent=t; el.hidden=false; clea
 /* ================= state ================= */
 const S = {
   leads: [], contracts: [], meta: null,
-  src: {crm_leads:{st:"idle"}, crm_sales:{st:"idle"}, meta:{st:"idle"}, history:{st:"idle"}}, history: [], people: [],
+  src: {crm_leads:{st:"idle"}, crm_sales:{st:"idle"}, meta:{st:"idle"}, history:{st:"idle"}}, history: [], people: [], lists: [], templates: [], plans: {}, settings: {}, perf: null, isAdmin: false,
   leadState: {}, tasks: [], me: {id:null}, db: null, user: null, mcp: null,
   canWrite: null, dbOk: false,
 };
@@ -403,21 +455,31 @@ async function call(server, tool, input, refresh) {
 const payload = r => { let p = r.payload; if (typeof p === "string") { try { p = JSON.parse(p); } catch(e) {} } return p; };
 const stamp = r => r.cache?.storedAt || Date.now();
 
+async function loadLeadsBranch(B, refresh, from, to, onAt){
+  let products = null;
+  if (!B.all) {
+    const r0 = await call(CRM, "crm_internet_requests", {cityAlias:B.b, dateFrom:from, dateTo:to, mode:"history", perPage:1, page:1}, refresh); onAt(stamp(r0));
+    products = (payload(r0)?.data?.products||[]).map(p=>p.value||p.id).filter(n => n && CAMP_RX.test(n) && !CITY_RX.test(n) && (countryOf(n)!=="unknown" || /travel|виїзн|выездн/i.test(n)));
+    if (!products.length) return [];
+  }
+  const all = []; let total = Infinity;
+  for (let page=1; page<=40 && all.length < total; page++) {
+    const input = {cityAlias:B.b, dateFrom:from, dateTo:to, mode:"history", perPage:200, page}; if (products) input.product = products;
+    const r = await call(CRM, "crm_internet_requests", input, refresh); onAt(stamp(r));
+    const p = payload(r); const got = p?.data?.leads || [];
+    total = p?.pagination?.count_all ?? p?.data?.count_leads ?? all.length + got.length;
+    all.push(...got); if (!got.length) break;
+  }
+  return all.map(l=>normLead(l, B));
+}
 async function loadLeads(refresh) {
   const from=$("#dFrom").value, to=$("#dTo").value;
   S.src.crm_leads = {st:"load"}; renderStatus();
-  const all = []; let total = Infinity, at = Infinity;
-  for (let page=1; page<=25 && all.length < total; page++) {
-    const r = await call(CRM, "crm_internet_requests", {cityAlias:"stt_ukr", dateFrom:from, dateTo:to, mode:"history", perPage:200, page}, refresh);
-    const p = payload(r); at = Math.min(at, stamp(r));
-    const got = p?.data?.leads || [];
-    total = p?.pagination?.count_all ?? p?.data?.count_leads ?? all.length + got.length;
-    all.push(...got);
-    if (!got.length) break;
-  }
+  let at = Infinity; const onAt = x => at = Math.min(at, x);
+  const res = await Promise.all(LEAD_BRANCHES.map(B => loadLeadsBranch(B, refresh, from, to, onAt).catch(e => { if (B.all) throw e; S.src.crm_leads.warn = e; return []; })));
   const seen = new Set();
-  S.leads = all.filter(l => !seen.has(l.id) && seen.add(l.id)).map(normLead);
-  S.src.crm_leads = {st:"ok", at, n:S.leads.length};
+  S.leads = res.flat().filter(l => !seen.has(l.id) && seen.add(l.id));
+  S.src.crm_leads = {st:"ok", at, n:S.leads.length, warn:S.src.crm_leads.warn};
 }
 async function loadSales(refresh) {
   const from=$("#dFrom").value, to=$("#dTo").value;
@@ -447,23 +509,29 @@ async function loadSales(refresh) {
 async function loadMeta(refresh) {
   const from=$("#dFrom").value, to=$("#dTo").value, tr = JSON.stringify({since:from, until:to});
   S.src.meta = {st:"load"}; renderStatus();
-  const base = {ad_account_id:META_ACCOUNT, advertiser_job:"report_measure_or_look_up", advertiser_request:"детальная аналитика рекламы STEP Travel: лиды, качество, продажи", client_conversation_id:CONV_ID, time_range:tr, include_additional_context:false, reporting_purpose:["metric_lookup"]};
   const ents = r => { const p = payload(r); let e = p?.ad_entities ?? p; if (typeof e === "string") { try { e = JSON.parse(e); } catch(x) { e = []; } } return Array.isArray(e) ? e : []; };
-  const [rc, rp, rm] = await Promise.all([
-    call(META, "ads_get_ad_entities", {...base, level:"campaign", fields:["id","name","objective","effective_status","amount_spent","impressions","reach","link_click","ctr","cpm","lead","cost_per_lead"], filtering:[{field:"amount_spent",operator:"GREATER_THAN",value:["0"]}], sort:"amount_spent_descending", limit:200}, refresh),
-    call(META, "ads_get_ad_entities", {...base, level:"ad_account", fields:["amount_spent","impressions","reach","link_click","lead","cost_per_lead"], breakdowns:["publisher_platform"]}, refresh),
-    call(META, "ads_get_ad_entities", {...base, level:"ad_account", fields:["amount_spent","impressions","link_click","lead"], time_increment:"monthly"}, refresh),
-  ]);
   const num = v => v==null ? 0 : typeof v === "object" ? parseFloat(v.value)||0 : parseFloat(String(v).replace(",", "."))||0;
-  const camps = ents(rc).map(c => ({id:c.id, name:c.name, objective:c.objective, status:c.effective_status, spend:num(c.amount_spent), impressions:num(c.impressions), reach:num(c.reach), clicks:num(c.link_click), leads:num(c.lead)}))
-    .map(c => ({...c, country: c.objective==="OUTCOME_LEADS" ? countryOf(c.name) : "smm"}));
-  const plat = {}; ents(rp).forEach(x => { if (x.publisher_platform && x.publisher_platform!=="unknown") plat[x.publisher_platform] = {spend:num(x.amount_spent), reach:num(x.reach), clicks:num(x.link_click), leads:num(x.lead)}; });
-  const monthly = ents(rm).map(x => ({m:(x.date_start||"").slice(0,7), spend:num(x.amount_spent), leads:num(x.lead), clicks:num(x.link_click)}));
-  S.meta = {camps, plat, monthly};
-  S.src.meta = {st:"ok", at: Math.min(stamp(rc),stamp(rp),stamp(rm))};
+  const camps = [], plat = {}, mon = {}; let at = Infinity, errs = [];
+  for (const A of META_ACCOUNTS) {
+    const base = {ad_account_id:A.id, advertiser_job:"report_measure_or_look_up", advertiser_request:"детальная аналитика рекламы STEP Travel: лиды, качество, продажи", client_conversation_id:CONV_ID, time_range:tr, include_additional_context:false, reporting_purpose:["metric_lookup"]};
+    try {
+      const [rc, rp, rm] = await Promise.all([
+        call(META, "ads_get_ad_entities", {...base, level:"campaign", fields:["id","name","objective","effective_status","amount_spent","impressions","reach","link_click","ctr","cpm","lead","cost_per_lead"], filtering:[{field:"amount_spent",operator:"GREATER_THAN",value:["0"]}], sort:"amount_spent_descending", limit:300}, refresh),
+        call(META, "ads_get_ad_entities", {...base, level:"ad_account", fields:["amount_spent","impressions","reach","link_click","lead","cost_per_lead"], breakdowns:["publisher_platform"]}, refresh),
+        call(META, "ads_get_ad_entities", {...base, level:"ad_account", fields:["amount_spent","impressions","link_click","lead"], time_increment:"monthly"}, refresh),
+      ]);
+      at = Math.min(at, stamp(rc), stamp(rp), stamp(rm));
+      ents(rc).forEach(c => camps.push({id:c.id, name:c.name, account:A.name, objective:c.objective, status:c.effective_status, spend:num(c.amount_spent), impressions:num(c.impressions), reach:num(c.reach), clicks:num(c.link_click), leads:num(c.lead), country: c.objective==="OUTCOME_LEADS" ? countryOf(c.name) : "smm"}));
+      ents(rp).forEach(x => { const k = x.publisher_platform; if (!k || k==="unknown") return; const o = plat[k] = plat[k] || {spend:0,reach:0,clicks:0,leads:0}; o.spend+=num(x.amount_spent); o.reach+=num(x.reach); o.clicks+=num(x.link_click); o.leads+=num(x.lead); });
+      ents(rm).forEach(x => { const m=(x.date_start||"").slice(0,7); const o = mon[m] = mon[m] || {m, spend:0, leads:0, clicks:0}; o.spend+=num(x.amount_spent); o.leads+=num(x.lead); o.clicks+=num(x.link_click); });
+    } catch(e) { errs.push([A,e]); if (["server_not_connected","needs_reauth","not_in_manifest","approval_required","blocked_by_policy","selection_required"].includes(e?.code)) throw e; }
+  }
+  if (!camps.length && errs.length) throw errs[0][1];
+  S.meta = {camps: camps.sort((a,b)=>b.spend-a.spend), plat, monthly: Object.values(mon).sort((a,b)=>a.m.localeCompare(b.m))};
+  S.src.meta = {st: errs.length?"partial":"ok", at, errs};
 }
 
-function normLead(l) {
+function normLead(l, B={b:"stt_ukr", name:"Step2Travel"}) {
   const com = [l.comment, l.last_comment].filter(Boolean).join(" ");
   let q;
   if (l.result === "result_deleted") q = (l.comment==="delete_fake_tooltip"||NOT_LEFT.test(com)) ? "Фейк" : l.comment==="delete_duplicate_tooltip" ? "Дубль" : "Удалён";
@@ -483,7 +551,8 @@ function normLead(l) {
   }
   const utm = (l.utm_source||"").toLowerCase();
   return {
-    id: String(l.id), date:(l.created_at||"").slice(0,10), name:(l.fio||"").trim()||"Без имени", product:(l.product_name||"").trim(),
+    id: B.b==="stt_ukr" ? String(l.id) : B.b+":"+l.id, date:(l.created_at||"").slice(0,10), createdAt:l.created_at||"", time:(l.created_at||"").slice(11,16),
+    branch:B.b, branchName:B.name, clientId: l.id_uniq ? String(l.id_uniq) : null, campaignId: /^\d{8,}$/.test(l.utm_campaign||"") ? l.utm_campaign : null, name:(l.fio||"").trim()||"Без имени", product:(l.product_name||"").trim(),
     country: countryOf(l.product_name), source: SOURCE[l.type]||l.type||"", placement: utm.includes("instagram")?"Instagram":utm.includes("facebook")?"Facebook":"",
     statusRaw:l.result||null, status: STATUS[l.result]||"Не обработан", quality:q, loss, priority:pr,
     contacts:l.count_contacts_ago||0, processed:(l.processed_at||"").slice(0,10), lastResult:l.last_result||"",
@@ -499,7 +568,7 @@ function normContract(x,b) {
   return {branch:b, branchName:BRANCHES[b]||b, id:String(x.id_source), date:(x.date_time||"").slice(0,10), customer:(x.fio_customer||"").trim(), child:(x.fio_listener||"").trim(),
     age:x.contacts?.age||"", country:c, note, sum:parseFloat(d.total_cost_of_the_contract)||0, payment:PAYMENT[p]||p||"", paid:p==="1",
     manager:x.users?.fio_user||"", crm: x.id_uniq ? "https://crm.itstep.org/clients/"+x.id_uniq : null,
-    uid: x.id_uniq ? b+":"+x.id_uniq : "", birth: d.datebirth && d.datebirth>"1990" ? d.datebirth : "", status:p||""};
+    uid: x.id_uniq ? b+":"+x.id_uniq : "", clientRaw: x.id_uniq ? String(x.id_uniq) : "", birth: d.datebirth && d.datebirth>"1990" ? d.datebirth : "", status:p||""};
 }
 
 /* ---------- history of trips ---------- */
@@ -613,12 +682,13 @@ async function paintPeople(root=document) {
 const whoHtml = id => id ? `<span class="who" data-uid="${esc(id)}">…</span>` : `<span class="muted small">не назначен</span>`;
 
 /* ================= rendering ================= */
-const TITLES = {dashboard:"Дашборд",calls:"Обзвон",tasks:"Задачи",leads:"Все лиды",sales:"Продажи выездных лагерей",travelers:"Путешественники",ads:"Реклама Meta",losses:"Потери и Instagram"};
+const TITLES = {dashboard:"Дашборд",myday:"Мой день",lists:"Списки прозвона",plan:"План и факт",team:"Команда",templates:"Шаблоны сообщений",calls:"Обзвон",tasks:"Задачи",leads:"Все лиды",sales:"Продажи выездных лагерей",travelers:"Путешественники",ads:"Реклама Meta",losses:"Потери и Instagram"};
 function route(){
   let v = (location.hash||"").slice(1); if (!TITLES[v]) v = "dashboard";
   document.querySelectorAll("section.view").forEach(s=>s.classList.toggle("on", s.id==="v-"+v));
   document.querySelectorAll("#menu a").forEach(a=>a.classList.toggle("on", a.dataset.v===v));
   $("#viewTitle").textContent = TITLES[v];
+  if (["team","plan","lists","myday"].includes(v)) setTimeout(renderAll, 0);
   if (v==="travelers" && S.mcp && S.src.history.st==="idle") loadHistory(false).catch(e=>{ S.src.history={st:"err", e}; }).then(renderAll);
 }
 window.addEventListener("hashchange", () => { if (!$("#drawer").hidden) closeDrawer(); route(); });
@@ -654,13 +724,19 @@ function renderStatus(){
   if (S.mcp && (!S.db || S.dbErr || S.dbLate) && !S.dbOk) b.push(`<div class="banner warn"><div>Общая база (пометки, ответственные, задачи) недоступна в этом просмотре: изменения не сохранятся.</div></div>`);
   $("#banners").innerHTML = b.join("");
 }
-document.addEventListener("click", e => { if (e.target.closest("[data-retry]")) loadAll(true); });
+document.addEventListener("click", e => { if (e.target.closest("[data-retry]")) { S.perf = null; loadAll(true); } });
 
+function linkSales(){
+  const idx = {}; [...S.contracts, ...S.history].forEach(c => { if (c.clientRaw && (c.status==="1"||c.status==="0")) (idx[c.branch+"|"+c.clientRaw] = idx[c.branch+"|"+c.clientRaw] || []).push(c); });
+  const cname = Object.fromEntries((S.meta?.camps||[]).map(c=>[c.id,c.name]));
+  S.leads.forEach(l => { const cs = (idx[l.branch+"|"+l.clientId]||[]).filter(c=>c.date >= l.date).sort((a,b)=>a.date.localeCompare(b.date));
+    const c = cs.find(x=>x.paid) || cs[0]; l.sale = c ? {id:c.id, date:c.date, sum:c.sum, paid:c.paid, country:c.country, branch:c.branchName} : null; l.campaignName = l.campaignId ? (cname[l.campaignId]||"") : ""; });
+}
 function renderAll(){
   renderStatus();
   const L = S.leads;
   $("#cntLeads").textContent = loaded("crm_leads") ? L.length : "";
-  renderDashboard(); renderCalls(); renderTasks(); renderLeads(); renderSales(); renderTravelers(); renderAds(); renderLosses();
+  linkSales(); renderAlerts(); renderDashboard(); renderMyDay(); renderCalls(); renderLists(); renderPlan(); renderTeam(); renderTemplates(); renderTasks(); renderLeads(); renderSales(); renderTravelers(); renderAds(); renderAttribution(); renderLosses();
   paintPeople();
 }
 
@@ -733,20 +809,21 @@ function renderCalls(){
   $("#cntCalls").textContent = pot.length ? pot.filter(l=>!["Продано","Не актуально"].includes(leadSt(l.id).mark)).length : "";
   options($("#cCountry"),"Страна",uniq(pot.map(l=>l.country)).sort((a,b)=>(CN[a]||a).localeCompare(CN[b]||b)),k=>CN[k]||k);
   options($("#cStatus"),"Статус CRM",uniq(pot.map(l=>l.status)));
-  const chips = [["all","Все"],["mine","Мои"],["free","Без ответственного"],["today","Звонок сегодня"],["hot","Горячие"],["sold","Продано"]];
+  const chips = [["all","Все"],["mine","Мои"],["new","Без звонка"],["overdue","Просрочено"],["stale","Зависли"],["free","Без ответственного"],["today","Звонок сегодня"],["hot","Горячие"],["sold","Продано"]];
   $("#cChips").innerHTML = chips.map(c=>`<button class="chip ${CF.chip===c[0]?"on":""}" data-chip="${c[0]}">${c[1]}</button>`).join("");
   const q=$("#cQ").value.toLowerCase(), cc=$("#cCountry").value, cs=$("#cStatus").value, t=todayISO();
   const rows = pot.filter(l => { const s=leadSt(l.id);
     if (cc && l.country!==cc) return false; if (cs && l.status!==cs) return false;
     if (q && !(l.name+" "+l.comment+" "+l.product+" "+(s.note||"")).toLowerCase().includes(q)) return false;
     if (CF.chip==="mine") return s.owner && s.owner===S.me.id; if (CF.chip==="free") return !s.owner;
+    if (CF.chip==="new") return l.contacts===0 && !(s.log||[]).length; if (CF.chip==="overdue") return s.next && s.next<t && !["Продано","Не актуально"].includes(s.mark); if (CF.chip==="stale") return l.statusRaw==="wait_call" && !(s.next>=t);
     if (CF.chip==="today") return s.next && s.next<=t; if (CF.chip==="hot") return s.mark==="Горячий"; if (CF.chip==="sold") return s.mark==="Продано";
     return s.mark!=="Продано" && s.mark!=="Не актуально";
   }).sort((a,b)=>{ const va=CF.sk==="next"?(leadSt(a.id).next||"9"):a[CF.sk], vb=CF.sk==="next"?(leadSt(b.id).next||"9"):b[CF.sk]; return (va>vb?1:va<vb?-1:0)*CF.dir || b.priority-a.priority; });
   $("#cCount").textContent = loaded("crm_leads") ? `${rows.length} лидов` : "Загрузка лидов из CRM…";
   $("#cTbl").innerHTML = `<thead><tr><th class="num" data-k="priority">Приор.</th><th data-k="name">Клиент</th><th data-k="country">Страна</th><th data-k="status">Статус CRM</th><th>Пометка</th><th>Ответственный</th><th data-k="next">След. звонок</th><th>Комментарий</th></tr></thead><tbody>`+
     rows.map(l=>{ const s=leadSt(l.id); const late = s.next && s.next<t;
-      return `<tr data-lead="${esc(l.id)}"><td class="num"><span class="prio ${l.priority>=80?"hi":l.priority>=60?"md":""}">${l.priority}</span></td><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.source)} · ${dmy(l.date)}</div></td>
+      return `<tr data-lead="${esc(l.id)}"><td class="num"><span class="prio ${l.priority>=80?"hi":l.priority>=60?"md":""}">${l.priority}</span></td><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.branchName)} · ${esc(l.source)} · ${dmy(l.date)}${l.sale?` · <span style="color:var(--mint)">договор</span>`:""}</div></td>
       <td><span class="tag">${esc(CN[l.country]||l.country)}</span></td><td>${stTag(l.status)}<div class="small muted">контактов: ${l.contacts}</div></td><td>${markTag(s.mark)}</td><td>${whoHtml(s.owner)}</td>
       <td>${s.next?`<span class="tag ${late?"t-red":s.next===t?"t-coral":""}">${dmy(s.next)}</span>`:""}</td><td class="cm">${esc(short(s.note||l.comment))}</td></tr>`; }).join("")+`</tbody>`;
 }
@@ -760,32 +837,6 @@ let drawerFor = null;
 function closeDrawer(){ $("#drawer").hidden = true; drawerFor = null; }
 $("#drawer").addEventListener("click", e=>{ if (e.target.id==="drawer" || e.target.closest("[data-close]")) closeDrawer(); });
 document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("#drawer").hidden) closeDrawer(); });
-function openLead(id){
-  const l = S.leads.find(x=>x.id===id); if (!l) return; const s = leadSt(id);
-  drawerFor = "lead:"+id;
-  $("#panel").innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px"><h3 style="flex:1">${esc(l.name)}</h3><button class="btn sm" data-close>Закрыть</button></div>
-    <div class="chips">${stTag(l.status)} ${qTag(l.quality)} <span class="tag">${esc(CN[l.country]||l.country)}</span></div>
-    <div class="kv"><div>Заявка</div><div>${dmy(l.date)} · ${esc(l.source)}${l.placement?" · "+esc(l.placement):""}</div><div>Продукт / форма</div><div>${esc(l.product)}</div>
-      <div>Контактов</div><div>${l.contacts}${l.lastResult?" · "+esc(l.lastResult):""}</div><div>Комментарий CRM</div><div>${esc(l.comment)||"—"}</div>
-      <div>Карточка</div><div>${l.crm?`<a href="${esc(l.crm)}" target="_blank" rel="noopener">открыть в CRM</a>`:"—"}</div></div>
-    <div class="field">Пометка<div class="chips" id="dMarks">${MARKS.map(m=>`<button class="chip ${s.mark===m?"on":""}" data-mark="${esc(m)}">${esc(m)}</button>`).join("")}</div></div>
-    <div class="row2">
-      <div class="field">Ответственный<div style="display:flex;gap:6px;align-items:center;min-height:36px">${whoHtml(s.owner)}${S.me.id&&s.owner!==S.me.id?`<button class="btn sm" id="dTake">Взять себе</button>`:""}${s.owner?`<button class="btn sm" id="dFree">Снять</button>`:""}</div></div>
-      <div class="field"><label for="dNext">Следующий звонок</label><input type="date" id="dNext" value="${esc(s.next||"")}"></div>
-    </div>
-    <div class="field"><label for="dNote">Заметка для команды</label><textarea id="dNote" placeholder="О чём договорились, что отправили, возраст ребёнка, бюджет">${esc(s.note||"")}</textarea></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="dSave">Сохранить</button><button class="btn" id="dTask">Создать задачу по лиду</button></div>
-    ${s.updatedAt?`<div class="small muted">Изменено ${new Date(s.updatedAt).toLocaleString("ru-RU")} · <span data-uid="${esc(s.updatedBy||"")}"></span></div>`:""}`;
-  $("#drawer").hidden = false; paintPeople($("#panel"));
-  $("#dMarks").onclick = e => { const b=e.target.closest("[data-mark]"); if(!b) return; const m = leadSt(id).mark===b.dataset.mark ? undefined : b.dataset.mark;
-    $("#dMarks").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", c.dataset.mark===m)); saveLead(id,{mark:m}); };
-  $("#dTake") && ($("#dTake").onclick = async () => { await saveLead(id,{owner:S.me.id}); openLead(id); });
-  $("#dFree") && ($("#dFree").onclick = async () => { await saveLead(id,{owner:undefined}); openLead(id); });
-  $("#dSave").onclick = () => saveLead(id,{next:$("#dNext").value||undefined, note:$("#dNote").value.trim()||undefined});
-  $("#dTask").onclick = () => openTask(null, {leadId:id, title:"Позвонить: "+l.name, due:$("#dNext").value||todayISO(), assignee:leadSt(id).owner||S.me.id||undefined});
-}
-
 /* ---------- tasks ---------- */
 const TF = {chip:"all"};
 const COLS = [["todo","К выполнению","var(--sun)"],["doing","В работе","var(--blue)"],["done","Готово","var(--mint)"]];
@@ -981,19 +1032,423 @@ function openPerson(key){
   $("#drawer").hidden = false;
 }
 
+/* ================= call results, CRM write-back, client 360 ================= */
+const RESULTS = [
+  {k:"no_answer", label:"Недозвон", cls:"", crm:null},
+  {k:"callback", label:"Перезвонить", cls:"t-sun", crm:"wait_call"},
+  {k:"thinking", label:"Думает", cls:"t-mint", crm:"thinking"},
+  {k:"material", label:"Отправили программу", cls:"t-blue", crm:"material"},
+  {k:"reject", label:"Отказ", cls:"t-red", crm:"reject"},
+  {k:"sold", label:"Продано", cls:"t-mint", crm:"contract"},
+];
+const RES = Object.fromEntries(RESULTS.map(r=>[r.k,r]));
+const REASONS = ["Дорого","Не подходит возраст","Не подходят даты","Ребёнок не поедет один","Выбрали другое","Не оставлял заявку","Другое"];
+const addDays = n => { const d=new Date(); d.setDate(d.getDate()+n); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const crmDate = (iso, time) => { const [y,m,d]=iso.split("-"); return `${d}.${m}.${y.slice(2)} ${time||"10:00"}`; };
+const isToday = iso => (iso||"").slice(0,10) === todayISO();
+const myLogs = () => Object.entries(S.leadState).flatMap(([id,s])=>(s.log||[]).map(x=>({...x,id})));
+
+async function logCall(id, k, o={}) {
+  const l = S.leads.find(x=>x.id===id); const s = leadSt(id); const R = RES[k];
+  const log = [...(s.log||[]), {t:new Date().toISOString(), by:S.me.id||null, r:k, note:o.note||null, reason:o.reason||null}].slice(-50);
+  const patch = {log, lastResult:k};
+  if (!s.owner && S.me.id) patch.owner = S.me.id;
+  if (k==="no_answer") patch.next = addDays(1);
+  if (k==="callback") patch.next = o.next || addDays(1);
+  if (k==="thinking") { patch.next = o.next || addDays(2); patch.mark = "Перезвонить"; }
+  if (k==="material") { patch.next = o.next || addDays(1); patch.mark = "Отправили программу"; }
+  if (k==="reject") { patch.next = undefined; patch.mark = "Не актуально"; patch.reason = o.reason || undefined; }
+  if (k==="sold") { patch.next = undefined; patch.mark = "Продано"; }
+  if (o.note) patch.note = o.note;
+  await saveLead(id, patch);
+  const noAns = log.slice().reverse().findIndex(x=>x.r!=="no_answer"); const streak = noAns===-1 ? log.length : noAns;
+  if (k==="no_answer" && streak===3) await saveTask(null, {title:"Написать в Viber/Telegram: "+(l?.name||id), leadId:id, due:todayISO(), priority:"md", status:"todo", assignee:(s.owner||S.me.id)||undefined, note:"3 недозвона подряд. Отправьте сообщение по шаблону из карточки лида."});
+  if (o.toCrm && R?.crm && l?.clientId) await pushCrm(l, R.crm, {...o, next:patch.next});
+}
+async function crmPhone(l){
+  const c = payload(await S.mcp.callTool(CRM, "crm_client_contact_details", {cityAlias:l.branch, idUniq:Number(l.clientId)}, {cache:CACHE}));
+  const ph = c?.data?.phones || []; return {phone:(ph.find(p=>p.status!=="0")||ph[0])?.phone || "", data:c?.data||{}};
+}
+async function pushCrm(l, eventType, o) {
+  try {
+    const {phone} = await crmPhone(l);
+    if (!phone) { toast("В CRM нет телефона клиента, событие не записано"); return; }
+    const input = {cityAlias:l.branch, phone: phone.startsWith("+")?phone:"+"+phone, eventType, name:l.name, managerComment:[o.note, o.reason].filter(Boolean).join(" · ") || null};
+    if (eventType==="wait_call" && o.next) input.waitCallAt = crmDate(o.next, o.time);
+    await S.mcp.callTool(CRM, "crm_lead_add_event", input, {cache:false});
+    toast("Сохранено и записано в CRM");
+  } catch(e) {
+    toast(["approval_required","not_in_manifest"].includes(e?.code) ? "Нет разрешения записывать в CRM" : ["server_unavailable","upstream_error"].includes(e?.code) ? "CRM не ответила. Проверьте карточку в CRM, прежде чем повторять" : "В CRM не записалось: "+(e?.message||e?.code||""));
+  }
+}
+function fillTpl(t, l){ const first = (l?.name||"").split(/\s+/)[0] || ""; return (t||"").replace(/\{имя\}/g, first).replace(/\{страна\}/g, CN[l?.country]||"").replace(/\{менеджер\}/g, S.me.name||""); }
+function copyText(text, btn){ const done = () => { btn.textContent = "Скопировано"; setTimeout(()=>btn.textContent="Копировать",1500); };
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, () => toast("Выделите текст и скопируйте вручную")); else toast("Выделите текст и скопируйте вручную"); }
+
+function openLead(id){
+  const l = S.leads.find(x=>x.id===id); if (!l) return; const s = leadSt(id);
+  drawerFor = "lead:"+id;
+  const tpls = S.templates.filter(t=>!t.country || t.country===l.country);
+  const log = (s.log||[]).slice().reverse();
+  $("#panel").innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px"><h3 style="flex:1">${esc(l.name)}</h3><button class="btn sm" data-close>Закрыть</button></div>
+    <div class="chips">${stTag(l.status)} ${qTag(l.quality)} <span class="tag">${esc(CN[l.country]||l.country)}</span> <span class="tag">${esc(l.branchName)}</span>${markTag(s.mark)}${l.sale?` <span class="tag t-mint">договор ${dmy(l.sale.date)}</span>`:""}</div>
+    <div class="kv"><div>Заявка</div><div>${dmy(l.date)} ${esc(l.time)} · ${esc(l.source)}${l.campaignName?" · "+esc(l.campaignName):""}</div><div>Продукт / форма</div><div>${esc(l.product)}</div>
+      <div>Контактов в CRM</div><div>${l.contacts}${l.lastResult?" · "+esc(l.lastResult):""}</div><div>Комментарий CRM</div><div>${esc(l.comment)||"—"}</div>
+      <div>Карточка</div><div>${l.crm?`<a href="${esc(l.crm)}" target="_blank" rel="noopener">открыть в CRM</a>`:"—"}</div></div>
+
+    <div class="card" style="padding:14px;background:var(--soft);border:0">
+      <h3 style="margin-bottom:8px">Результат звонка</h3>
+      <div class="row2"><div class="field"><label for="rNext">Следующий контакт</label><input type="date" id="rNext" value="${esc(s.next||"")}"></div><div class="field"><label for="rTime">Время</label><input type="time" id="rTime" value="10:00"></div></div>
+      <div class="field" style="margin-top:8px"><label for="rNote">Что сказал клиент</label><textarea id="rNote" style="min-height:60px" placeholder="Возраст ребёнка, бюджет, даты, возражения"></textarea></div>
+      <div class="field" style="margin-top:8px"><label for="rReason">Причина отказа</label><select id="rReason"><option value="">—</option>${REASONS.map(r=>`<option>${esc(r)}</option>`).join("")}</select></div>
+      <label class="small" style="display:flex;gap:6px;align-items:center;margin:10px 0"><input type="checkbox" id="rCrm" ${l.clientId?"checked":"disabled"}> Записать результат в CRM ${l.clientId?"":"(у лида нет карточки клиента)"}</label>
+      <div class="chips" id="rBtns">${RESULTS.map(r=>`<button class="btn sm" data-res="${r.k}">${esc(r.label)}</button>`).join("")}</div>
+      <div class="small muted" style="margin-top:6px">Недозвон ставит звонок на завтра; после 3 недозвонов подряд появится задача «написать в Viber». «Недозвон» в CRM не записывается: такого события там нет.</div>
+    </div>
+
+    <div class="row2">
+      <div class="field">Ответственный<div style="display:flex;gap:6px;align-items:center;min-height:36px;flex-wrap:wrap">${whoHtml(s.owner)}${S.me.id&&s.owner!==S.me.id?`<button class="btn sm" id="dTake">Взять себе</button>`:""}${s.owner?`<button class="btn sm" id="dFree">Снять</button>`:""}</div></div>
+      <div class="field">Пометка<div class="chips" id="dMarks">${MARKS.map(m=>`<button class="chip ${s.mark===m?"on":""}" data-mark="${esc(m)}">${esc(m)}</button>`).join("")}</div></div>
+    </div>
+    <div class="field"><label for="dNote">Заметка для команды</label><textarea id="dNote" style="min-height:60px">${esc(s.note||"")}</textarea></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="dSave">Сохранить заметку</button><button class="btn" id="dTask">Создать задачу</button></div>
+
+    ${log.length?`<div class="field">История в этой CRM<div class="timeline" style="margin-top:6px">${log.slice(0,12).map(x=>`<div class="tl ${x.r==="no_answer"?"off":""}"><div class="h">${esc(RES[x.r]?.label||x.r)} ${x.by?`<span class="who" data-uid="${esc(x.by)}"></span>`:""}</div><div class="d">${new Date(x.t).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}${x.reason?" · "+esc(x.reason):""}${x.note?" · "+esc(x.note):""}</div></div>`).join("")}</div></div>`:""}
+
+    ${tpls.length?`<div class="field">Шаблоны сообщений${tpls.map((t,i)=>`<div class="card" style="padding:10px 12px;margin-top:6px"><div style="display:flex;gap:8px;align-items:center"><b style="flex:1;font-size:13px">${esc(t.title)}</b><button class="btn sm" data-copy="${i}">Копировать</button></div><div class="small" style="white-space:pre-wrap;color:var(--ink);margin-top:6px">${esc(fillTpl(t.text,l))}</div></div>`).join("")}</div>`:""}
+
+    <div class="field">Клиент в CRM<div id="c360">${l.clientId?`<button class="btn sm" id="load360">Показать телефон, историю звонков и переписку</button>`:`<span class="muted small">У лида нет карточки клиента в CRM</span>`}</div></div>
+    ${s.updatedAt?`<div class="small muted">Изменено ${new Date(s.updatedAt).toLocaleString("ru-RU")} · <span data-uid="${esc(s.updatedBy||"")}"></span></div>`:""}`;
+  $("#drawer").hidden = false; paintPeople($("#panel"));
+  $("#rBtns").onclick = async e => { const b=e.target.closest("[data-res]"); if(!b) return; const k=b.dataset.res;
+    if (k==="reject" && !$("#rReason").value) { $("#rReason").focus(); toast("Выберите причину отказа"); return; }
+    if (k==="callback" && !$("#rNext").value) { $("#rNext").focus(); toast("Укажите дату следующего звонка"); return; }
+    $("#rBtns").querySelectorAll("button").forEach(x=>x.disabled=true);
+    await logCall(id, k, {next:$("#rNext").value||undefined, time:$("#rTime").value, note:$("#rNote").value.trim()||undefined, reason:$("#rReason").value||undefined, toCrm:$("#rCrm").checked});
+    openLead(id); };
+  $("#dMarks").onclick = e => { const b=e.target.closest("[data-mark]"); if(!b) return; const m = leadSt(id).mark===b.dataset.mark ? undefined : b.dataset.mark;
+    $("#dMarks").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", c.dataset.mark===m)); saveLead(id,{mark:m}); };
+  $("#dTake") && ($("#dTake").onclick = async () => { await saveLead(id,{owner:S.me.id}); openLead(id); });
+  $("#dFree") && ($("#dFree").onclick = async () => { await saveLead(id,{owner:undefined}); openLead(id); });
+  $("#dSave").onclick = () => saveLead(id,{note:$("#dNote").value.trim()||undefined});
+  $("#dTask").onclick = () => openTask(null, {leadId:id, title:"Позвонить: "+l.name, due:$("#rNext").value||todayISO(), assignee:leadSt(id).owner||S.me.id||undefined});
+  $("#panel").querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copyText(fillTpl(tpls[+b.dataset.copy].text, l), b));
+  $("#load360") && ($("#load360").onclick = () => load360(l));
+}
+
+async function load360(l){
+  const box = $("#c360"); box.innerHTML = `<div class="empty">Загружаю из CRM…</div>`;
+  try {
+    const [cd, hist, ai] = await Promise.all([
+      crmPhone(l),
+      call(CRM, "crm_client_history", {cityAlias:l.branch, clientId:Number(l.clientId), perPage:20}, false).then(payload),
+      call(CRM, "crm_client_ai_summary", {cityAlias:l.branch, clientId:Number(l.clientId)}, false).then(payload).catch(()=>null),
+    ]);
+    let corr = null;
+    if (cd.phone) corr = await call(CRM, "crm_client_correspondence", {cityAlias:l.branch, phone:cd.phone, limit:30}, false).then(payload).catch(()=>null);
+    const phones = uniq((cd.data.phones||[]).map(p=>p.phone));
+    const sum = ai?.data?.short_summary;
+    const items = Array.isArray(hist?.data) ? hist.data : [];
+    const msgs = corr?.channels ? Object.entries(corr.channels).flatMap(([ch,v])=>(v.messages||[]).map(m=>({...m,ch}))).sort((a,b)=>(b.created_at||"").localeCompare(a.created_at||"")) : [];
+    box.innerHTML = `
+      ${phones.length?`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0">${phones.map(p=>`<span class="tag t-blue" style="font-size:13px;user-select:all">+${esc(p)}</span><button class="btn sm" data-cp="+${esc(p)}">Копировать</button>`).join("")}</div>`:`<div class="muted small">Телефона в карточке нет</div>`}
+      ${sum?`<div class="card" style="padding:10px 12px;background:var(--violet-soft);border:0;margin:6px 0"><b class="small">Выжимка CRM:</b> <span class="small">${esc(sum)}</span></div>`:""}
+      ${items.length?`<div class="timeline" style="margin-top:8px">${items.map(h=>{ const res = (h.results||[]).flatMap(r=>r.name_result||[]).join(", "); const txt = (h.descrs||[]).map(d=>d.descr_text).filter(Boolean).join(" · ");
+        const calls = (h.calls||[]).map(c=>c.audio).filter(a=>a && (a.audio_speech_text||"").trim());
+        return `<div class="tl"><div class="h">${esc(({"out-call":"Исходящий звонок","in-call":"Входящий звонок","viber":"Viber","telegram":"Telegram","whats-app":"WhatsApp","sms":"SMS"})[h.typeName]||h.typeName||"Контакт")}${res?` <span class="tag">${esc(res)}</span>`:""}${h.no_answer==="1"?` <span class="tag t-sun">недозвон</span>`:""}</div>
+          <div class="d">${new Date(h.date_time).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"})} · ${esc(h.users?.fio_user||"")}</div>${txt?`<div class="d" style="color:var(--ink)">${esc(txt)}</div>`:""}
+          ${calls.map(a=>`<details style="margin-top:4px"><summary class="small" style="cursor:pointer;color:var(--blue)">Расшифровка разговора (${esc(a.billsec||"")})</summary><div class="small" style="margin-top:6px;display:flex;flex-direction:column;gap:4px">${Array.isArray(a.audio_speech_text_formatted)&&a.audio_speech_text_formatted.length ? a.audio_speech_text_formatted.map(p=>`<div><b style="color:${p.type==="manager"?"var(--blue)":"var(--coral)"}">${p.type==="manager"?"Менеджер":"Клиент"}:</b> ${esc(p.text)}</div>`).join("") : esc(a.audio_speech_text)}</div></details>`).join("")}</div>`; }).join("")}</div>`:`<div class="muted small">Истории контактов нет</div>`}
+      ${msgs.length?`<div class="field" style="margin-top:8px">Переписка (${msgs.length})${msgs.slice(0,15).map(m=>`<div class="card" style="padding:8px 10px;margin-top:6px;${m.direction==="out"?"background:var(--blue-soft);border:0":""}"><div class="small muted">${esc(m.ch)} · ${m.direction==="out"?"мы":"клиент"} · ${esc((m.created_at||"").slice(0,16))}</div><div class="small" style="white-space:pre-wrap">${esc(short(m.text||(m.has_attachment?"[вложение]":""), 400))}</div></div>`).join("")}</div>`:""}`;
+    box.querySelectorAll("[data-cp]").forEach(b => b.onclick = () => copyText(b.dataset.cp, b));
+  } catch(e) { box.innerHTML = `<div class="banner err"><div>${esc(errText(CRM, e))}</div></div>`; }
+}
+
+/* ================= my day ================= */
+function renderMyDay(){
+  const t = todayISO(), me = S.me.id;
+  const el = $("#mdBody");
+  if (!me) { el.innerHTML = `<div class="banner warn"><div>Чтобы видеть свой день, откройте страницу на claude.ai под своим аккаунтом организации.</div></div>`; $("#mdKpis").innerHTML=""; return; }
+  const byId = Object.fromEntries(S.leads.map(l=>[l.id,l]));
+  const mine = Object.entries(S.leadState).filter(([id,s])=>s.owner===me && !["Продано","Не актуально"].includes(s.mark));
+  const overdue = mine.filter(([id,s])=>s.next && s.next<t), today = mine.filter(([id,s])=>s.next===t);
+  const myTasks = S.tasks.filter(x=>x.assignee===me && x.status!=="done");
+  const tOver = myTasks.filter(x=>x.due && x.due<t), tToday = myTasks.filter(x=>x.due===t);
+  const logs = myLogs().filter(x=>x.by===me), todayLogs = logs.filter(x=>isToday(x.t)), reached = todayLogs.filter(x=>x.r!=="no_answer");
+  const month = t.slice(0,7), soldM = logs.filter(x=>x.r==="sold" && x.t.slice(0,7)===month).length;
+  const myItems = S.lists.flatMap(L=>Object.entries(L.items||{}).filter(([k,v])=>v.assignee===me).map(([k,v])=>({L,k,v})));
+  const openItems = myItems.filter(x=>["new","no_answer","callback"].includes(x.v.status||"new"));
+  const fresh = S.leads.filter(l=>l.priority!=null && l.contacts===0 && !leadSt(l.id).owner && !(leadSt(l.id).log||[]).length).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,15);
+  $("#cntMyDay").textContent = (overdue.length+today.length+tOver.length+tToday.length) || "";
+  kpis($("#mdKpis"), [
+    ["Звонков сегодня", todayLogs.length, `дозвонились ${reached.length} · ${pct(reached.length, todayLogs.length)}`, "coral"],
+    ["Нужно позвонить", overdue.length+today.length, `просрочено ${overdue.length}`, overdue.length?"red":"blue"],
+    ["Мои задачи", myTasks.length, `просрочено ${tOver.length}`, "violet"],
+    ["В моих списках", openItems.length, `из ${myItems.length} контактов`, "sun"],
+    ["Продано за месяц", soldM, "по результатам звонков", "mint"],
+  ]);
+  const leadRow = ([id,s]) => { const l = byId[id]; return `<li data-lead="${esc(id)}"><span class="tag ${s.next<t?"t-red":"t-coral"}">${s.next<t?dmy(s.next):"сегодня"}</span><span><b>${esc(l?.name||"Лид "+id)}</b> <span class="muted small">${esc(CN[l?.country]||"")}</span></span><span class="muted small" style="margin-left:auto">${esc(short(s.note||l?.comment||"",50))}</span></li>`; };
+  const taskRow = x => `<li data-task="${esc(x.id)}"><span class="tag ${x.due<t?"t-red":"t-violet"}">${x.due<t?dmy(x.due):"сегодня"}</span><span>${esc(x.title)}</span></li>`;
+  const lists = by(openItems, x=>x.L.id);
+  el.innerHTML = `<div class="grid cols2">
+    <div class="card today"><h3>Позвонить <small>${overdue.length+today.length}</small></h3>${overdue.length+today.length?`<ul>${[...overdue.sort((a,b)=>a[1].next.localeCompare(b[1].next)),...today].map(leadRow).join("")}</ul>`:`<div class="empty">Звонков на сегодня нет. Возьмите новых лидов справа или откройте список прозвона.</div>`}</div>
+    <div class="card today"><h3>Новые лиды без звонка <small>никто не взял</small></h3>${fresh.length?`<ul>${fresh.map(l=>`<li data-lead="${esc(l.id)}"><span class="tag t-coral">${dmy(l.date)}</span><span><b>${esc(l.name)}</b> <span class="muted small">${esc(CN[l.country]||"")} · ${esc(l.branchName)}</span></span><button class="btn sm" data-take="${esc(l.id)}" style="margin-left:auto">Взять</button></li>`).join("")}</ul>`:`<div class="empty">Все новые лиды разобраны.</div>`}</div>
+    <div class="card today"><h3>Мои задачи <small>${myTasks.length}</small></h3>${tOver.length+tToday.length?`<ul>${[...tOver,...tToday].map(taskRow).join("")}</ul>`:`<div class="empty">На сегодня задач нет.</div>`}<a href="#tasks" class="small">Все задачи →</a></div>
+    <div class="card"><h3>Мои списки прозвона</h3>${Object.keys(lists).length?Object.entries(lists).map(([lid,arr])=>{ const L=arr[0].L; const all=myItems.filter(x=>x.L.id===lid).length; return `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)"><div style="flex:1"><b>${esc(L.name)}</b><div class="small muted">осталось ${arr.length} из ${all}</div></div><button class="btn sm" data-openlist="${esc(lid)}">Открыть</button></div>`; }).join(""):`<div class="empty">Вам пока не назначены списки прозвона.</div>`}</div>
+  </div>`;
+}
+$("#mdBody").addEventListener("click", async e => {
+  const tk = e.target.closest("[data-take]"); if (tk) { e.stopPropagation(); await saveLead(tk.dataset.take, {owner:S.me.id, next:todayISO()}); return; }
+  const ol = e.target.closest("[data-openlist]"); if (ol) { LS.cur = ol.dataset.openlist; LS.mine = true; location.hash = "#lists"; return; }
+  const li = e.target.closest("li[data-lead]"); if (li) return openLead(li.dataset.lead);
+  const lt = e.target.closest("li[data-task]"); if (lt) return openTask(lt.dataset.task);
+});
+
+/* ================= call lists ================= */
+const LS = {cur:null, mine:false, st:""};
+const LSTAT = [["new","Новый",""],["no_answer","Недозвон","t-sun"],["callback","Перезвонить","t-blue"],["interest","Интерес","t-violet"],["sold","Продано","t-mint"],["reject","Отказ","t-red"]];
+const LSTAT_N = Object.fromEntries(LSTAT.map(x=>[x[0],x]));
+const LSTAT_TO_RES = {no_answer:"no_answer", callback:"callback", interest:"thinking", sold:"sold", reject:"reject"};
+const PRESETS = [
+  {k:"warm", label:"Лиды: думают и ждут звонка", kind:"lead", f:l=>["result_think","wait_call"].includes(l.statusRaw)},
+  {k:"noanswer", label:"Лиды: недозвоны", kind:"lead", f:l=>l.statusRaw==="result_no_answer"},
+  {k:"later", label:"Лиды: просили на следующий сезон", kind:"lead", f:l=>leadSt(l.id).mark==="На след. сезон" || LATER.test(l.comment+" "+(leadSt(l.id).note||""))},
+  {k:"leads_all", label:"Лиды: все, кому можно продать", kind:"lead", f:l=>true},
+  {k:"trav_lost", label:"Ездили в 2025, не купили в 2026", kind:"person", f:p=>p.years.includes("2025") && !p.years.includes("2026")},
+  {k:"trav_summer", label:"Ездили летом 2026 → предложить зиму", kind:"person", f:p=>p.trips.some(t=>t.year==="2026" && (/Лето/.test(t.season) || ["04","05","06","07"].includes(t.date.slice(5,7))))},
+  {k:"trav_rep", label:"Повторные путешественники", kind:"person", f:p=>p.nTrips>1},
+  {k:"trav_all", label:"Все путешественники", kind:"person", f:p=>true},
+];
+function presetItems(pk, country, ageMin, ageMax, excl){
+  const P = PRESETS.find(x=>x.k===pk); if (!P) return [];
+  if (P.kind==="lead") return S.leads.filter(l=>l.priority!=null && P.f(l) && (!country||l.country===country) && (!excl || !["Продано","Не актуально"].includes(leadSt(l.id).mark))).map(l=>({kind:"lead", ref:l.id}));
+  return S.people.filter(p=>P.f(p) && (!country||p.countries.includes(country)) && (!ageMin||(+p.age||0)>=ageMin) && (!ageMax||(+p.age||99)<=ageMax)).map(p=>({kind:"person", ref:p.key}));
+}
+const itemInfo = it => {
+  if (it.kind==="lead") { const l = S.leads.find(x=>x.id===it.ref); return l ? {title:l.name, sub:`${CN[l.country]||""} · ${l.status} · ${dmy(l.date)}`, open:()=>openLead(l.id)} : {title:"Лид "+it.ref, sub:"нет в загруженном периоде", open:null}; }
+  const p = S.people.find(x=>x.key===it.ref); return p ? {title:p.child, sub:`${p.customer} · ${p.trips.map(t=>CN[t.country]+" ’"+t.year.slice(2)).join(" → ")}`, open:()=>openPerson(p.key)} : {title:"Путешественник", sub:S.src.history.st==="ok"?"не найден":"загрузка истории…", open:null};
+};
+function renderLists(){
+  const me = S.me.id;
+  if (S.lists.some(L=>Object.values(L.items||{}).some(v=>v.kind==="person")) && S.src.history.st==="idle" && S.mcp && location.hash==="#lists") loadHistory(false).catch(e=>{S.src.history={st:"err",e}}).then(renderAll);
+  $("#lsCards").innerHTML = S.lists.length ? S.lists.slice().sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).map(L=>{ const its = Object.values(L.items||{}); const done = its.filter(v=>(v.status||"new")!=="new").length, sold = its.filter(v=>v.status==="sold").length; const ass = uniq(its.map(v=>v.assignee));
+    return `<button class="rcard" data-list="${esc(L.id)}" style="${LS.cur===L.id?"border-color:var(--coral)":""}"><div style="display:flex;gap:8px"><span class="nm" style="flex:1">${esc(L.name)}</span><span class="badge" style="background:var(--coral-soft);color:#d63d1e">${its.length}</span></div>
+      <div class="small muted">${esc(PRESETS.find(p=>p.k===L.preset)?.label||"")}${L.country?" · "+esc(CN[L.country]):""} · ${dmy(L.createdAt)}</div>
+      <div class="bars" style="--c1:var(--coral)"><div class="row" style="grid-template-columns:minmax(0,1fr) auto"><div class="track"><div class="f1" style="width:${its.length?done/its.length*100:0}%"></div></div><div class="n">${done}/${its.length} · ${sold} прод.</div></div></div>
+      <div class="meta" style="display:flex;gap:6px;flex-wrap:wrap">${ass.map(whoHtml).join("")}</div></button>`; }).join("") : `<div class="empty">Списков пока нет. Нажмите «Новый список», выберите, кого обзванивать, и раздайте менеджерам.</div>`;
+  const L = S.lists.find(x=>x.id===LS.cur);
+  if (!L) { $("#lsDetail").innerHTML = ""; return; }
+  const entries = Object.entries(L.items||{}).filter(([k,v]) => (!LS.mine || v.assignee===me) && (!LS.st || (v.status||"new")===LS.st));
+  const canDel = me && (L.createdBy===me || S.isAdmin);
+  $("#lsDetail").innerHTML = `<div class="card" style="margin-top:14px"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">${esc(L.name)}</h3>
+      <div class="chips"><button class="chip ${!LS.mine?"on":""}" data-lsm="0">Все</button><button class="chip ${LS.mine?"on":""}" data-lsm="1">Мои</button></div>
+      <select id="lsSt"><option value="">Статус: все</option>${LSTAT.map(s=>`<option value="${s[0]}" ${LS.st===s[0]?"selected":""}>${s[1]}</option>`).join("")}</select>
+      <button class="btn sm" id="lsCsv">Скопировать список</button>${canDel?`<button class="btn sm" id="lsDel" style="color:var(--red)">Удалить список</button>`:""}</div><div id="lsConfirm"></div>
+    <div class="tbl" style="margin-top:10px;border:0"><table><thead><tr><th>Контакт</th><th>Ответственный</th><th>Статус</th><th>Изменено</th></tr></thead><tbody>${entries.map(([k,v])=>{ const inf = itemInfo(v); const st = LSTAT_N[v.status||"new"];
+      return `<tr data-item="${esc(k)}"><td><b>${esc(inf.title)}</b><div class="small muted">${esc(short(inf.sub,90))}</div></td><td>${whoHtml(v.assignee)}</td>
+        <td><div class="chips">${LSTAT.slice(1).map(s=>`<button class="chip ${v.status===s[0]?"on":""}" data-set="${s[0]}">${s[1]}</button>`).join("")}</div></td>
+        <td class="small muted">${v.at?new Date(v.at).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}${v.by?` <span data-uid="${esc(v.by)}"></span>`:""}</td></tr>`; }).join("") || `<tr><td colspan="4" class="empty">Нет контактов по фильтру</td></tr>`}</tbody></table></div></div>`;
+  $("#lsSt").onchange = e => { LS.st = e.target.value; renderLists(); paintPeople($("#lsDetail")); };
+  $("#lsCsv").onclick = e => copyText(entries.map(([k,v])=>{ const i=itemInfo(v); return i.title+"\t"+i.sub+"\t"+(LSTAT_N[v.status||"new"][1]); }).join("\n"), e.target);
+  $("#lsDel") && ($("#lsDel").onclick = () => { $("#lsConfirm").innerHTML = `<div class="banner err" style="margin-top:10px"><div>Удалить список «${esc(L.name)}» вместе с отметками?</div><button class="btn sm" id="lsDelYes">Удалить</button></div>`;
+    $("#lsDelYes").onclick = async () => { try { await S.db.doc("lists/"+L.id).delete(); LS.cur=null; toast("Список удалён"); } catch(e){ toast("Не удалось удалить"); } }; });
+}
+$("#lsCards").addEventListener("click", e=>{ const c=e.target.closest("[data-list]"); if(!c) return; LS.cur = LS.cur===c.dataset.list ? null : c.dataset.list; renderLists(); paintPeople($("#v-lists")); });
+$("#lsDetail").addEventListener("click", async e=>{
+  const m = e.target.closest("[data-lsm]"); if (m) { LS.mine = m.dataset.lsm==="1"; renderLists(); paintPeople($("#lsDetail")); return; }
+  const tr = e.target.closest("tr[data-item]"); if (!tr) return; const L = S.lists.find(x=>x.id===LS.cur); const key = tr.dataset.item; const v = L?.items?.[key]; if (!v) return;
+  const set = e.target.closest("[data-set]");
+  if (set) { const st = set.dataset.set === v.status ? "new" : set.dataset.set;
+    try { await S.db.doc("lists/"+L.id).update({items:{[key]:{status:st, by:S.me.id||null, at:new Date().toISOString()}}}); } catch(err) { toast("Не сохранилось"); return; }
+    if (v.kind==="lead" && LSTAT_TO_RES[st]) await logCall(v.ref, LSTAT_TO_RES[st], {toCrm:false});
+    return; }
+  itemInfo(v).open?.();
+});
+$("#btnNewList").onclick = () => openListForm();
+function openListForm(){
+  drawerFor = "listform"; let assignees = S.me.id ? [S.me.id] : [];
+  const countries = uniq([...S.leads.map(l=>l.country), ...S.people.flatMap(p=>p.countries)]).filter(c=>!["unknown","general","webinar"].includes(c));
+  $("#panel").innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px"><h3 style="flex:1">Новый список прозвона</h3><button class="btn sm" data-close>Закрыть</button></div>
+    <div class="field"><label for="nlPreset">Кого звоним</label><select id="nlPreset">${PRESETS.map(p=>`<option value="${p.k}">${esc(p.label)}</option>`).join("")}</select></div>
+    <div class="row2"><div class="field"><label for="nlCountry">Страна</label><select id="nlCountry"><option value="">Любая</option>${countries.map(c=>`<option value="${c}">${esc(CN[c]||c)}</option>`).join("")}</select></div>
+      <div class="field"><label>Возраст ребёнка (путешественники)</label><div style="display:flex;gap:6px"><input id="nlAgeMin" type="number" min="5" max="18" placeholder="от" style="width:50%"><input id="nlAgeMax" type="number" min="5" max="18" placeholder="до" style="width:50%"></div></div></div>
+    <label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="nlExcl" checked> Не включать проданных и «не актуально»</label>
+    <div class="field"><label for="nlName">Название</label><input id="nlName"></div>
+    <div class="field">Раздать менеджерам (поровну)<div id="nlWho" style="display:flex;gap:6px;flex-wrap:wrap;min-height:28px"></div><input id="nlSearch" placeholder="Найти коллегу по имени" autocomplete="off"><div class="hits" id="nlHits" hidden></div></div>
+    <div class="banner info" id="nlPreview" style="margin:0"></div>
+    <button class="btn coral" id="nlCreate">Создать список</button>`;
+  const upd = () => { const pk=$("#nlPreset").value, P=PRESETS.find(p=>p.k===pk);
+    if (P.kind==="person" && S.src.history.st==="idle" && S.mcp) { loadHistory(false).catch(e=>{S.src.history={st:"err",e}}).then(()=>{ renderAll(); upd(); }); }
+    const n = presetItems(pk, $("#nlCountry").value, +$("#nlAgeMin").value||0, +$("#nlAgeMax").value||0, $("#nlExcl").checked).length;
+    if (!$("#nlName").dataset.touched) $("#nlName").value = P.label + ($("#nlCountry").value?" · "+CN[$("#nlCountry").value]:"") + " · " + dmy(todayISO());
+    $("#nlPreview").innerHTML = P.kind==="person" && S.src.history.st!=="ok" && S.src.history.st!=="partial" ? `<div>Загружаю историю поездок…</div>` : `<div><b>${n}</b> контактов${assignees.length?` · по ${Math.ceil(n/Math.max(1,assignees.length))} на менеджера`:""}${n>600?" · в список попадут первые 600":""}</div>`; };
+  const drawWho = () => { $("#nlWho").innerHTML = assignees.map(id=>`<span class="tag" style="display:inline-flex;gap:4px;align-items:center">${whoHtml(id)}<button class="btn sm" data-rm="${esc(id)}" style="padding:0 6px">×</button></span>`).join("") || `<span class="muted small">никто не выбран — список будет без ответственных</span>`; paintPeople($("#nlWho")); upd(); };
+  $("#nlWho").onclick = e => { const b=e.target.closest("[data-rm]"); if (b) { assignees = assignees.filter(x=>x!==b.dataset.rm); drawWho(); } };
+  const search = async q => { if (!S.user) return; const hits = await S.user.search(q); const box=$("#nlHits"); box.hidden=!hits.length; box.innerHTML="";
+    hits.forEach(h=>{ const b=document.createElement("button"); b.type="button"; const img=document.createElement("img"); img.src=h.avatarUrl; img.style.cssText="width:20px;height:20px;border-radius:50%"; const sp=document.createElement("span"); sp.textContent=h.isMe?"Я":h.name; b.append(img,sp); b.onclick=()=>{ if(!assignees.includes(h.id)) assignees.push(h.id); box.hidden=true; $("#nlSearch").value=""; drawWho(); }; box.append(b); }); };
+  $("#nlSearch").onfocus = e => search(e.target.value); $("#nlSearch").oninput = e => search(e.target.value);
+  ["#nlPreset","#nlCountry","#nlAgeMin","#nlAgeMax","#nlExcl"].forEach(s=>$(s).addEventListener("input", upd));
+  $("#nlName").addEventListener("input", e => e.target.dataset.touched = "1");
+  $("#nlCreate").onclick = async () => {
+    if (!S.db) { toast("Общая база недоступна"); return; }
+    const pk=$("#nlPreset").value; const its = presetItems(pk, $("#nlCountry").value, +$("#nlAgeMin").value||0, +$("#nlAgeMax").value||0, $("#nlExcl").checked).slice(0,600);
+    if (!its.length) { toast("По этим условиям никого нет"); return; }
+    const items = {}; its.forEach((it,i)=>{ items[(it.kind==="lead"?"L-":"P-")+it.ref.replace(/[^A-Za-z0-9_:-]/g,"_")] = {kind:it.kind, ref:it.ref, status:"new", assignee: assignees.length ? assignees[i%assignees.length] : null}; });
+    const ref = S.db.collection("lists").doc();
+    try { await ref.set({name:$("#nlName").value.trim()||"Список", preset:pk, country:$("#nlCountry").value||null, createdBy:S.me.id||null, createdAt:new Date().toISOString(), items}); LS.cur = ref.id; closeDrawer(); location.hash="#lists"; renderLists(); paintPeople($("#v-lists")); toast("Список создан"); }
+    catch(e){ toast(e?.code==="quota_exceeded"?"Достигнут лимит базы":"Не удалось создать список"); }
+  };
+  $("#drawer").hidden = false; drawWho();
+}
+
+/* ================= alerts ================= */
+function alerts(){
+  const t = todayISO(), now = Date.now();
+  const A = [];
+  const noCall = S.leads.filter(l=>l.priority!=null && l.contacts===0 && !(leadSt(l.id).log||[]).length && now - new Date(l.createdAt).getTime() > 2*3600e3);
+  if (noCall.length) A.push({lvl:"red", n:noCall.length, t:"лидов без звонка дольше 2 часов", go:()=>{CF.chip="new"; location.hash="#calls";}});
+  const stale = S.leads.filter(l=>l.statusRaw==="wait_call" && l.processed && (now-new Date(l.processed).getTime())>3*864e5 && !(leadSt(l.id).next>=t));
+  if (stale.length) A.push({lvl:"sun", n:stale.length, t:"в «Ждёт звонка» больше 3 дней без назначенного звонка", go:()=>{CF.chip="stale"; location.hash="#calls";}});
+  const over = Object.values(S.leadState).filter(s=>s.next && s.next<t && !["Продано","Не актуально"].includes(s.mark));
+  if (over.length) A.push({lvl:"red", n:over.length, t:"просроченных перезвонов", go:()=>{CF.chip="overdue"; location.hash="#calls";}});
+  const hot = Object.values(S.leadState).filter(s=>s.mark==="Горячий" && !s.owner);
+  if (hot.length) A.push({lvl:"coral", n:hot.length, t:"горячих клиентов без ответственного", go:()=>{CF.chip="hot"; location.hash="#calls";}});
+  const unpaid = S.contracts.filter(c=>c.payment==="Не оплачен" && (now-new Date(c.date).getTime())>3*864e5);
+  if (unpaid.length) A.push({lvl:"sun", n:unpaid.length, t:"договоров не оплачено дольше 3 дней", go:()=>{ location.hash="#sales"; setTimeout(()=>{ $("#sPayF").value="Не оплачен"; renderSales(); },0); }});
+  const tOver = S.tasks.filter(x=>x.status!=="done" && x.due && x.due<t);
+  if (tOver.length) A.push({lvl:"violet", n:tOver.length, t:"просроченных задач", go:()=>{TF.chip="late"; location.hash="#tasks";}});
+  return A;
+}
+function renderAlerts(){
+  const A = alerts(); S._alerts = A;
+  $("#alertsBox").innerHTML = A.length ? `<div class="card" style="margin-bottom:14px;border-color:#ffd2c8"><h3>Требует внимания</h3><div style="display:flex;flex-wrap:wrap;gap:8px">${A.map((a,i)=>`<button class="btn" data-alert="${i}" style="border-color:transparent;background:var(--${a.lvl==="red"?"red":a.lvl==="sun"?"sun":a.lvl==="violet"?"violet":"coral"}-soft)"><b style="font:700 15px var(--f-display)">${a.n}</b> ${esc(a.t)}</button>`).join("")}</div></div>` : "";
+}
+$("#alertsBox").addEventListener("click", e=>{ const b=e.target.closest("[data-alert]"); if (b) S._alerts[+b.dataset.alert]?.go(); });
+
+/* ================= team ================= */
+async function loadPerf(refresh){
+  if (!S.mcp) return; S.perf = {st:"load", rows:[]}; renderTeam();
+  const from=$("#dFrom").value, to=$("#dTo").value, rows=[];
+  for (const b of ["stt_ukr","kiev"]) {
+    try { const p = payload(await call(CRM, "crm_manager_performance", {cityAlias:b, dateFrom:from, dateTo:to}, refresh)); (p?.data||[]).filter(r=>r.fio_user).forEach(r=>rows.push({...r, branch:b})); }
+    catch(e) { S.perf.err = e; }
+  }
+  S.perf = {st:"ok", rows, err:S.perf.err}; renderTeam(); paintPeople($("#v-team"));
+}
+function renderTeam(){
+  if (location.hash==="#team" && !S.perf && S.mcp) { loadPerf(false); return; }
+  const t = todayISO(), from=$("#dFrom").value, to=$("#dTo").value;
+  const logs = myLogs().filter(x=>x.by && x.t.slice(0,10)>=from && x.t.slice(0,10)<=to);
+  const users = uniq([...logs.map(x=>x.by), ...Object.values(S.leadState).map(s=>s.owner), ...S.tasks.map(x=>x.assignee)]);
+  const rows = users.map(u=>{ const L = logs.filter(x=>x.by===u); const own = Object.values(S.leadState).filter(s=>s.owner===u); const tk = S.tasks.filter(x=>x.assignee===u && x.status!=="done");
+    return {u, calls:L.length, reached:L.filter(x=>x.r!=="no_answer").length, today:L.filter(x=>isToday(x.t)).length, sold:L.filter(x=>x.r==="sold").length, reject:L.filter(x=>x.r==="reject").length, own:own.filter(s=>!["Продано","Не актуально"].includes(s.mark)).length, over:own.filter(s=>s.next&&s.next<t&&!["Продано","Не актуально"].includes(s.mark)).length, tasks:tk.length, tOver:tk.filter(x=>x.due&&x.due<t).length}; }).sort((a,b)=>b.calls-a.calls);
+  $("#tmOurs").innerHTML = `<thead><tr><th>Менеджер</th><th class="num">Звонков</th><th class="num">Сегодня</th><th class="num">Дозвон</th><th class="num">Продано</th><th class="num">Отказы</th><th class="num">Лидов в работе</th><th class="num">Просрочено звонков</th><th class="num">Задачи / просрочено</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${whoHtml(r.u)}</td><td class="num">${r.calls}</td><td class="num">${r.today}</td><td class="num">${pct(r.reached,r.calls)}</td><td class="num">${r.sold?`<span class="tag t-mint">${r.sold}</span>`:0}</td><td class="num">${r.reject}</td><td class="num">${r.own}</td><td class="num">${r.over?`<span class="tag t-red">${r.over}</span>`:0}</td><td class="num">${r.tasks} / ${r.tOver?`<span class="tag t-red">${r.tOver}</span>`:0}</td></tr>`).join("") || `<tr><td colspan="9" class="empty">Пока никто не записывал результаты звонков в этой CRM</td></tr>`}</tbody>`;
+  const vlMgr = new Set([...S.contracts, ...S.history].map(c=>c.manager));
+  const P = S.perf;
+  $("#tmCrm").innerHTML = !P || P.st==="load" ? `<tbody><tr><td class="empty">Загружаю статистику звонков из CRM…</td></tr></tbody>` :
+    `<thead><tr><th>Менеджер</th><th>CRM</th><th class="num">Исходящих</th><th class="num">Недозвон</th><th class="num">Отказы</th><th class="num">Договоры</th><th class="num">Конверсия</th><th class="num">Ожидание ответа, с</th><th class="num">На линии</th></tr></thead><tbody>${P.rows.filter(r=>r.branch==="stt_ukr" || vlMgr.has(r.fio_user) || [...vlMgr].some(m=>m && r.fio_user && m.split(" ")[0]===r.fio_user.split(" ")[0])).sort((a,b)=>(b.count_out_call||0)-(a.count_out_call||0)).map(r=>`<tr><td><b>${esc(r.fio_user)}</b></td><td class="small">${r.branch==="stt_ukr"?"Step2Travel":"Киев (все продукты)"}</td><td class="num">${fmt(r.count_out_call)}</td><td class="num">${pct(r.count_no_answer||0, r.count_out_call||0)}</td><td class="num">${fmt(r.count_result_rejection||0)}</td><td class="num">${fmt(r.count_contract||0)}</td><td class="num">${r.conversion!=null?r.conversion+"%":"—"}</td><td class="num">${r.middle_time_wait_call_answer??"—"}</td><td class="num">${esc(r.time_on_line||"—")}</td></tr>`).join("") || `<tr><td colspan="9" class="empty">${P.err?esc(errText(CRM,P.err)):"Нет данных за период"}</td></tr>`}</tbody>`;
+  const C = S.contracts.filter(inPeriod); const mg = by(C, c=>c.manager+"|"+c.branchName);
+  $("#tmSales").innerHTML = `<thead><tr><th>Менеджер</th><th>Филиал</th><th class="num">Договоров</th><th class="num">Оплачено</th><th class="num">Выручка</th><th class="num">Средний чек</th></tr></thead><tbody>${Object.entries(mg).map(([k,v])=>{ const [m,b]=k.split("|"); const p=v.filter(c=>c.paid); const rev=p.reduce((s,c)=>s+c.sum,0); return {m,b,n:v.length,p:p.length,rev}; }).sort((a,b)=>b.rev-a.rev).map(r=>`<tr><td><b>${esc(r.m)}</b></td><td>${esc(r.b)}</td><td class="num">${r.n}</td><td class="num">${r.p}</td><td class="num">${uah(r.rev)}</td><td class="num">${r.p?uah(r.rev/r.p):"—"}</td></tr>`).join("")}</tbody>`;
+}
+
+/* ================= plan / fact ================= */
+const PL = {m: todayISO().slice(0,7)};
+function renderPlan(){
+  if (location.hash==="#plan" && S.src.history.st==="idle" && S.mcp) loadHistory(false).catch(e=>{S.src.history={st:"err",e}}).then(renderAll);
+  const months = []; { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()+2); for (let i=0;i<16;i++){ months.push(d.toISOString().slice(0,7)); d.setMonth(d.getMonth()-1); } }
+  $("#plMonth").innerHTML = months.map(m=>`<option value="${m}" ${m===PL.m?"selected":""}>${["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"][+m.slice(5)-1]} ${m.slice(0,4)}</option>`).join("");
+  const plan = S.plans[PL.m] || {};
+  const src = (S.src.history.st==="ok"||S.src.history.st==="partial") ? S.history : S.contracts;
+  const C = src.filter(c=>c.date.slice(0,7)===PL.m && (c.status==="1"||c.status==="0"));
+  const paid = C.filter(c=>c.paid), rev = paid.reduce((s,c)=>s+c.sum,0);
+  const t = todayISO(), dim = new Date(+PL.m.slice(0,4), +PL.m.slice(5), 0).getDate();
+  const isCur = t.slice(0,7)===PL.m, day = isCur ? +t.slice(8) : dim, past = PL.m < t.slice(0,7);
+  const fc = isCur ? C.length/day*dim : C.length, frev = isCur ? rev/day*dim : rev;
+  kpis($("#plKpis"), [
+    ["Договоры: факт / план", `${C.length} / ${plan.contracts||"—"}`, plan.contracts?`выполнено ${pct(C.length, plan.contracts)}`:"план не задан", "coral"],
+    ["Выручка: факт", uah(rev), plan.revenue?`план ${uah(plan.revenue)} · ${pct(rev, plan.revenue)}`:"план не задан", "mint"],
+    ["Прогноз договоров", isCur?Math.round(fc):C.length, isCur?`при текущем темпе к ${dim}.${PL.m.slice(5)}`:past?"месяц закрыт":"месяц не начался", "blue"],
+    ["Прогноз выручки", uah(frev), plan.revenue&&isCur?`${frev>=plan.revenue?"план будет выполнен":"не хватит "+uah(plan.revenue-frev)}`:"", "sun"],
+  ]);
+  // cumulative chart
+  const W=560,H=200,pl=40,pr=16,pt=12,pb=26, iw=W-pl-pr, ih=H-pt-pb; const lastDay = isCur?day:dim;
+  const cum = []; let acc=0; for (let d=1; d<=dim; d++){ const ds = PL.m+"-"+String(d).padStart(2,"0"); acc += C.filter(c=>c.date===ds).length; cum.push(acc); }
+  const maxY = Math.max(1, plan.contracts||0, acc, Math.round(fc)); const X = d => pl + iw*(d-1)/Math.max(1,dim-1), Y = v => pt+ih-ih*v/maxY;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Договоры нарастающим итогом">`;
+  [0,.5,1].forEach(f=>{ const v=Math.round(maxY*f); s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e6e9f2"/><text x="${pl-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`; });
+  if (plan.contracts) s += `<line x1="${X(1)}" y1="${Y(0)}" x2="${X(dim)}" y2="${Y(plan.contracts)}" stroke="#7c5cff" stroke-dasharray="5 4" stroke-width="2"/><text x="${X(dim)}" y="${Y(plan.contracts)-6}" text-anchor="end" style="fill:#7c5cff;font-weight:600">план ${plan.contracts}</text>`;
+  s += `<polyline points="${cum.slice(0,lastDay).map((v,i)=>`${X(i+1)},${Y(v)}`).join(" ")}" fill="none" stroke="#ff5b3a" stroke-width="2.5"/>`;
+  if (isCur) s += `<line x1="${X(day)}" y1="${Y(acc)}" x2="${X(dim)}" y2="${Y(fc)}" stroke="#ff5b3a" stroke-dasharray="3 4" stroke-width="2" opacity=".6"/>`;
+  [1,8,15,22,dim].forEach(d=>s+=`<text x="${X(d)}" y="${H-8}" text-anchor="middle">${d}</text>`);
+  $("#plChart").innerHTML = s+`</svg><div class="legend" style="margin-top:6px"><span><i style="background:var(--coral)"></i>факт нарастающим итогом${isCur?", пунктир — прогноз":""}</span><span><i style="background:var(--violet)"></i>план</span></div>`;
+  const byC = by(C, c=>c.country), keys = uniq([...Object.keys(byC), ...Object.keys(plan.byCountry||{})]);
+  $("#plCountry").innerHTML = `<thead><tr><th>Страна</th><th class="num">План</th><th class="num">Факт</th><th class="num">Оплачено</th><th>Выполнение</th></tr></thead><tbody>${keys.map(k=>{ const f=(byC[k]||[]).length, p=+(plan.byCountry?.[k]||0); return `<tr><td>${esc(CN[k]||k)}</td><td class="num">${p||"—"}</td><td class="num">${f}</td><td class="num">${(byC[k]||[]).filter(c=>c.paid).length}</td><td style="min-width:140px"><div class="bars" style="--c1:${p&&f>=p?"var(--mint)":"var(--coral)"}"><div class="row" style="grid-template-columns:minmax(0,1fr) 50px;margin:0"><div class="track"><div class="f1" style="width:${p?Math.min(100,f/p*100):0}%"></div></div><div class="n">${p?pct(f,p):""}</div></div></div></td></tr>`; }).join("") || `<tr><td colspan="5" class="empty">${S.src.history.st==="load"?"Загружаю договоры…":"Нет договоров за месяц"}</td></tr>`}</tbody>`;
+  const mg = by(C, c=>c.manager); bars($("#plMgr"), Object.entries(mg).map(([k,v])=>[k||"—", v.length, v.filter(c=>c.paid).length]).sort((a,b)=>b[1]-a[1]));
+  const ed = $("#plEdit");
+  if (!S.isAdmin) { ed.innerHTML = `<div class="small muted">План задаёт руководитель (нужны права редактора страницы).</div>`; return; }
+  const ctry = uniq([...COUNTRIES.map(c=>c[0]).filter(c=>!["general","webinar","kyiv_city"].includes(c))]);
+  ed.innerHTML = `<div class="row2"><div class="field"><label for="plC">План договоров</label><input id="plC" type="number" min="0" value="${esc(plan.contracts||"")}"></div><div class="field"><label for="plR">План выручки, ₴</label><input id="plR" type="number" min="0" step="1000" value="${esc(plan.revenue||"")}"></div></div>
+    <details style="margin-top:8px"><summary class="small" style="cursor:pointer">План по странам</summary><div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px">${ctry.map(c=>`<label class="field">${esc(CN[c])}<input type="number" min="0" data-pc="${c}" value="${esc(plan.byCountry?.[c]||"")}"></label>`).join("")}</div></details>
+    <button class="btn pri" id="plSave" style="margin-top:10px">Сохранить план</button>`;
+  $("#plSave").onclick = async () => { const byCountry = {}; ed.querySelectorAll("[data-pc]").forEach(i=>{ if (+i.value) byCountry[i.dataset.pc]=+i.value; });
+    try { await S.db.doc("plans/"+PL.m).set({contracts:+$("#plC").value||0, revenue:+$("#plR").value||0, byCountry, updatedBy:S.me.id||null, updatedAt:new Date().toISOString()}); toast("План сохранён"); } catch(e){ toast("Нет прав сохранить план"); } };
+}
+$("#plMonth").addEventListener("change", e=>{ PL.m = e.target.value; renderPlan(); });
+
+/* ================= templates ================= */
+function renderTemplates(){
+  const T = S.templates;
+  $("#tplList").innerHTML = T.length ? T.map(t=>`<div class="card"><div style="display:flex;gap:8px;align-items:center"><b style="flex:1">${esc(t.title)}</b>${t.country?`<span class="tag">${esc(CN[t.country]||t.country)}</span>`:`<span class="tag">любая страна</span>`}${S.isAdmin?`<button class="btn sm" data-tedit="${esc(t.id)}">Изменить</button>`:""}</div><div class="small" style="white-space:pre-wrap;margin-top:8px">${esc(t.text)}</div></div>`).join("")
+    : `<div class="empty">Шаблонов пока нет.${S.isAdmin?" Добавьте первый кнопкой «Новый шаблон».":""}</div>`;
+  $("#btnNewTpl").hidden = !S.isAdmin;
+}
+$("#tplList").addEventListener("click", e=>{ const b=e.target.closest("[data-tedit]"); if (b) openTpl(b.dataset.tedit); });
+$("#btnNewTpl").onclick = () => openTpl(null);
+function openTpl(id){
+  const t = id ? S.templates.find(x=>x.id===id) : {}; drawerFor = "tpl";
+  $("#panel").innerHTML = `<div style="display:flex;align-items:center;gap:10px"><h3 style="flex:1">${id?"Шаблон":"Новый шаблон"}</h3><button class="btn sm" data-close>Закрыть</button></div>
+    <div class="field"><label for="tpT">Название</label><input id="tpT" value="${esc(t.title||"")}"></div>
+    <div class="field"><label for="tpC">Страна</label><select id="tpC"><option value="">Любая</option>${COUNTRIES.map(c=>`<option value="${c[0]}" ${t.country===c[0]?"selected":""}>${esc(c[1])}</option>`).join("")}</select></div>
+    <div class="field"><label for="tpX">Текст</label><textarea id="tpX" style="min-height:180px">${esc(t.text||"")}</textarea></div>
+    <div class="small muted">Подстановки: {имя} — имя клиента, {страна}, {менеджер} — ваше имя.</div>
+    <div style="display:flex;gap:8px"><button class="btn pri" id="tpSave">Сохранить</button>${id?`<button class="btn" id="tpDel" style="color:var(--red)">Удалить</button>`:""}</div>`;
+  $("#tpSave").onclick = async () => { const body = {title:$("#tpT").value.trim(), country:$("#tpC").value||null, text:$("#tpX").value}; if (!body.title||!body.text.trim()) { toast("Заполните название и текст"); return; }
+    try { await (id ? S.db.doc("templates/"+id) : S.db.collection("templates").doc()).set(body); closeDrawer(); toast("Шаблон сохранён"); } catch(e){ toast("Нет прав изменять шаблоны"); } };
+  $("#tpDel") && ($("#tpDel").onclick = async () => { try { await S.db.doc("templates/"+id).delete(); closeDrawer(); toast("Шаблон удалён"); } catch(e){ toast("Нет прав"); } });
+  $("#drawer").hidden = false;
+}
+
+/* ================= campaign attribution ================= */
+function renderAttribution(){
+  const el = $("#mAttr"); const M = S.meta; if (!M) { el.innerHTML = ""; return; }
+  const rate = +S.settings.usdRate || 0;
+  const byCamp = by(S.leads.filter(l=>l.campaignId), l=>l.campaignId);
+  const rows = M.camps.filter(c=>c.objective==="OUTCOME_LEADS").map(c=>{ const L = byCamp[c.id]||[]; const tg = L.filter(l=>l.quality==="Целевой").length; const sales = L.filter(l=>l.sale); const paid = sales.filter(l=>l.sale.paid); const rev = paid.reduce((s,l)=>s+l.sale.sum,0);
+    return {c, n:L.length, tg, sales:sales.length, paid:paid.length, rev, romi: rate && c.spend ? (rev - c.spend*rate)/(c.spend*rate) : null}; }).filter(r=>r.n||r.c.spend).sort((a,b)=>b.c.spend-a.c.spend);
+  const linked = Object.values(byCamp).flat().length;
+  el.innerHTML = `<div class="banner info" style="margin-top:14px"><div><b>Сквозная аналитика по кампаниям.</b> Лиды связаны с кампанией по utm_campaign (есть у ${linked} лидов, в основном из CRM Киева), а с договором — по карточке клиента в том же филиале. Курс для окупаемости: ${S.isAdmin?`<input id="usdRate" type="number" step="0.1" value="${esc(S.settings.usdRate||"")}" placeholder="грн за $" style="width:90px;border:1px solid var(--line);border-radius:8px;padding:3px 6px"> ₴ за $`:(rate?rate+" ₴ за $":"не задан (задаёт руководитель)")}</div></div>
+    <div class="tbl"><table><thead><tr><th>Кампания</th><th>Кабинет</th><th class="num">Расход</th><th class="num">Лиды Meta</th><th class="num">Лидов в CRM</th><th class="num">Целевые</th><th class="num">Договоры</th><th class="num">Оплачено</th><th class="num">Выручка</th><th class="num">Цена договора</th><th class="num">ROMI</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${esc(r.c.name)}</b><div class="small muted">${esc(CN[r.c.country]||"")} · ${esc((r.c.status||"").toLowerCase()==="active"?"активна":"на паузе")}</div></td><td class="small">${esc(r.c.account)}</td><td class="num">${money(r.c.spend)}</td><td class="num">${fmt(r.c.leads)}</td><td class="num">${r.n||"—"}</td><td class="num">${r.tg||"—"}</td><td class="num">${r.sales||"—"}</td><td class="num">${r.paid||"—"}</td><td class="num">${r.rev?uah(r.rev):"—"}</td><td class="num">${r.sales?money(r.c.spend/r.sales):"—"}</td><td class="num">${r.romi!=null&&r.rev?`<span class="tag ${r.romi>=0?"t-mint":"t-red"}">${Math.round(r.romi*100)}%</span>`:"—"}</td></tr>`).join("")}</tbody></table></div>`;
+  $("#usdRate") && ($("#usdRate").onchange = async e => { try { await S.db.doc("settings/main").set({...S.settings, usdRate:+e.target.value||0}); toast("Курс сохранён"); } catch(x){ toast("Нет прав"); } });
+}
+
 /* ================= boot ================= */
 route(); renderAll();
-$("#btnRefresh").onclick = () => { store.set("stt_period",{from:$("#dFrom").value}); loadAll(true); };
+$("#btnRefresh").onclick = () => { S.perf = null; store.set("stt_period",{from:$("#dFrom").value}); loadAll(true); };
 ["#dFrom","#dTo"].forEach(s=>$(s).addEventListener("change",()=>{ store.set("stt_period",{from:$("#dFrom").value}); loadAll(false); }));
 
 (async () => {
   const c = window.claude;
   const [mcp, db, user] = c && c.use ? await Promise.all([c.use("mcp"), c.use("db"), c.use("user")]) : [null,null,null];
   S.mcp = mcp; S.db = db; S.user = user;
-  if (user) { S.me = await user.me(); const w=$("#whoami"); if (S.me.id){ w.innerHTML=`<img src="" alt=""><span></span>`; w.querySelector("img").src=S.me.avatarUrl; w.querySelector("img").style.cssText="width:22px;height:22px;border-radius:50%"; w.querySelector("span").textContent=S.me.name||"Вы"; } }
+  if (user) { S.isAdmin = await user.canEdit(); S.me = await user.me(); const w=$("#whoami"); if (S.me.id){ w.innerHTML=`<img src="" alt=""><span></span>`; w.querySelector("img").src=S.me.avatarUrl; w.querySelector("img").style.cssText="width:22px;height:22px;border-radius:50%"; w.querySelector("span").textContent=S.me.name||"Вы"; } }
   if (db) {
     let timer = setTimeout(()=>{ if(!S.dbOk){ S.dbLate=true; renderStatus(); } }, 10000);
     db.collection("leads").onSnapshot(snap => { S.dbOk = true; clearTimeout(timer); const m={}; snap.docs.forEach(d=>m[d.id]=d.data()); S.leadState=m; renderAll(); if (drawerFor && drawerFor.startsWith("lead:")) { /* keep inputs; drawer reopens on demand */ } }, e => { S.dbOk=false; S.dbErr=true; renderStatus(); });
+    db.collection("lists").onSnapshot(snap => { S.lists = snap.docs.map(d=>({id:d.id, ...d.data()})); renderAll(); }, e => {});
+    db.collection("templates").onSnapshot(snap => { S.templates = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.title||"").localeCompare(b.title||"")); renderAll(); }, e => {});
+    db.collection("plans").onSnapshot(snap => { const m={}; snap.docs.forEach(d=>m[d.id]=d.data()); S.plans=m; renderAll(); }, e => {});
+    db.doc("settings/main").onSnapshot(d => { S.settings = d.exists ? d.data() : {}; renderAll(); }, e => {});
     db.collection("tasks").onSnapshot(snap => { S.dbOk = true; S.tasks = snap.docs.map(d=>({id:d.id, ...d.data()})); renderAll(); }, e => { S.dbOk=false; S.dbErr=true; renderStatus(); });
   }
   renderStatus();
