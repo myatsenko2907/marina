@@ -48,10 +48,15 @@ export const TASK_RULES = {
  * @returns {{asOf, month, gap, tasks: {id, prio, area, title, why, steps: string[], check: string, dueDate, due, impact?: string}[]} | null}
  */
 export function marketerTasks(data, branch, r, today = new Date()) {
-  const h = data.adsHealth?.[branch.id];
-  if (!h) return null;
-  const asOf = [h.fb?.asOf, h.google?.asOf].filter(Boolean).sort().at(-1);
-  if (!asOf || asOf.slice(0, 7) !== r.month) return { asOf, month: r.month, stale: true, tasks: [] };
+  // Данные кабинетов — только за этот месяц; без них задачи строятся по плану и заявкам CRM.
+  const raw = data.adsHealth?.[branch.id] || {};
+  const inMonth = (x) => x?.asOf && x.asOf.slice(0, 7) === r.month;
+  const h = { fb: inMonth(raw.fb) ? raw.fb : null, google: inMonth(raw.google) ? raw.google : null };
+  const crmRec = data.months?.[`${branch.id}|${r.month}`]?.facts?.branch;
+  const crmAsOf = [crmRec?.quality?.fetchedAt, crmRec?.outcomes?.fetchedAt].filter(Boolean).map((x) => String(x).slice(0, 10)).sort().at(-1) || null;
+  const asOf = [h.fb?.asOf, h.google?.asOf, crmAsOf && crmAsOf.slice(0, 7) === r.month ? crmAsOf : null].filter(Boolean).sort().at(-1);
+  if (!asOf) return { asOf: raw.fb?.asOf || raw.google?.asOf || crmAsOf, month: r.month, stale: true, tasks: [] };
+  const sources = { fb: !!h.fb, google: !!h.google };
 
   const S = data.settings;
   const ball = Object.fromEntries(S.leadTypes.map((t) => [t.id, t.ball]));
@@ -310,9 +315,9 @@ export function marketerTasks(data, branch, r, today = new Date()) {
     const planPaid = (r.sources || []).filter((x) => paidTypes.has(x.typeId)).reduce((s, x) => s + x.planBalls, 0);
     const planAll = (r.sources || []).reduce((s, x) => s + x.planBalls, 0) || 1;
     const paidShare = planPaid / planAll;
-    const fbCpb = fbCtx?.balls7 > 0 ? fbCtx.allSpend / fbCtx.balls7 : null;
+    const fbCpb = fbCtx?.balls7 > 0 ? fbCtx?.allSpend / fbCtx?.balls7 : null;
     const needSpend = fbCpb ? needPerDay * paidShare * fbCpb : null;
-    const curSpend = fbCtx ? fbCtx.allSpend / 7 : null;
+    const curSpend = fbCtx ? fbCtx?.allSpend / 7 : null;
     add({
       id: "plan-day",
       prio: 1,
@@ -363,7 +368,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
     const { cpl: cplOf } = fbCtx;
     const cur = camps.reduce((s, c) => s + c.leads, 0) / 7;
     const withL = camps.filter((c) => c.leads > 0);
-    const med = median(withL.map(cplOf)) ?? fbCtx.avgCpl ?? 15;
+    const med = median(withL.map(cplOf)) ?? fbCtx?.avgCpl ?? 15;
     const steps = [];
     if (kind && cur >= perDay * 0.9)
       steps.push(`FB насчитывает ${n1(cur)} таких лидов в день (норма ${n1(perDay)}), а в CRM их меньше — сначала отправить тестовую заявку из каждой кампании ниже и проверить, что она появилась в CRM с нужным типом. Не дошла — исправить форму / интеграцию, это быстрее, чем докупать рекламу.`);
@@ -398,8 +403,8 @@ export function marketerTasks(data, branch, r, today = new Date()) {
       const covered = new Set(camps.map((c) => ruleOf(c.name)?.productId).filter(Boolean));
       const prod = productHint || [...r.products].filter((p) => p.planContracts && !covered.has(p.id)).sort((a, b) => b.planContracts - a.planContracts)[0] || [...r.products].sort((a, b) => (b.planContracts || 0) - (a.planContracts || 0))[0];
       const add = Math.max(10, rest * med);
-      const src = good[0] || (fbCtx.active || []).filter((c) => c.leads > 0 && !fbCtx.isEvent(c)).sort((a, b) => cplOf(a) - cplOf(b))[0];
-      steps.push(`${src ? `Дублировать «${src.name}» (${good[0] ? "лучшая цена лида" : `лучшая цена лида в кабинете — ${usd(cplOf(src))}`}) и запустить копию` : "Создать кампанию"}${kind ? ` с целью ${KIND_GOAL[kind]}` : ""}${prod ? ` на «${prod.name}» (план ${prod.planContracts} дог.${covered.has(prod.id) ? "" : ", кампаний этого вида на продукт нет"})` : ""}: бюджет ${usd(add)} в день, 2–3 креатива, широкая аудитория + лукалайк по договорам — даст ≈ ${ld(add / med)} в день по ${usd(med)}.${fbCtx.allSpend && add > fbCtx.allSpend / 7 ? ` Это больше нынешнего расхода всего кабинета (${usd(fbCtx.allSpend / 7)}/день) — согласовать бюджет с руководителем сегодня; пока нет согласования — запустить на ${usd(Math.min(add, fbCtx.allSpend / 14))}/день.` : ""}`);
+      const src = good[0] || (fbCtx?.active || []).filter((c) => c.leads > 0 && !fbCtx?.isEvent(c)).sort((a, b) => cplOf(a) - cplOf(b))[0];
+      steps.push(`${src ? `Дублировать «${src.name}» (${good[0] ? "лучшая цена лида" : `лучшая цена лида в кабинете — ${usd(cplOf(src))}`}) и запустить копию` : "Создать кампанию"}${kind ? ` с целью ${KIND_GOAL[kind]}` : ""}${prod ? ` на «${prod.name}» (план ${prod.planContracts} дог.${covered.has(prod.id) ? "" : ", кампаний этого вида на продукт нет"})` : ""}: бюджет ${usd(add)} в день, 2–3 креатива, широкая аудитория + лукалайк по договорам — даст ≈ ${ld(add / med)} в день по ${usd(med)}.${fbCtx?.allSpend && add > fbCtx?.allSpend / 7 ? ` Это больше нынешнего расхода всего кабинета (${usd(fbCtx?.allSpend / 7)}/день) — согласовать бюджет с руководителем сегодня; пока нет согласования — запустить на ${usd(Math.min(add, fbCtx?.allSpend / 14))}/день.` : ""}`);
       gain += add / med;
     }
     steps.push(`Итог: сейчас ${n1(cur)} в день → после изменений ≈ ${n1(cur + gain)} в день при норме ${n1(perDay)}. ${dm(addDays(asOf, 3))} сверить: где лид подорожал больше чем на 30% — вернуть бюджет назад.`);
@@ -410,7 +415,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
     x.steps = [...fbPlan(camps, perDay, { productHint: p }), "Вторая группа объявлений с другой аудиторией: родители 30–45 / интерес к продукту / лукалайк по договорам."];
     delete x._plan;
   }
-  const campsOf = (k) => (fbCtx?.active || []).filter((c) => !fbCtx.isEvent(c) && kindOf(c) === k);
+  const campsOf = (k) => (fbCtx?.active || []).filter((c) => !fbCtx?.isEvent(c) && kindOf(c) === k);
 
   const SRC = {
     site: { title: (n, d) => `Добрать ${plural(n, ["заявку", "заявки", "заявок"])} с сайта — ${d} в день`, steps: (d) => [...fbPlan(campsOf("site"), d, { kind: "site" }), "Отправить тестовую заявку с сайта и найти её в CRM — потерянные заявки с сайта не попадают в факт."], check: (d) => `за вчера — не меньше ${d} заявок с сайта в CRM` },
@@ -421,7 +426,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
     study: { title: (n, d) => `Добрать ${plural(n, ["заявку", "заявки", "заявок"])} на обучение — ${d} в день`, steps: () => ["На сайте филиала и в шапке профиля Instagram — кнопка «Записаться на обучение» с формой.", "Пост и сторис с ближайшими стартами групп и ссылкой на запись — 2 раза в неделю."], check: () => "кнопка записи на обучение есть на сайте и в Instagram" },
     demo: { title: (n, d) => `Записать ${plural(n, ["человека", "человека", "человек"])} на пробный урок — ${d} в день`, steps: () => ["Получить у методиста расписание пробных уроков на 2 недели вперёд.", `Запустить кампанию «Пробный урок» с формой записи на дату, бюджет ${usd((fbCtx?.avgCpl || 10) * 2)}/день.`, "Записи заводятся в CRM типом «Демо»."], check: () => "кампания «Пробный урок» активна, записи идут в CRM типом «Демо»" },
   };
-  const best = (k) => (fbCtx?.active || []).filter((c) => c.leads > 0 && !fbCtx.isEvent(c) && (c.type === "site" ? "site" : c.type === "messenger" ? "messenger" : "lid_form") === k).sort((a, b) => fbCtx.cpl(a) - fbCtx.cpl(b))[0];
+  const best = (k) => (fbCtx?.active || []).filter((c) => c.leads > 0 && !fbCtx?.isEvent(c) && (c.type === "site" ? "site" : c.type === "messenger" ? "messenger" : "lid_form") === k).sort((a, b) => fbCtx?.cpl(a) - fbCtx?.cpl(b))[0];
   const behind = (r.sources || [])
     .filter((x) => SRC[x.typeId] && x.planLeads >= 10 && x.factLeads != null && x.factLeads < x.planLeads * Math.max(share, 0.05) * 0.6)
     .map((x) => ({ x, need: Math.max(1, Math.ceil(x.planLeads - x.factLeads)) }))
@@ -456,7 +461,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
     x.dueDate ||= x.prio === 1 ? asOf : x.prio === 2 ? addDays(asOf, 2) : addDays(asOf, 6);
     x.due = x.dueDate === asOf ? "сегодня" : `до ${dm(x.dueDate)}`;
   }
-  return { asOf, month: r.month, gap: gapInfo, tasks };
+  return { asOf, month: r.month, gap: gapInfo, sources, tasks };
 }
 
 const daysIn = (m) => new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5)), 0)).getUTCDate();

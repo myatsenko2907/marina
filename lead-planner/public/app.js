@@ -881,6 +881,12 @@ function tasksCard(tk, id) {
   S.curTasks = { id, tk };
   return `<div class="card mt tasks" id="tasks">${tasksInner(tk, id)}</div>`;
 }
+/** Откуда задачи: кабинеты FB и Google есть или нет, план и CRM — всегда. */
+const srcLabel = (src) =>
+  !src
+    ? "кабинеты FB и Google"
+    : [src.fb ? "FB" : null, src.google ? "Google Ads" : null].filter(Boolean).join(" и ") ||
+      '<span class="neg">данных кабинетов FB и Google нет — задачи только по плану и заявкам CRM</span>';
 function tasksInner(tk, id) {
   const asOf = ddmm(tk.asOf);
   if (tk.stale) return `<div class="card-head"><h2>Задачи маркетолога</h2></div><div class="hint">Задачи считаются по текущему месяцу — данные кабинетов на ${asOf}. Откройте текущий месяц.</div>`;
@@ -895,7 +901,7 @@ function tasksInner(tk, id) {
   return `<div class="card-head"><h2>Задачи маркетолога</h2>
     ${[1, 2, 3].map((p) => (cnt(p) ? `<span class="tprio ${PRIO[p][1]}">${PRIO[p][0]} · ${cnt(p)}</span>` : "")).join("")}
     <span class="spacer"></span><span class="chip">выполнено ${nDone} из ${tk.tasks.length}</span></div>
-  <div class="tmeta">Ответственный: <b>${as ? esc(who(as.userId)) : '<span class="muted">не назначен</span>'}</b> · данные кабинетов FB и Google на ${asOf} · ${TS.shared ? (TS.stale ? '<span class="neg">отметки сейчас не загружаются — показаны сохранённые</span>' : "отметки видят администратор и коллеги") : TS.loading ? "загружаем отметки…" : "отметки сохраняются только в этом браузере"}</div>
+  <div class="tmeta">Ответственный: <b>${as ? esc(who(as.userId)) : '<span class="muted">не назначен</span>'}</b> · данные на ${asOf}: ${srcLabel(tk.sources)} · ${TS.shared ? (TS.stale ? '<span class="neg">отметки сейчас не загружаются — показаны сохранённые</span>' : "отметки видят администратор и коллеги") : TS.loading ? "загружаем отметки…" : "отметки сохраняются только в этом браузере"}</div>
   ${g && g.gap > 0 ? `<div class="tgap">До плана не хватает <b>${fmt(g.gap, 1)} ЛБ</b>: нужно <b>${fmt(g.needPerDay, 1)} ЛБ/день</b>, сейчас ${fmt(g.runRate, 1)} в день — при таком темпе месяц закроется на <b>${pct(g.forecast)}</b> плана. Порядок работы — сверху вниз: сначала срочные.</div>` : g ? `<div class="tgap ok">План лидобалов уже выполнен — задачи ниже про эффективность.</div>` : ""}
   ${items.length ? `<div class="tlist">${items.map((x) => {
       const dn = d(x);
@@ -963,7 +969,7 @@ function paintBoard() {
   const unassigned = live.filter((r) => !TS.assign.get(r.b.id)).length;
   const asOf = live.map((r) => r.b.tasks.asOf).sort().at(-1);
   const bar = (st) => `<div class="tbar"><i style="width:${st.total ? (100 * st.done) / st.total : 0}%"></i></div>`;
-  main.innerHTML = `<div class="head"><div><div class="crumbs">${monthName(S.month)}</div><h1>Задачи маркетологов</h1>
+  main.innerHTML = `<div class="head"><div><div class="crumbs">${monthName(S.month)}</div><h1>${S.me.role === "admin" ? "Задачи маркетологов" : "Мои задачи"}</h1>
     <div class="sub">Кто что должен сделать и прогресс по каждому филиалу. Данные кабинетов на ${ddmm(asOf) || "—"}.</div></div>
     <div class="right">${monthNav()}</div></div>
   ${TS.shared ? (TS.stale ? '<div class="alerts"><div class="alert-row bad">Отметки сейчас не загружаются — показано последнее сохранённое.</div></div>' : "") : `<div class="alerts"><div class="alert-row info">${TS.loading ? "Загружаем общие отметки…" : "Общие отметки недоступны на этой странице: видны только отметки, сделанные в этом браузере."}</div></div>`}
@@ -990,7 +996,7 @@ function paintBoard() {
         }).join("")}</ul></td></tr>`;
     }).join("")}
   </tbody></table></div>
-  ${none.length ? `<div class="hint mt">Без задач (нет данных кабинетов за этот месяц): ${none.map((r) => esc(r.b.name)).join(", ")}.</div>` : ""}</div>`;
+  ${none.length ? `<div class="hint mt">Без задач (нет данных CRM за этот месяц): ${none.map((r) => esc(r.b.name)).join(", ")}.</div>` : ""}</div>`;
   bindMonthNav();
   main.querySelectorAll("tr.bx").forEach((tr) => {
     tr.onclick = (e) => {
@@ -1974,8 +1980,10 @@ async function route() {
     if ((m = h.match(/^\/b\/([\w-]+)(?:\/(\w+))?/))) return await renderBranch(m[1], m[2] || "dash");
     if (h === "/spend") return await renderSpend();
     if (h === "/kpi") return await renderKpi();
+    // «Мои задачи» маркетолога с несколькими филиалами и «Задачи маркетологов» админа — одна страница;
+    // сервер отдаёт в /api/tasks только филиалы, которые видит пользователь.
+    if (h === "/tasks") return await renderTasksBoard();
     if (S.me.role === "admin") {
-      if (h === "/tasks") return await renderTasksBoard();
       if (h === "/admin/users") return await renderUsers();
       if (h === "/admin/branches") return await renderBranches();
       if (h === "/admin/settings") return await renderSettings();

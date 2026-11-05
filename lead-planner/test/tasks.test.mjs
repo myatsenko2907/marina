@@ -54,7 +54,21 @@ test("задачи: исчерпанный бюджет Google, продукт �
 test("задачи по прошлому месяцу не строятся", () => {
   const data = { settings, months: {}, adsHealth: { kiev: { fb: { asOf: "2026-11-02", last7: [], prev7: [] } } } };
   assert.equal(marketerTasks(data, branch, report).stale, true);
-  assert.equal(marketerTasks({ settings, months: {} }, branch, report), null);
+  assert.equal(marketerTasks({ settings, months: {} }, branch, report).stale, true);
+});
+
+test("без данных кабинетов задачи строятся по плану и заявкам CRM", () => {
+  const months = { "kiev|2026-10": { facts: { branch: { quality: { total: 100, fetchedAt: "2026-10-27T09:00:00+02:00" } } } } };
+  const rep = { ...report, elapsedShare: 0.5, sources: [{ typeId: "site", planLeads: 200, factLeads: 10, planBalls: 30 }] };
+  const r = marketerTasks({ settings, months }, branch, rep);
+  assert.equal(r.stale, undefined);
+  assert.equal(r.asOf, "2026-10-27");
+  assert.deepEqual(r.sources, { fb: false, google: false });
+  assert.ok(r.tasks.length > 0);
+  // устаревшие данные кабинетов (прошлый месяц) не мешают задачам по CRM
+  const old = marketerTasks({ settings, months, adsHealth: { kiev: { fb: { asOf: "2026-09-30", last7: [], prev7: [] } } } }, branch, rep);
+  assert.equal(old.sources.fb, false);
+  assert.ok(old.tasks.length > 0);
 });
 
 test("задачи под план: дневная норма, контрольная точка, отстающий источник, замена, закончившиеся кампании", () => {
