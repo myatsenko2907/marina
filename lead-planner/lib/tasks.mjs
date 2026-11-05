@@ -48,10 +48,15 @@ export const TASK_RULES = {
  * @returns {{asOf, month, gap, tasks: {id, prio, area, title, why, steps: string[], check: string, dueDate, due, impact?: string}[]} | null}
  */
 export function marketerTasks(data, branch, r, today = new Date()) {
-  const h = data.adsHealth?.[branch.id];
-  if (!h) return null;
-  const asOf = [h.fb?.asOf, h.google?.asOf].filter(Boolean).sort().at(-1);
-  if (!asOf || asOf.slice(0, 7) !== r.month) return { asOf, month: r.month, stale: true, tasks: [] };
+  // Данные кабинетов — только за этот месяц; без них задачи строятся по плану и заявкам CRM.
+  const raw = data.adsHealth?.[branch.id] || {};
+  const inMonth = (x) => x?.asOf && x.asOf.slice(0, 7) === r.month;
+  const h = { fb: inMonth(raw.fb) ? raw.fb : null, google: inMonth(raw.google) ? raw.google : null };
+  const crmRec = data.months?.[`${branch.id}|${r.month}`]?.facts?.branch;
+  const crmAsOf = [crmRec?.quality?.fetchedAt, crmRec?.outcomes?.fetchedAt].filter(Boolean).map((x) => String(x).slice(0, 10)).sort().at(-1) || null;
+  const asOf = [h.fb?.asOf, h.google?.asOf, crmAsOf && crmAsOf.slice(0, 7) === r.month ? crmAsOf : null].filter(Boolean).sort().at(-1);
+  if (!asOf) return { asOf: raw.fb?.asOf || raw.google?.asOf || crmAsOf, month: r.month, stale: true, tasks: [] };
+  const sources = { fb: !!h.fb, google: !!h.google };
 
   const S = data.settings;
   const ball = Object.fromEntries(S.leadTypes.map((t) => [t.id, t.ball]));
@@ -154,9 +159,12 @@ export function marketerTasks(data, branch, r, today = new Date()) {
 
   // ---------- Facebook ----------
   const fb = h.fb;
+  let fbCtx = null;
   if (fb) {
     const prev = Object.fromEntries((fb.prev7 || []).map((c) => [c.id, c]));
-    const active = fb.last7.filter((c) => c.status === "ACTIVE" && c.spend > 0);
+    // ACTIVE с датой окончания в прошлом — уже не крутится, задачи по ней бессмысленны
+    const ended = (c) => c.stop && c.stop.slice(0, 10) < asOf;
+    const active = fb.last7.filter((c) => c.status === "ACTIVE" && c.spend > 0 && !ended(c));
     const isEvent = (c) => EVENT_RX.test(c.name) || ruleOf(c.name)?.name === "Ивенты без продукта";
     const ballOf = (c) => (isEvent(c) ? ball.event : c.type === "site" ? ball.site : c.type === "messenger" ? ball.messenger : ball.lid_form);
     const cpb = (c) => (c.leads > 0 ? c.spend / (c.leads * ballOf(c)) : null);
@@ -164,6 +172,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
     const allSpend = fb.last7.reduce((s, c) => s + c.spend, 0);
     const allLeads = fb.last7.reduce((s, c) => s + c.leads, 0);
     const avgCpl = allLeads ? allSpend / allLeads : null;
+    fbCtx = { active, ruleOf, cpl, cpb, ballOf, isEvent, allSpend, avgCpl, balls7: fb.last7.reduce((s, c) => s + c.leads * ballOf(c), 0) };
 
     // продукты плана без активной рекламы
     const planTotal = r.products.reduce((s, p) => s + (p.planContracts || 0), 0);
@@ -227,6 +236,50 @@ export function marketerTasks(data, branch, r, today = new Date()) {
       });
     }
 
+    // кампании с лидами, которые заканчиваются в ближайшие 4 дня, — подготовить замену (победителей продлевает fb-win)
+    for (const c of active.filter((c) => c.leads > 0 && c.stop && c.stop.slice(0, 10) <= addDays(asOf, 4) && !tasks.some((x) => x.id === `fb-win-${c.id}`))) {
+      const end = c.stop.slice(0, 10);
+      add({
+        id: `fb-ending-${c.id}`,
+        prio: end <= addDays(asOf, 1) ? 1 : 2,
+        area: "Facebook",
+        title: `Запустить замену «${c.name}» до ${dm(end)}: кампания заканчивается, а даёт ${plural(c.leads, LEADS)} в неделю`,
+        why: `${usd(c.spend)} за 7 дней → ${plural(c.leads, LEADS)} (${usd(cpl(c))}/лид). После ${dm(end)} эти лиды пропадут из плана.`,
+        steps: [
+          `Дублировать «${c.name}»: даты ${dm(addDays(end, 1))}–${dm(addDays(end, 30))}, бюджет ${c.dailyBudget ? `${usd(c.dailyBudget)}/день` : usd(c.spend / 7) + "/день"}.`,
+          isEvent(c) ? "Ивент прошёл — в копии новый ивент с тем же форматом и аудиторией." : "В копию — 1 новый креатив к двум лучшим старым.",
+        ],
+        check: `новая кампания активна с ${dm(addDays(end, 1))}`,
+        dueDate: end > asOf ? addDays(end, -1) : asOf,
+      });
+    }
+
+    // продукты, по которым FB даёт меньше половины нужных заявок в неделю
+    const gaps = [];
+    for (const p of r.products) {
+      if (!p.planContracts || p.planContracts / planTotal < 0.08 || !p.paidLeads) continue;
+      const rule = rules.find((x) => x.productId === p.id);
+      if (!rule || tasks.some((x) => x.id === `fb-noprod-${p.id}`)) continue;
+      const camps = active.filter((c) => ruleOf(c.name)?.name === rule.name);
+      if (!camps.length) continue;
+      const weekNeed = (p.paidLeads * 7) / daysIn(r.month);
+      const got = camps.reduce((s, c) => s + c.leads, 0);
+      if (got >= weekNeed * 0.5) continue;
+      gaps.push({ p, camps, weekNeed, got, def: (weekNeed - got) * ball.site });
+    }
+    for (const { p, camps, weekNeed, got } of gaps.sort((a, b) => b.def - a.def).slice(0, 3)) {
+      add({
+        id: `prod-gap-${p.id}`,
+        prio: 2,
+        area: "Facebook",
+        title: `Добрать заявки по «${p.name}»: ${plural(got, LEADS)} за неделю при нужных ${Math.ceil(weekNeed)}`,
+        why: `План ${p.planContracts} дог. → ${Math.round(p.paidLeads)} платных лидов за месяц, то есть ~${Math.ceil(weekNeed)} в неделю. Кампании на продукт (${camps.map((c) => `«${c.name}»`).slice(0, 3).join(", ")}) дали ${got}.`,
+        steps: [],
+        _plan: { camps, perDay: weekNeed / 7, p },
+        check: `за последние 7 дней по «${p.name}» не меньше ${Math.ceil(weekNeed * 0.7)} лидов`,
+      });
+    }
+
     // лид-формы против сайта: цена лидобала по типам
     const byType = {};
     for (const c of active.filter((c) => c.leads > 0 && !isEvent(c))) {
@@ -254,10 +307,143 @@ export function marketerTasks(data, branch, r, today = new Date()) {
       add({ id: "fb-drop", prio: 2, area: "Facebook", title: `Вернуть расход FB к ${usd(prevSpend)} в неделю: упал на ${pc(1 - allSpend / prevSpend)} при отставании от плана`, why: `${usd(prevSpend)} на прошлой неделе против ${usd(allSpend)} на этой, темп плана ${pc(t.pace)}.`, steps: ["Включить лучшие приостановленные кампании и поднять бюджет у кампаний из задач «Поднять бюджет».", `Дневной расход кабинета — ${usd(prevSpend / 7)}.`], check: `расход FB за день — не меньше ${usd(prevSpend / 7)}` });
   }
 
-  // ---------- план по типам лидов ----------
-  for (const s of r.sources || []) {
-    if (s.planLeads >= 20 && !s.factLeads && s.typeId !== "event")
-      add({ id: `plan-type-${s.typeId}`, prio: 2, area: "План", title: `Запустить источник заявок «${typeName[s.typeId] || s.typeId}»: план ${Math.round(s.planLeads)}, факт 0`, why: `В плане на этот тип ${n1(s.planBalls)} ЛБ, факта нет — либо такие заявки не создаются в CRM, либо их не собирают.`, steps: [s.typeId === "demo" ? "Запустить кампанию «Пробный урок» с формой записи." : "Запланировать источник этого типа: кампанию, ивент или обзвон.", `Эти заявки заводятся в CRM типом «${typeName[s.typeId] || s.typeId}».`], check: `в CRM есть заявки типа «${typeName[s.typeId] || s.typeId}» за месяц` });
+  // ---------- план: темп и источники ----------
+  const share = r.elapsedShare || 0;
+  if (gapInfo && gapInfo.gap > 0 && (t.pace ?? 0) < 0.95 && t.targetBalls > 0) {
+    const { gap, needPerDay, runRate, forecast } = gapInfo;
+    const paidTypes = new Set(S.leadTypes.filter((x) => x.paid).map((x) => x.id));
+    const planPaid = (r.sources || []).filter((x) => paidTypes.has(x.typeId)).reduce((s, x) => s + x.planBalls, 0);
+    const planAll = (r.sources || []).reduce((s, x) => s + x.planBalls, 0) || 1;
+    const paidShare = planPaid / planAll;
+    const fbCpb = fbCtx?.balls7 > 0 ? fbCtx?.allSpend / fbCtx?.balls7 : null;
+    const needSpend = fbCpb ? needPerDay * paidShare * fbCpb : null;
+    const curSpend = fbCtx ? fbCtx?.allSpend / 7 : null;
+    add({
+      id: "plan-day",
+      prio: 1,
+      area: "План",
+      title: `Набирать ${b2(Math.round(needPerDay * 100) / 100)} ЛБ в день до конца месяца — сейчас ${b2(Math.round(runRate * 100) / 100)} в день`,
+      why: `План ${n1(t.targetBalls)} ЛБ, факт ${b2(Math.round(t.factBalls * 100) / 100)}, осталось ${n1(gap)} ЛБ за ${plural(daysLeft, ["день", "дня", "дней"])}. При нынешнем темпе месяц закроется на ${pc(Math.min(forecast, 9.99))}.`,
+      steps: [
+        needSpend && curSpend != null
+          ? needSpend > curSpend * 1.1
+            ? `Платная реклама даёт ${pc(paidShare)} плана: при цене лидобала в FB ${usd(fbCpb)} нужно ${usd(needSpend)}/день — сейчас ${usd(curSpend)}/день. Разница ${usd(needSpend - curSpend)}/день — на кампании из задач «Поднять бюджет» и «Добрать».`
+            : `Расход FB (${usd(curSpend)}/день) темп выдерживает — держать его и переносить бюджет с дорогих кампаний на дешёвые.`
+          : null,
+        t.dailyBudgetLeft && needSpend && needSpend > t.dailyBudgetLeft * 1.2 ? `Бюджета плана (${usd(t.dailyBudgetLeft)}/день) на этот темп не хватит — поднять долю заявок с сайта (балл ${b2(ball.site)} против ${b2(ball.lid_form)} у лид-формы) и неплатных источников.` : null,
+        paidShare < 0.98 ? `Неплатные источники (звонки, визиты, пробные, заявки на обучение) — ${b2(Math.round(needPerDay * (1 - paidShare) * 100) / 100)} ЛБ в день: задачи «Добрать» по источникам ниже.` : null,
+        "Каждое утро сверять факт вчерашнего дня на этой странице с дневной нормой.",
+      ].filter(Boolean),
+      check: needSpend && curSpend != null && needSpend > curSpend * 1.1 ? `дневной расход рекламы — не меньше ${usd(needSpend)}` : `за вчера набрано не меньше ${b2(Math.round(needPerDay * 100) / 100)} ЛБ`,
+    });
+    // контрольная точка недели
+    const dow = new Date(asOf + "T00:00:00Z").getUTCDay();
+    const sunday = addDays(asOf, (7 - dow) % 7 || 7);
+    const end = r.month + "-" + String(daysIn(r.month)).padStart(2, "0");
+    const point = sunday < end ? sunday : end;
+    const days = Math.max(1, Math.round((Date.parse(point) - Date.parse(asOf)) / DAY_MS));
+    const goal = Math.min(t.targetBalls, t.factBalls + needPerDay * days);
+    add({ id: `plan-week-${point}`, prio: 3, area: "План", title: `К ${dm(point)} довести факт до ${n1(goal)} ЛБ (сейчас ${b2(Math.round(t.factBalls * 100) / 100)})`, why: `Это ${plural(days, ["день", "дня", "дней"])} по ${b2(Math.round(needPerDay * 100) / 100)} ЛБ — темп, который закрывает план месяца.`, steps: [`${dm(point)}: сравнить факт на этой странице с ${n1(goal)} ЛБ.`, "Не дотянули — взять следующий шаг из задач «Добрать» и «Поднять бюджет» на понедельник."], check: `факт на странице на ${dm(point)} — не меньше ${n1(goal)} ЛБ`, dueDate: point });
+  }
+
+  // источники заявок, которые отстают от плана, — с конкретным действием под тип
+  // План действий по кабинету FB, чтобы получать perDay лидов нужного вида в день:
+  // что выключить / урезать (неэффективно), где и на сколько поднять бюджет, что запустить. Цифры — по последним 7 дням.
+  const kindOf = (c) => (c.type === "site" ? "site" : c.type === "messenger" ? "messenger" : "lid_form");
+  const KIND_GOAL = { site: "«Лиды на сайте» (цель «Лиды», конверсия — пиксель Lead на сайте)", lid_form: "«Лиды» с мгновенной формой (тип «Повышенное намерение»)", messenger: "«Сообщения» (Instagram Direct + Messenger)" };
+  const endOf = (c) => {
+    const e = c.stop ? c.stop.slice(0, 10) : null;
+    const me = r.month + "-" + String(daysIn(r.month)).padStart(2, "0");
+    return e && e < me ? e : me;
+  };
+  const budgetStep = (c, add) => {
+    const days = Math.max(1, Math.round((Date.parse(endOf(c)) - Date.parse(asOf)) / DAY_MS) + 1);
+    if (c.dailyBudget) return `Ads Manager → «${c.name}» → Изменить → Бюджет кампании: ${usd(c.dailyBudget)} → ${usd(c.dailyBudget + add)} в день`;
+    if (c.lifetimeBudget) return `Ads Manager → «${c.name}» → Изменить → Бюджет на весь срок: ${usd(c.lifetimeBudget)} → ${usd(c.lifetimeBudget + add * days)} (+${usd(add)}/день × ${days} дн. до ${dm(endOf(c))})`;
+    return `Ads Manager → «${c.name}» → бюджет на уровне групп объявлений: +${usd(add)} в день суммарно`;
+  };
+  const ld = (x) => (Math.abs(x - Math.round(x)) < 0.05 ? plural(Math.round(x), LEADS) : `${n1(x)} лида`);
+  const fbPlan = (camps, perDay, { kind = null, productHint = null } = {}) => {
+    if (!fbCtx) return ["Данных кабинета FB нет — сначала проверить, что реклама запущена."];
+    const { cpl: cplOf } = fbCtx;
+    const cur = camps.reduce((s, c) => s + c.leads, 0) / 7;
+    const withL = camps.filter((c) => c.leads > 0);
+    const med = median(withL.map(cplOf)) ?? fbCtx?.avgCpl ?? 15;
+    const steps = [];
+    if (kind && cur >= perDay * 0.9)
+      steps.push(`FB насчитывает ${n1(cur)} таких лидов в день (норма ${n1(perDay)}), а в CRM их меньше — сначала отправить тестовую заявку из каждой кампании ниже и проверить, что она появилась в CRM с нужным типом. Не дошла — исправить форму / интеграцию, это быстрее, чем докупать рекламу.`);
+    let freed = 0;
+    // 1. неэффективно — выключить / урезать
+    for (const c of camps) {
+      const day = c.spend / 7;
+      if (c.leads === 0 && c.spend >= Math.max(15, med * 1.5)) {
+        steps.push(`Выключить «${c.name}»: ${usd(c.spend)} за 7 дней и 0 лидов (неэффективно) — освобождает ${usd(day)}/день.`);
+        freed += day;
+      } else if (c.leads > 0 && cplOf(c) > med * 2 && c.spend >= 30) {
+        steps.push(`Урезать вдвое «${c.name}»: лид по ${usd(cplOf(c))} при медиане ${usd(med)} (неэффективно) — ${c.dailyBudget ? `бюджет ${usd(c.dailyBudget)} → ${usd(c.dailyBudget / 2)} в день` : "бюджет −50%"}, освобождает ${usd(day / 2)}/день.`);
+        freed += day / 2;
+      }
+    }
+    // 2. эффективные — поднять бюджет (по 30–50%, сначала самые дешёвые)
+    let need = Math.max(0, perDay - cur);
+    let gain = 0;
+    const good = withL.filter((c) => cplOf(c) <= med * 1.2).sort((a, b) => cplOf(a) - cplOf(b));
+    for (const c of good.slice(0, 3)) {
+      if (need - gain <= 0.05) break;
+      const day = c.dailyBudget || c.spend / 7;
+      const add = Math.max(5, Math.min(day * (cplOf(c) <= med * 0.7 ? 0.5 : 0.3), (need - gain) * cplOf(c)));
+      gain += add / cplOf(c);
+      steps.push(`${budgetStep(c, add)} — лид по ${usd(cplOf(c))}, это +${ld(add / cplOf(c))} в день.`);
+    }
+    if (freed > 0 && good.length) steps.push(`Освободившиеся ${usd(freed)}/день — в «${good[0].name}» (самый дешёвый лид), это ещё +${ld(freed / cplOf(good[0]))} в день.`);
+    if (freed > 0 && good.length) gain += freed / cplOf(good[0]);
+    // 3. не хватает — запустить новую кампанию
+    const rest = need - gain;
+    if (rest > 0.3 || !camps.length) {
+      const covered = new Set(camps.map((c) => ruleOf(c.name)?.productId).filter(Boolean));
+      const prod = productHint || [...r.products].filter((p) => p.planContracts && !covered.has(p.id)).sort((a, b) => b.planContracts - a.planContracts)[0] || [...r.products].sort((a, b) => (b.planContracts || 0) - (a.planContracts || 0))[0];
+      const add = Math.max(10, rest * med);
+      const src = good[0] || (fbCtx?.active || []).filter((c) => c.leads > 0 && !fbCtx?.isEvent(c)).sort((a, b) => cplOf(a) - cplOf(b))[0];
+      steps.push(`${src ? `Дублировать «${src.name}» (${good[0] ? "лучшая цена лида" : `лучшая цена лида в кабинете — ${usd(cplOf(src))}`}) и запустить копию` : "Создать кампанию"}${kind ? ` с целью ${KIND_GOAL[kind]}` : ""}${prod ? ` на «${prod.name}» (план ${prod.planContracts} дог.${covered.has(prod.id) ? "" : ", кампаний этого вида на продукт нет"})` : ""}: бюджет ${usd(add)} в день, 2–3 креатива, широкая аудитория + лукалайк по договорам — даст ≈ ${ld(add / med)} в день по ${usd(med)}.${fbCtx?.allSpend && add > fbCtx?.allSpend / 7 ? ` Это больше нынешнего расхода всего кабинета (${usd(fbCtx?.allSpend / 7)}/день) — согласовать бюджет с руководителем сегодня; пока нет согласования — запустить на ${usd(Math.min(add, fbCtx?.allSpend / 14))}/день.` : ""}`);
+      gain += add / med;
+    }
+    steps.push(`Итог: сейчас ${n1(cur)} в день → после изменений ≈ ${n1(cur + gain)} в день при норме ${n1(perDay)}. ${dm(addDays(asOf, 3))} сверить: где лид подорожал больше чем на 30% — вернуть бюджет назад.`);
+    return steps;
+  };
+  for (const x of tasks.filter((x) => x._plan)) {
+    const { camps, perDay, p } = x._plan;
+    x.steps = [...fbPlan(camps, perDay, { productHint: p }), "Вторая группа объявлений с другой аудиторией: родители 30–45 / интерес к продукту / лукалайк по договорам."];
+    delete x._plan;
+  }
+  const campsOf = (k) => (fbCtx?.active || []).filter((c) => !fbCtx?.isEvent(c) && kindOf(c) === k);
+
+  const SRC = {
+    site: { title: (n, d) => `Добрать ${plural(n, ["заявку", "заявки", "заявок"])} с сайта — ${d} в день`, steps: (d) => [...fbPlan(campsOf("site"), d, { kind: "site" }), "Отправить тестовую заявку с сайта и найти её в CRM — потерянные заявки с сайта не попадают в факт."], check: (d) => `за вчера — не меньше ${d} заявок с сайта в CRM` },
+    lid_form: { title: (n, d) => `Добрать ${plural(n, ["лид-форму", "лид-формы", "лид-форм"])} — ${d} в день`, steps: (d) => [...fbPlan(campsOf("lid_form"), d, { kind: "lid_form" }), "Лид-формы приходят в CRM типом «Лид-форма» — проверить одну заявку из формы."], check: (d) => `за вчера — не меньше ${d} лид-форм в CRM` },
+    messenger: { title: (n, d) => `Добрать ${plural(n, ["диалог", "диалога", "диалогов"])} в мессенджерах — ${d} в день`, steps: (d) => [...fbPlan(campsOf("messenger"), d, { kind: "messenger" }), "Настроить автоответ с вопросом о возрасте ребёнка и удобном времени звонка; каждый диалог — заявка в CRM типом «Мессенджер»."], check: () => "кампания «Сообщения» активна, диалоги заводятся в CRM" },
+    call: { title: (n, d) => `Получить ${plural(n, ["входящий звонок", "входящих звонка", "входящих звонков"])} — ${d} в день: номер и кнопка «Позвонить» в рекламе`, steps: () => ["FB: в 2 лучших объявлениях кнопка «Позвонить» вместо «Подробнее».", "Google: расширение «Звонок» во всех кампаниях; номер филиала в Профиле компании Google.", "Номер филиала — на первом экране сайта филиала; звонки заводятся в CRM типом «Входящий звонок»."], check: () => "кнопка «Позвонить» есть в рекламе FB и Google, номер на сайте" },
+    visit: { title: (n, d) => `Пригласить в филиал ${plural(n, ["человека", "человека", "человек"])} до конца месяца — визит даёт ${b2(ball.visit)} ЛБ`, steps: () => [`Назначить день открытых дверей / экскурсию на ${dm(addDays(asOf, ((6 - new Date(asOf + "T00:00:00Z").getUTCDay() + 7) % 7) || 7))} и объявить в соцсетях филиала.`, "Менеджерам — приглашать на консультацию в филиал каждого, кто оставил заявку; визит заводится в CRM типом «Визит без заявки»."], check: () => "день открытых дверей объявлен, визиты заводятся в CRM" },
+    study: { title: (n, d) => `Добрать ${plural(n, ["заявку", "заявки", "заявок"])} на обучение — ${d} в день`, steps: () => ["На сайте филиала и в шапке профиля Instagram — кнопка «Записаться на обучение» с формой.", "Пост и сторис с ближайшими стартами групп и ссылкой на запись — 2 раза в неделю."], check: () => "кнопка записи на обучение есть на сайте и в Instagram" },
+    demo: { title: (n, d) => `Записать ${plural(n, ["человека", "человека", "человек"])} на пробный урок — ${d} в день`, steps: () => ["Получить у методиста расписание пробных уроков на 2 недели вперёд.", `Запустить кампанию «Пробный урок» с формой записи на дату, бюджет ${usd((fbCtx?.avgCpl || 10) * 2)}/день.`, "Записи заводятся в CRM типом «Демо»."], check: () => "кампания «Пробный урок» активна, записи идут в CRM типом «Демо»" },
+  };
+  const best = (k) => (fbCtx?.active || []).filter((c) => c.leads > 0 && !fbCtx?.isEvent(c) && (c.type === "site" ? "site" : c.type === "messenger" ? "messenger" : "lid_form") === k).sort((a, b) => fbCtx?.cpl(a) - fbCtx?.cpl(b))[0];
+  const behind = (r.sources || [])
+    .filter((x) => SRC[x.typeId] && x.planLeads >= 10 && x.factLeads != null && x.factLeads < x.planLeads * Math.max(share, 0.05) * 0.6)
+    .map((x) => ({ x, need: Math.max(1, Math.ceil(x.planLeads - x.factLeads)) }))
+    .sort((a, b) => b.need * (ball[b.x.typeId] || 0) - a.need * (ball[a.x.typeId] || 0))
+    .slice(0, 4);
+  for (const { x, need } of behind) {
+    const k = SRC[x.typeId];
+    const perDay = Math.max(1, Math.ceil(need / daysLeft));
+    add({
+      id: `src-${x.typeId}`,
+      prio: x.planBalls / (t.targetBalls || 1) >= 0.25 ? 1 : 2,
+      area: "План",
+      title: k.title(need, perDay),
+      why: `«${typeName[x.typeId] || x.typeId}»: план ${Math.round(x.planLeads)} за месяц (${n1(x.planBalls)} ЛБ), факт ${x.factLeads}${share ? ` при ожидаемых к сегодня ${Math.round(x.planLeads * share)}` : ""}.`,
+      steps: k.steps(perDay),
+      check: k.check(perDay),
+    });
   }
 
   // ---------- продажи: лиды теряются после рекламы ----------
@@ -275,7 +461,7 @@ export function marketerTasks(data, branch, r, today = new Date()) {
     x.dueDate ||= x.prio === 1 ? asOf : x.prio === 2 ? addDays(asOf, 2) : addDays(asOf, 6);
     x.due = x.dueDate === asOf ? "сегодня" : `до ${dm(x.dueDate)}`;
   }
-  return { asOf, month: r.month, gap: gapInfo, tasks };
+  return { asOf, month: r.month, gap: gapInfo, sources, tasks };
 }
 
 const daysIn = (m) => new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5)), 0)).getUTCDate();

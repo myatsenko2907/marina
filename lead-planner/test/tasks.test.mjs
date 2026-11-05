@@ -54,5 +54,55 @@ test("задачи: исчерпанный бюджет Google, продукт �
 test("задачи по прошлому месяцу не строятся", () => {
   const data = { settings, months: {}, adsHealth: { kiev: { fb: { asOf: "2026-11-02", last7: [], prev7: [] } } } };
   assert.equal(marketerTasks(data, branch, report).stale, true);
-  assert.equal(marketerTasks({ settings, months: {} }, branch, report), null);
+  assert.equal(marketerTasks({ settings, months: {} }, branch, report).stale, true);
+});
+
+test("без данных кабинетов задачи строятся по плану и заявкам CRM", () => {
+  const months = { "kiev|2026-10": { facts: { branch: { quality: { total: 100, fetchedAt: "2026-10-27T09:00:00+02:00" } } } } };
+  const rep = { ...report, elapsedShare: 0.5, sources: [{ typeId: "site", planLeads: 200, factLeads: 10, planBalls: 30 }] };
+  const r = marketerTasks({ settings, months }, branch, rep);
+  assert.equal(r.stale, undefined);
+  assert.equal(r.asOf, "2026-10-27");
+  assert.deepEqual(r.sources, { fb: false, google: false });
+  assert.ok(r.tasks.length > 0);
+  // устаревшие данные кабинетов (прошлый месяц) не мешают задачам по CRM
+  const old = marketerTasks({ settings, months, adsHealth: { kiev: { fb: { asOf: "2026-09-30", last7: [], prev7: [] } } } }, branch, rep);
+  assert.equal(old.sources.fb, false);
+  assert.ok(old.tasks.length > 0);
+});
+
+test("задачи под план: дневная норма, контрольная точка, отстающий источник, замена, закончившиеся кампании", () => {
+  const rep = {
+    ...report,
+    elapsedShare: 0.5,
+    sources: [
+      { typeId: "site", planLeads: 200, factLeads: 10, planBalls: 30 },
+      { typeId: "lid_form", planLeads: 100, factLeads: 60, planBalls: 5 },
+    ],
+  };
+  const data = {
+    settings,
+    months: {},
+    adsHealth: {
+      kiev: {
+        fb: {
+          asOf: "2026-10-27",
+          last7: [
+            fbRow({ name: "СК / Python", spend: 100, leads: 10, stop: "2026-10-29T23:59:00+0200" }),
+            fbRow({ name: "СК / Старый", spend: 80, leads: 0, stop: "2026-10-20T23:59:00+0200" }),
+          ],
+          prev7: [],
+        },
+      },
+    },
+  };
+  const r = marketerTasks(data, branch, rep);
+  const ids = r.tasks.map((x) => x.id);
+  assert.ok(ids.includes("plan-day"), ids.join());
+  assert.ok(ids.some((x) => x.startsWith("plan-week-")));
+  assert.ok(ids.includes("src-site"));
+  assert.ok(!ids.includes("src-lid_form")); // 60 из ожидаемых 50 — не отстаёт
+  assert.ok(ids.includes("fb-ending-СК / Python"));
+  assert.ok(!ids.includes("fb-zero-СК / Старый")); // закончилась 20.10 — не трогаем
+  assert.match(r.tasks.find((x) => x.id === "plan-day").title, /ЛБ в день/);
 });

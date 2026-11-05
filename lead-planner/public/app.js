@@ -343,11 +343,11 @@ function shell(active, inner) {
   const isAdmin = S.me.role === "admin";
   const links = [
     ["#/", isAdmin ? "Все филиалы" : "Мои филиалы", "home"],
+    isAdmin || (S.me.branches || []).length !== 1 ? ["#/tasks", isAdmin ? "Задачи маркетологов" : "Мои задачи", "tasks"] : [`#/b/${S.me.branches[0]}/tasks`, "Мои задачи", "mytasks"],
     ["#/spend", "Расход на рекламу", "spend"],
     ["#/kpi", "KPI маркетологов", "kpi"],
     ...(isAdmin
       ? [
-          ["#/tasks", "Задачи маркетологов", "tasks"],
           ...(window.LOCAL_MODE ? [] : [["#/admin/import", "Импорт", "import"]]),
           ["#/admin/branches", "Филиалы", "branches"],
           ["#/admin/users", "Доступы", "users"],
@@ -693,7 +693,7 @@ async function renderBranch(id, tab = "dash") {
   ].join(" · ");
 
   let body = "";
-  if (tab === "dash") body = branchDash(r, season, cur, data.tasks, id) + branchKpiCard(data.kpi) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
+  if (tab === "dash") body = branchDash(r, season, cur, data.tasks, id) + branchQualityCard(data.quality) + branchSpendCard(data.spend, data.spendUntil, data.google);
   if (tab === "tasks") body = data.tasks ? tasksCard(data.tasks, id) : `<div class="card"><div class="empty">Задач пока нет: для этого филиала ещё не загружены данные кабинетов FB и Google. Они обновляются раз в день.</div></div>`;
   if (tab === "plan") body = branchPlan(r, cur);
   if (tab === "events") body = branchEvents(r, inputs, cur);
@@ -701,12 +701,13 @@ async function renderBranch(id, tab = "dash") {
   if (tab === "input") body = branchInput(r, inputs, branch, season);
 
   shell(
-    "home",
+    tab === "tasks" && S.me.role !== "admin" ? "mytasks" : "home",
     `<div class="head"><div><div class="crumbs"><a href="#/">${S.me.role === "admin" ? "Все филиалы" : "Мои филиалы"}</a> / ${esc(season.season.name)}</div>
       <h1>${esc(branch.name)} ${pill(t.status)}</h1><div class="sub">${esc(fbInfo)}</div></div>
       <span class="spacer"></span>${monthNav()}
       ${branch.adAccountId && S.me.metaConfigured ? '<button class="btn" id="fbRef">Обновить из FB</button>' : ""}
       ${window.LOCAL_MODE ? "" : `<a class="btn" href="/api/branches/${id}/export.csv?month=${S.month}">Скачать CSV</a>`}</div>
+    ${branchKpiCard(data.kpi)}
     <nav class="tabs">${tabs.map(([k, n]) => `<a href="#/b/${id}/${k}" class="${k === tab ? "on" : ""}">${n}</a>`).join("")}</nav>
     ${t.status === "noplan" ? `<div class="alerts"><div class="alert-row info">В CRM нет плана договоров на ${monthName(S.month).toLowerCase()} — без плана лидобалы, лиды, бюджет и оценка не считаются. ${data.canEdit ? `Внесите план на вкладке <a href="#/b/${id}/input">«Ввод данных»</a> или в CRM.` : "Попросите администратора внести план."} Факт договоров и заявок показывается.</div></div>` : ""}
     ${r.warnings.length ? `<div class="alerts">${r.warnings.map((w) => `<div class="alert-row">${esc(w)}</div>`).join("")}</div>` : ""}
@@ -880,6 +881,12 @@ function tasksCard(tk, id) {
   S.curTasks = { id, tk };
   return `<div class="card mt tasks" id="tasks">${tasksInner(tk, id)}</div>`;
 }
+/** Откуда задачи: кабинеты FB и Google есть или нет, план и CRM — всегда. */
+const srcLabel = (src) =>
+  !src
+    ? "кабинеты FB и Google"
+    : [src.fb ? "FB" : null, src.google ? "Google Ads" : null].filter(Boolean).join(" и ") ||
+      '<span class="neg">данных кабинетов FB и Google нет — задачи только по плану и заявкам CRM</span>';
 function tasksInner(tk, id) {
   const asOf = ddmm(tk.asOf);
   if (tk.stale) return `<div class="card-head"><h2>Задачи маркетолога</h2></div><div class="hint">Задачи считаются по текущему месяцу — данные кабинетов на ${asOf}. Откройте текущий месяц.</div>`;
@@ -894,7 +901,7 @@ function tasksInner(tk, id) {
   return `<div class="card-head"><h2>Задачи маркетолога</h2>
     ${[1, 2, 3].map((p) => (cnt(p) ? `<span class="tprio ${PRIO[p][1]}">${PRIO[p][0]} · ${cnt(p)}</span>` : "")).join("")}
     <span class="spacer"></span><span class="chip">выполнено ${nDone} из ${tk.tasks.length}</span></div>
-  <div class="tmeta">Ответственный: <b>${as ? esc(who(as.userId)) : '<span class="muted">не назначен</span>'}</b> · данные кабинетов FB и Google на ${asOf} · ${TS.shared ? (TS.stale ? '<span class="neg">отметки сейчас не загружаются — показаны сохранённые</span>' : "отметки видят администратор и коллеги") : TS.loading ? "загружаем отметки…" : "отметки сохраняются только в этом браузере"}</div>
+  <div class="tmeta">Ответственный: <b>${as ? esc(who(as.userId)) : '<span class="muted">не назначен</span>'}</b> · данные на ${asOf}: ${srcLabel(tk.sources)} · ${TS.shared ? (TS.stale ? '<span class="neg">отметки сейчас не загружаются — показаны сохранённые</span>' : "отметки видят администратор и коллеги") : TS.loading ? "загружаем отметки…" : "отметки сохраняются только в этом браузере"}</div>
   ${g && g.gap > 0 ? `<div class="tgap">До плана не хватает <b>${fmt(g.gap, 1)} ЛБ</b>: нужно <b>${fmt(g.needPerDay, 1)} ЛБ/день</b>, сейчас ${fmt(g.runRate, 1)} в день — при таком темпе месяц закроется на <b>${pct(g.forecast)}</b> плана. Порядок работы — сверху вниз: сначала срочные.</div>` : g ? `<div class="tgap ok">План лидобалов уже выполнен — задачи ниже про эффективность.</div>` : ""}
   ${items.length ? `<div class="tlist">${items.map((x) => {
       const dn = d(x);
@@ -962,7 +969,7 @@ function paintBoard() {
   const unassigned = live.filter((r) => !TS.assign.get(r.b.id)).length;
   const asOf = live.map((r) => r.b.tasks.asOf).sort().at(-1);
   const bar = (st) => `<div class="tbar"><i style="width:${st.total ? (100 * st.done) / st.total : 0}%"></i></div>`;
-  main.innerHTML = `<div class="head"><div><div class="crumbs">${monthName(S.month)}</div><h1>Задачи маркетологов</h1>
+  main.innerHTML = `<div class="head"><div><div class="crumbs">${monthName(S.month)}</div><h1>${S.me.role === "admin" ? "Задачи маркетологов" : "Мои задачи"}</h1>
     <div class="sub">Кто что должен сделать и прогресс по каждому филиалу. Данные кабинетов на ${ddmm(asOf) || "—"}.</div></div>
     <div class="right">${monthNav()}</div></div>
   ${TS.shared ? (TS.stale ? '<div class="alerts"><div class="alert-row bad">Отметки сейчас не загружаются — показано последнее сохранённое.</div></div>' : "") : `<div class="alerts"><div class="alert-row info">${TS.loading ? "Загружаем общие отметки…" : "Общие отметки недоступны на этой странице: видны только отметки, сделанные в этом браузере."}</div></div>`}
@@ -989,7 +996,7 @@ function paintBoard() {
         }).join("")}</ul></td></tr>`;
     }).join("")}
   </tbody></table></div>
-  ${none.length ? `<div class="hint mt">Без задач (нет данных кабинетов за этот месяц): ${none.map((r) => esc(r.b.name)).join(", ")}.</div>` : ""}</div>`;
+  ${none.length ? `<div class="hint mt">Без задач (нет данных CRM за этот месяц): ${none.map((r) => esc(r.b.name)).join(", ")}.</div>` : ""}</div>`;
   bindMonthNav();
   main.querySelectorAll("tr.bx").forEach((tr) => {
     tr.onclick = (e) => {
@@ -1957,7 +1964,7 @@ function branchKpiCard(r) {
   if (!r) return "";
   const ks = { ...{ threshold: 0.8, currency: "грн" }, ...(S.settings.kpi || {}) };
   if (r.planBalls <= 0) return "";
-  return `<div class="card mt"><div class="card-head"><h2>KPI маркетолога</h2>${kpill(r.status)}<span class="spacer"></span><a class="btn sm" href="#/kpi">Подробнее →</a></div>
+  return `<div class="card kpitop"><div class="card-head"><h2>KPI маркетолога</h2>${kpill(r.status)}<span class="spacer"></span><a class="btn sm" href="#/kpi">Подробнее →</a></div>
     <div class="hint">${r.closed ? "Итог месяца" : "Прогноз на конец месяца по темпу"}: ${fmt(r.closed ? r.factBalls : r.forecastBalls, 1)} из ${fmt(r.planBalls, 1)} ЛБ (${pct(r.usePct)}) · бонус ${uah(r.bonusBalls, ks)} из ${uah(r.targetBonus, ks)}${r.reviewsPlan != null ? ` · отзывы ${fmt(r.reviewsFact)} / ${fmt(r.reviewsPlan)}` : ""}${!r.closed && r.toThreshold > 0 ? ` · до порога ${pct(ks.threshold ?? 0.8)} ещё ${fmt(r.toThreshold, 1)} ЛБ` : ""}</div>
     ${kpiBar(r.usePct, r.status, { threshold: ks.threshold ?? 0.8 })}</div>`;
 }
@@ -1973,8 +1980,10 @@ async function route() {
     if ((m = h.match(/^\/b\/([\w-]+)(?:\/(\w+))?/))) return await renderBranch(m[1], m[2] || "dash");
     if (h === "/spend") return await renderSpend();
     if (h === "/kpi") return await renderKpi();
+    // «Мои задачи» маркетолога с несколькими филиалами и «Задачи маркетологов» админа — одна страница;
+    // сервер отдаёт в /api/tasks только филиалы, которые видит пользователь.
+    if (h === "/tasks") return await renderTasksBoard();
     if (S.me.role === "admin") {
-      if (h === "/tasks") return await renderTasksBoard();
       if (h === "/admin/users") return await renderUsers();
       if (h === "/admin/branches") return await renderBranches();
       if (h === "/admin/settings") return await renderSettings();
