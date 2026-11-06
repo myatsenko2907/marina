@@ -1,0 +1,303 @@
+<title>Давао: путь к 25 договорам</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: одна колонка отчёта ~760px, сверху вывод, ниже разделы по слоям воронки; таблицы скроллятся внутри себя */
+:root{
+  --bg:#f5f7f4; --surface:#ffffff; --fg:#17211d; --muted:#5b6a63; --line:#d9e0db;
+  --accent:#0d7a62; --accent-soft:#dff0ea; --warn:#b86a00; --warn-soft:#fbefdc; --bad:#b3261e; --bad-soft:#f8e1df; --good:#1f7a3a;
+  --f-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1513; --surface:#161e1b; --fg:#e4ebe7; --muted:#9aaba3; --line:#2a3631;
+  --accent:#3fc29f; --accent-soft:#163a30; --warn:#e6a23c; --warn-soft:#3a2c14; --bad:#ef7a72; --bad-soft:#3d1c1a; --good:#5ccf7d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --surface:#161e1b; --fg:#e4ebe7; --muted:#9aaba3; --line:#2a3631;
+  --accent:#3fc29f; --accent-soft:#163a30; --warn:#e6a23c; --warn-soft:#3a2c14; --bad:#ef7a72; --bad-soft:#3d1c1a; --good:#5ccf7d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 var(--f-body)}
+.wrap{max-width:800px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px;display:flex;flex-direction:column;gap:40px}
+h1{font:700 clamp(26px,5vw,38px)/1.15 var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font:600 20px/1.3 var(--f-display);margin:0;text-wrap:balance}
+h3{font:600 16px/1.35 var(--f-body);margin:0}
+p{margin:0;max-width:68ch}
+.eyebrow{font:600 11px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-direction:column;gap:14px}
+.lede{font-size:17px;color:var(--fg)}
+.meta{color:var(--muted);font-size:13px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi b{font:600 26px/1.1 var(--f-mono);font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted)}
+.kpi.bad b{color:var(--bad)} .kpi.warn b{color:var(--warn)} .kpi.good b{color:var(--accent)}
+.alert{background:var(--bad-soft);border-left:4px solid var(--bad);padding:14px 16px;border-radius:0 8px 8px 0;display:flex;flex-direction:column;gap:6px}
+.alert.warn{background:var(--warn-soft);border-color:var(--warn)}
+.alert.ok{background:var(--accent-soft);border-color:var(--accent)}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+.chart svg{width:100%;min-width:520px;height:auto;display:block}
+.grid{stroke:var(--line);stroke-width:1}
+.ax{fill:var(--muted);font:11px var(--f-mono)}
+.val{fill:var(--fg);font:600 12px var(--f-mono)}
+.bar{fill:var(--accent)}
+.target{stroke:var(--bad);stroke-width:2;stroke-dasharray:6 4}
+.tlabel{fill:var(--bad);font:600 12px var(--f-body)}
+.avg{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:2 3}
+.alabel{fill:var(--muted);font:12px var(--f-body)}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:600 11px/1 var(--f-mono);padding:4px 7px;border-radius:99px;white-space:nowrap}
+.pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.good{background:var(--accent-soft);color:var(--accent)}
+ul,ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:70ch}
+.funnel{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.frow{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center}
+.frow .lbl{font-size:13px;color:var(--muted)}
+.fbars{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fb{height:20px;border-radius:3px;display:flex;align-items:center;padding-left:8px;font:600 12px var(--f-mono);white-space:nowrap;min-width:fit-content}
+.fb.now{background:var(--line);color:var(--fg)}
+.fb.tgt{background:var(--accent);color:var(--surface)}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card .when{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.src{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.src a{color:var(--accent)}
+hr{border:0;border-top:1px solid var(--line);margin:0}
+@media (max-width:480px){.frow{grid-template-columns:1fr;gap:4px}}
+</style>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Филиал Глобал Филиппины · Давао · CRM global_phi · данные на 6 ноября 2026</span>
+  <h1>Как Давао выйти на 25 длинных договоров в месяц</h1>
+  <p class="lede">Сейчас филиал стабильно делает около <b class="num">7</b> длинных договоров в месяц при цели 25. Проблема не в стоимости лида: реклама в Давао дешёвая. Лиды теряются в продажах: на мастер-класс доходит каждый четвёртый записавшийся, консультации в академии не проводятся, а тысячи задач в CRM висят без обработки. Если поднять три конверсии, 25 договоров получаются при бюджете около $3 000 в месяц. Если ничего не менять и просто лить больше трафика, понадобится около $7 400 в месяц и втрое больше продавцов.</p>
+  <p class="meta">Длинный договор здесь означает 8-месячные курсы для взрослых (форма SC: Cybersecurity, Data Analyst, Python, QA, Graphic Design, AI) и детскую академию JCA на 3 или 5 лет. Короткие курсы (SC&lt;4, Digital Kids, лагеря, Roblox JSC) считаются отдельно. Курс валюты для пересчёта: 58 PHP за $1 (допущение).</p>
+</header>
+
+<section>
+  <span class="eyebrow">Главное</span>
+  <div class="kpis">
+    <div class="kpi"><b>7,3</b><span>длинных договоров в месяц, январь–октябрь (73 за 10 мес.)</span></div>
+    <div class="kpi bad"><b>×3,4</b><span>во столько раз нужно вырасти до цели 25</span></div>
+    <div class="kpi warn"><b>1,1%</b><span>конверсия «лид → длинный договор» (73 из 6 813 лидов)</span></div>
+    <div class="kpi"><b class="num">$320</b><span>рекламы на один длинный договор ($23 374 / 73)</span></div>
+    <div class="kpi bad"><b>25%</b><span>записавшихся на мастер-класс доходят (октябрь: 47 из 186)</span></div>
+    <div class="kpi bad"><b>0 из 14</b><span>назначенных консультаций в академии в октябре состоялись</span></div>
+  </div>
+  <div class="alert">
+    <h3>Срочно: реклама остановлена</h3>
+    <p>В рекламном кабинете Meta <span class="num">[ITS-AAA-ph-ED-HK-MT-P2-PV-6]</span> все 92 кампании 2026 года на паузе, траты с 1 по 5 ноября равны $0. Даже кампании с датой окончания 30.11 (Cybersecurity, AI from 0 to Pro, SMM, Full-Stack Designer) остановлены после $60–90 расхода. В CRM за ноябрь пока один новый контакт. Без запуска сейчас декабрь будет пустым, а январь (лучший месяц года: 13 длинных договоров) останется без прогретой базы.</p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Динамика</span>
+  <h2>Длинные договоры по месяцам 2026</h2>
+  <div class="chart"><svg viewBox="0 0 660 250" role="img" aria-label="Длинные договоры по месяцам 2026 против цели 25"><line x1="40" x2="648" y1="216.0" y2="216.0" class="grid"/><text x="32" y="220.0" class="ax" text-anchor="end">0</text><line x1="40" x2="648" y1="180.6" y2="180.6" class="grid"/><text x="32" y="184.6" class="ax" text-anchor="end">5</text><line x1="40" x2="648" y1="145.3" y2="145.3" class="grid"/><text x="32" y="149.3" class="ax" text-anchor="end">10</text><line x1="40" x2="648" y1="109.9" y2="109.9" class="grid"/><text x="32" y="113.9" class="ax" text-anchor="end">15</text><line x1="40" x2="648" y1="74.6" y2="74.6" class="grid"/><text x="32" y="78.6" class="ax" text-anchor="end">20</text><line x1="40" x2="648" y1="39.2" y2="39.2" class="grid"/><text x="32" y="43.2" class="ax" text-anchor="end">25</text><rect x="52.2" y="124.1" width="36.5" height="91.9" rx="2" class="bar"/><text x="70.4" y="118.1" class="val" text-anchor="middle">13</text><text x="70.4" y="238" class="ax" text-anchor="middle">Янв</text><rect x="113.0" y="173.6" width="36.5" height="42.4" rx="2" class="bar"/><text x="131.2" y="167.6" class="val" text-anchor="middle">6</text><text x="131.2" y="238" class="ax" text-anchor="middle">Фев</text><rect x="173.8" y="166.5" width="36.5" height="49.5" rx="2" class="bar"/><text x="192.0" y="160.5" class="val" text-anchor="middle">7</text><text x="192.0" y="238" class="ax" text-anchor="middle">Мар</text><rect x="234.6" y="194.8" width="36.5" height="21.2" rx="2" class="bar"/><text x="252.8" y="188.8" class="val" text-anchor="middle">3</text><text x="252.8" y="238" class="ax" text-anchor="middle">Апр</text><rect x="295.4" y="152.4" width="36.5" height="63.6" rx="2" class="bar"/><text x="313.6" y="146.4" class="val" text-anchor="middle">9</text><text x="313.6" y="238" class="ax" text-anchor="middle">Май</text><rect x="356.2" y="201.9" width="36.5" height="14.1" rx="2" class="bar"/><text x="374.4" y="195.9" class="val" text-anchor="middle">2</text><text x="374.4" y="238" class="ax" text-anchor="middle">Июн</text><rect x="417.0" y="131.1" width="36.5" height="84.9" rx="2" class="bar"/><text x="435.2" y="125.1" class="val" text-anchor="middle">12</text><text x="435.2" y="238" class="ax" text-anchor="middle">Июл</text><rect x="477.8" y="166.5" width="36.5" height="49.5" rx="2" class="bar"/><text x="496.0" y="160.5" class="val" text-anchor="middle">7</text><text x="496.0" y="238" class="ax" text-anchor="middle">Авг</text><rect x="538.6" y="180.6" width="36.5" height="35.4" rx="2" class="bar"/><text x="556.8" y="174.6" class="val" text-anchor="middle">5</text><text x="556.8" y="238" class="ax" text-anchor="middle">Сен</text><rect x="599.4" y="152.4" width="36.5" height="63.6" rx="2" class="bar"/><text x="617.6" y="146.4" class="val" text-anchor="middle">9</text><text x="617.6" y="238" class="ax" text-anchor="middle">Окт</text><line x1="40" x2="648" y1="39.2" y2="39.2" class="target"/><text x="648" y="33.2" class="tlabel" text-anchor="end">цель 25</text><line x1="40" x2="648" y1="164.4" y2="164.4" class="avg"/><text x="44" y="158.4" class="alabel">среднее 7.3</text></svg></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Месяц</th><th class="r">Реклама, $</th><th class="r">Длинные</th><th class="r">Все договоры</th><th class="r">$ на длинный</th></tr></thead>
+    <tbody>
+      <tr><td>Январь</td><td class="r">4 570</td><td class="r">13</td><td class="r">38</td><td class="r">352</td></tr>
+      <tr><td>Февраль</td><td class="r">2 277</td><td class="r">6</td><td class="r">19</td><td class="r">380</td></tr>
+      <tr><td>Март</td><td class="r">2 316</td><td class="r">7</td><td class="r">19</td><td class="r">331</td></tr>
+      <tr><td>Апрель</td><td class="r">1 089</td><td class="r">3</td><td class="r">16</td><td class="r">363</td></tr>
+      <tr><td>Май</td><td class="r">2 845</td><td class="r">9</td><td class="r">20</td><td class="r">316</td></tr>
+      <tr><td>Июнь</td><td class="r">2 047</td><td class="r">2</td><td class="r">15</td><td class="r">1 024</td></tr>
+      <tr><td>Июль</td><td class="r">1 525</td><td class="r">12</td><td class="r">23</td><td class="r">127</td></tr>
+      <tr><td>Август</td><td class="r">2 817</td><td class="r">7</td><td class="r">11</td><td class="r">402</td></tr>
+      <tr><td>Сентябрь</td><td class="r">1 744</td><td class="r">5</td><td class="r">21</td><td class="r">349</td></tr>
+      <tr><td>Октябрь</td><td class="r">2 145</td><td class="r">9</td><td class="r">15</td><td class="r">238</td></tr>
+      <tr><td><b>Итого</b></td><td class="r"><b>23 374</b></td><td class="r"><b>73</b></td><td class="r"><b>197</b></td><td class="r"><b>320</b></td></tr>
+    </tbody>
+  </table></div>
+  <p>Связи «больше бюджета → больше длинных» почти нет: июль дал 12 договоров при $1 525, август 7 при $2 817. Результат месяца определяют продажи и график стартов групп, а не объём трафика.</p>
+  <p>Из 73 длинных договоров 62 взрослые (8-месячные курсы) и только 11 детские JCA. При этом детских коротких договоров 105 (Digital Kids 75, лагеря 21, Roblox 9). Это готовая база родителей для перевода в JCA, и сейчас она почти не используется.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Реклама</span>
+  <h2>Meta: дешёвый трафик, слабая доводка</h2>
+  <p>Январь–октябрь 2026: $23 374, около 5 670 лидов по данным Meta, CTR около 1%, CPM $0,5–2. Это очень дешёвый рынок. В CRM за тот же период пришло 6 813 обращений (с учётом органики).</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Направление кампаний</th><th class="r">Расход, $</th><th class="r">Лиды Meta</th><th class="r">Цена лида</th><th>Вывод</th></tr></thead>
+    <tbody>
+      <tr><td>Мероприятия (мастер-классы, пробные, Open House)</td><td class="r">13 927</td><td class="r">3 620</td><td class="r">$3,85</td><td><span class="pill good">основной канал</span> дают 25 из 29 договоров по интернет-заявкам май–ноябрь</td></tr>
+      <tr><td>Digital Kids</td><td class="r">2 071</td><td class="r">154</td><td class="r">$13,45</td><td><span class="pill bad">убыточно</span> самый дорогой лид ради курса за 4 071 PHP</td></tr>
+      <tr><td>Data Analytics (курс)</td><td class="r">1 698</td><td class="r">258</td><td class="r">$6,59</td><td><span class="pill warn">дорого</span> лучше вести через событие Dataverse за $2,5–3,5</td></tr>
+      <tr><td>Roblox</td><td class="r">1 086</td><td class="r">125</td><td class="r">$8,68</td><td><span class="pill warn">дорого</span> пробный «From Gamer to Creator» стоит $2,9–4,8</td></tr>
+      <tr><td>Cybersecurity + AI</td><td class="r">1 033</td><td class="r">254</td><td class="r">$4,07</td><td><span class="pill good">масштабировать</span> 53% взрослых длинных договоров — кибербезопасность</td></tr>
+      <tr><td>Python, 2D, SMM</td><td class="r">2 009</td><td class="r">491</td><td class="r">$4,1</td><td>норма</td></tr>
+      <tr><td>Photoshop + AI, Senior High (лид-формы)</td><td class="r">698</td><td class="r">684</td><td class="r">$0,86–1,19</td><td><span class="pill warn">качество</span> лиды с лид-форм: 250 заявок Facebook май–ноябрь, 0 договоров</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>Лучшие события по цене лида:</b> Exploring the Dataverse ($2–3,5), Ai 0 to Pro + Cybersecurity/Data ($2,9–3), From Gamer to Creator ($2,9–4,8). Их нужно держать постоянно и чередовать креативы, а не запускать по 1–2 недели с нуля.</li>
+    <li><b>Частота 3–4</b> на кампаниях Junior Architects и Dataverse при охвате 0,4–1,5 млн в месяц: аудитория Давао небольшая и выгорает. Нужно 2–3 новых креатива в месяц на каждое событие.</li>
+    <li><b>Спам и дубли:</b> январь–апрель удалено 318 заявок, из них 211 спам (почти все с курсовых лид-форм). Для лид-форм включить «higher intent» и вопрос-фильтр (возраст, цель обучения).</li>
+    <li><b>Оптимизация на лид, а не на договор.</b> Meta не получает обратно факт оплаты. Нужно настроить передачу из CRM события «пришёл на мероприятие» и «договор» (Conversions API / офлайн-конверсии), чтобы алгоритм искал людей, которые доходят.</li>
+  </ul>
+</section>
+
+<section>
+  <span class="eyebrow">CRM и воронка</span>
+  <h2>Где теряются клиенты</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Индикатор здоровья филиала (CRM)</th><th class="r">Сейчас</th><th>Что значит</th></tr></thead>
+    <tbody>
+      <tr><td>Интернет-заявки с недозвоном</td><td class="r">2 396</td><td><span class="pill bad">критично</span> лиды, до которых не дозвонились и не дожали</td></tr>
+      <tr><td>Просроченные запланированные звонки</td><td class="r">1 828</td><td><span class="pill bad">критично</span> «перезвоню позже» без выполнения</td></tr>
+      <tr><td>Неотвеченные чаты</td><td class="r">1 698</td><td><span class="pill bad">критично</span> Messenger/чаты без ответа; в PH это основной канал связи</td></tr>
+      <tr><td>Звонки, закончившиеся ничем</td><td class="r">1 334</td><td><span class="pill warn">проблема</span> нет следующего шага</td></tr>
+      <tr><td>Недозвон по записи на демо</td><td class="r">1 026</td><td><span class="pill warn">проблема</span> записались, но подтверждения нет</td></tr>
+      <tr><td>Звонок после мероприятия не сделан</td><td class="r">527</td><td><span class="pill bad">критично</span> самые тёплые клиенты, которые были на событии</td></tr>
+      <tr><td>Индекс здоровья филиала</td><td class="r">0</td><td>минимальное значение</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Воронка мероприятий, октябрь 2026 (8 событий)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Событие</th><th class="r">Записались</th><th class="r">Пришли</th><th class="r">Доходимость</th><th class="r">Не дозвонились</th></tr></thead>
+    <tbody>
+      <tr><td>DevVerse, 10.10</td><td class="r">14</td><td class="r">2</td><td class="r">14%</td><td class="r">5</td></tr>
+      <tr><td>From Gamer to Creator (дети), 10.10</td><td class="r">15</td><td class="r">5</td><td class="r">33%</td><td class="r">7</td></tr>
+      <tr><td>Ai 0 to Pro + Cybersecurity, 17.10</td><td class="r">34</td><td class="r">7</td><td class="r">21%</td><td class="r">12</td></tr>
+      <tr><td>Little Tech Explorers (дети), 17.10</td><td class="r">15</td><td class="r">6</td><td class="r">40%</td><td class="r">4</td></tr>
+      <tr><td>Ai 0 to Pro + Data Analytics, 24.10</td><td class="r">46</td><td class="r">8</td><td class="r">17%</td><td class="r">19</td></tr>
+      <tr><td>From Gamer to Creator (дети), 24.10</td><td class="r">14</td><td class="r">5</td><td class="r">36%</td><td class="r">3</td></tr>
+      <tr><td>Open House, 31.10</td><td class="r">29</td><td class="r">7</td><td class="r">24%</td><td class="r">8</td></tr>
+      <tr><td>Junior Architect (дети), 31.10</td><td class="r">19</td><td class="r">7</td><td class="r">37%</td><td class="r">5</td></tr>
+      <tr><td><b>Итого</b></td><td class="r"><b>186</b></td><td class="r"><b>47</b></td><td class="r"><b>25%</b></td><td class="r"><b>63</b></td></tr>
+    </tbody>
+  </table></div>
+  <p>Треть записавшихся (63 из 186) так и не подтвердили участие, потому что до них не дозвонились. Взрослые события теряют больше: доходимость 14–24% против 33–40% на детских пробных. Ни у одного участника не отмечено «планирует учиться», то есть после события квалификация не фиксируется. Из 14 назначенных визитов в академию не состоялся ни один.</p>
+  <p>По типам заявок (май–ноябрь): заявка на событие конвертируется в договор в 1,5% случаев (25 из 1 699), заявка на курс в 0,3% (3 из 932), лид-форма Facebook в 0% (0 из 250). Путь через мероприятие работает в 5 раз лучше, поэтому вся система должна вести клиента на событие и сразу после него на консультацию.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Продавцы</span>
+  <h2>Работа менеджеров, август – 5 ноября</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Менеджер</th><th class="r">Наборов в день</th><th class="r">Дозвон</th><th class="r">Разговоров в день</th><th class="r">Минут разговора в день</th><th class="r">На линии, ч/день</th><th class="r">Длинных, авг–окт</th><th class="r">Ошибок по AI</th></tr></thead>
+    <tbody>
+      <tr><td>Kathleen Araña</td><td class="r">68</td><td class="r">20%</td><td class="r">14</td><td class="r">31</td><td class="r">1,05</td><td class="r">10</td><td class="r">108</td></tr>
+      <tr><td>Ajos Ella</td><td class="r">83</td><td class="r">30%</td><td class="r">25</td><td class="r">33</td><td class="r">1,38</td><td class="r">6</td><td class="r">117</td></tr>
+      <tr><td>Lachica Kristine</td><td class="r">51</td><td class="r">37%</td><td class="r">19</td><td class="r">35</td><td class="r">1,38</td><td class="r">5</td><td class="r">70</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>Мало времени на линии.</b> Около 1–1,4 часа в день в телефонии и 30–35 минут чистого разговора. Средний звонок длится около 2 минут. Для отдела, который должен закрывать 25 длинных договоров, норма 3,5–4 часа на линии и 40+ результативных разговоров в день.</li>
+    <li><b>Ушла сильная продавец.</b> Magbagay Ara закрыла 21 длинный договор за январь–июль (почти 3 в месяц) и с августа не работает. Новые менеджеры Ajos Ella и Lachica Kristine делают по 2 в месяц. Kathleen Araña остаётся лидером (41 длинный за год), но у неё худший дозвон и доходимость (18% записанных ею дошли до события).</li>
+    <li><b>Ранние «отказы».</b> AI-контроль звонков (сентябрь–ноябрь) проверил 1 371 разговор, в 198 (14%) менеджер поставил неверный результат. Самая частая ошибка (56 раз): менеджер ставит «отказ», когда клиент на самом деле «думает». Так тёплые лиды выпадают из работы навсегда.</li>
+    <li><b>Нет конкретного следующего шага.</b> В 109 из 198 ошибочных звонков следующий контакт перенесён без даты («перезвоню позже»), в 51 шаги не согласованы, в 23 дата звонка не заполнена. Отсюда 1 828 просроченных задач.</li>
+    <li><b>Возражения клиентов:</b> «ищу стипендию или бесплатное обучение» (45 разговоров), занятость учёбой или работой (44), цена (19), «хочу онлайн» (9). Менеджеры называют полную цену курса (например «20 000») и не переводят её в платёж в месяц (Cybersecurity: 6 786 PHP в месяц, JCA: 5 429 PHP в месяц).</li>
+  </ul>
+</section>
+
+<section>
+  <span class="eyebrow">Рынок и конкуренты</span>
+  <h2>Давао: спрос есть, платная конкуренция слабая</h2>
+  <ul>
+    <li><b>Размер рынка.</b> Давао — крупнейший город Минданао, около 1,8 млн жителей (перепись PSA 2020). В IT-BPM работают 75–100 тыс. человек, цель индустрии — 150 тыс. к 2028 году. Это прямой спрос на переквалификацию взрослых (кибербезопасность, данные, AI).</li>
+    <li><b>Главный конкурент взрослого направления — бесплатное обучение.</b> TESDA и аккредитованные колледжи (например Interface Computer College) дают короткие курсы, в том числе по AI и Python, а TESDA планирует 600–700 тыс. стипендий в 2026. Отсюда возражение «ищу стипендию» в 45 разговорах. Отвечать нужно международным сертификатом, практикой и трудоустройством, а не скидкой.</li>
+    <li><b>Онлайн-сертификации</b> (Sprintzeal, CompTIA Security+) стоят около 90–135 тыс. PHP. Наш 8-месячный Cybersecurity за 48 857 PHP вдвое дешевле и очный. Это сильный аргумент, его нужно встроить в скрипт.</li>
+    <li><b>Дети.</b> Прямых офлайн-конкурентов по программированию мало: Bricks 4 Kidz (LEGO STEM, 3–13 лет), бесплатные кемпы DEVCON Kids, онлайн-школа BrightCHAMPS, робототехника внутри частных школ. Многолетней офлайн-академии формата JCA в городе не видно.</li>
+    <li><b>Реклама конкурентов.</b> В библиотеке объявлений Meta нет активных объявлений по запросам «coding kids Davao» и «Davao course cybersecurity data analytics». Вместе с CPM $0,5–2 это значит, что за платную аудиторию почти никто не конкурирует. Ограничение: поиск идёт по тексту объявления, поэтому часть конкурентов может не попасть в выдачу.</li>
+    <li><b>Что ищут клиенты</b> (по договорам 2026): кибербезопасность (33 из 62 взрослых длинных), Data Analyst (9), графический дизайн (9), Python with AI (6). Возраст взрослых: медиана 27–31 год. Дети: медиана 9–10 лет, это ровно JCA 9–12 лет.</li>
+  </ul>
+  <p class="meta">Объёмы поисковых запросов Google не посчитаны: в этой сессии нет доступа к Google Ads / Keyword Planner, а коннектор Supermetrics требует авторизации в настройках коннекторов claude.ai. Спрос оценён по лидам Meta, обращениям в CRM и составу договоров.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Расчёт</span>
+  <h2>Модель: 25 длинных договоров в месяц</h2>
+  <p>Опорная точка — октябрь: около 500 лидов, 186 записей на события, 47 пришедших, 9 длинных договоров. Значит, сейчас из пришедших на событие примерно каждый пятый (19%) подписывает длинный договор.</p>
+  <div class="funnel">
+    <div class="legend"><span><i style="background:var(--line)"></i>сейчас (октябрь)</span><span><i style="background:var(--accent)"></i>цель</span></div>
+    <div class="frow"><span class="lbl">Лиды в месяц</span><div class="fbars"><div class="fb now" style="width:63%">≈500</div><div class="fb tgt" style="width:70%">≈560</div></div></div>
+    <div class="frow"><span class="lbl">Записались на событие</span><div class="fbars"><div class="fb now" style="width:23%">186 · 37%</div><div class="fb tgt" style="width:31%">250 · 45%</div></div></div>
+    <div class="frow"><span class="lbl">Пришли</span><div class="fbars"><div class="fb now" style="width:6%">47 · 25%</div><div class="fb tgt" style="width:12.5%">100 · 40%</div></div></div>
+    <div class="frow"><span class="lbl">Длинный договор</span><div class="fbars"><div class="fb now" style="width:1.2%">9 · 19%</div><div class="fb tgt" style="width:3.1%">25 · 25%</div></div></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Сценарий</th><th class="r">Лидов в месяц</th><th class="r">Реклама в месяц</th><th class="r">$ на договор</th><th>Продавцов</th></tr></thead>
+    <tbody>
+      <tr><td><b>A. Только больше трафика</b>, конверсии как сейчас (1,5%)</td><td class="r">≈1 670</td><td class="r">≈$7 400</td><td class="r">≈$300</td><td>≈10 <span class="pill bad">нереально</span></td></tr>
+      <tr><td><b>B. Частично чиним воронку</b>: запись 45%, доходимость 33%, конверсия 22%</td><td class="r">≈770</td><td class="r">≈$3 400</td><td class="r">≈$135</td><td>4</td></tr>
+      <tr><td><b>C. Целевая воронка</b>: запись 45%, доходимость 40%, конверсия 25%</td><td class="r">≈560</td><td class="r">≈$2 500–3 000</td><td class="r">≈$100–120</td><td>4 <span class="pill good">рекомендуем</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="meta">Цена лида в CRM взята как факт май–октябрь: около $4,4 за обращение ($13 123 / 2 965) (реклама / все заявки CRM). Сценарий A посчитан от текущей конверсии лид → длинный договор 1,5% (май–октябрь: 44 из 2 965).</p>
+  <h3>Из чего складываются 25</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Источник</th><th class="r">Сейчас в месяц</th><th class="r">Цель</th><th>Как</th></tr></thead>
+    <tbody>
+      <tr><td>Взрослые 8-месячные (Cybersecurity, Data, Python, AI, Design)</td><td class="r">6,2</td><td class="r">15</td><td>события «Ai 0 to Pro + …», Dataverse, Open House → консультация в тот же день</td></tr>
+      <tr><td>JCA из новых родителей (пробные Little Tech, Junior Architect, Gamer to Creator)</td><td class="r">1,1</td><td class="r">6</td><td>после каждого пробного занятия разговор с родителем, предложение первого месяца</td></tr>
+      <tr><td>JCA из своей базы (Digital Kids, лагеря, Roblox)</td><td class="r">≈0</td><td class="r">4</td><td>около 10 детей в месяц проходят короткие программы; переводить 30–40% в JCA на выпускном занятии</td></tr>
+      <tr><td><b>Итого</b></td><td class="r"><b>7,3</b></td><td class="r"><b>25</b></td><td></td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Экономика цели:</b> 25 × 73 600 PHP (средняя стоимость длинного договора 2026) ≈ 1,84 млн PHP подписанных договоров в месяц и около 480 тыс. PHP первых платежей (средний первый платёж 19 200 PHP). Реклама $3 000 ≈ 174 тыс. PHP, то есть меньше 10% стоимости договоров.</p>
+</section>
+
+<section>
+  <span class="eyebrow">План</span>
+  <h2>Что делать</h2>
+  <div class="cols">
+    <div class="card">
+      <span class="when">Эта неделя</span>
+      <h3>Перезапуск и разбор хвостов</h3>
+      <ul>
+        <li>Включить рекламу: Cybersecurity, AI 0 to Pro, событие на 14 ноября и Open House декабря. Бюджет $90–100 в день.</li>
+        <li>Отключить Digital Kids на лид ($13,45) и курсовые лид-формы без фильтра.</li>
+        <li>Разобрать 527 «звонков после мероприятия» и 1 698 чатов. Это самые тёплые клиенты, начать с них.</li>
+        <li>Пересмотреть все «отказы» за 60 дней, где AI ставит «думает», и вернуть их в работу.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="when">Ноябрь</span>
+      <h3>Стандарты продаж</h3>
+      <ul>
+        <li>Новый лид получает звонок за 5 минут, чат — ответ за 15 минут. Ежедневный контроль SLA.</li>
+        <li>Норма: 3,5–4 часа на линии, 40 разговоров, у каждого звонка есть дата следующего шага.</li>
+        <li>Подтверждение события: звонок или сообщение в Messenger за день и SMS утром в день события.</li>
+        <li>На каждом событии продавец на месте, консультации в тот же день, цель — договор или предоплата.</li>
+        <li>Скрипт: цена в месяц, сравнение с сертификацией за 90 тыс. PHP, ответ на «стипендию».</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="when">До января</span>
+      <h3>Набор на январский старт</h3>
+      <ul>
+        <li>Нанять 4-го продавца на место Magbagay Ara (вакансия Sales Manager уже есть в кабинете).</li>
+        <li>Декабрь: 2 Open House и 4 детских пробных. Январь — сезон, в 2026 он дал 13 длинных договоров.</li>
+        <li>Передать в Meta события «пришёл» и «договор» из CRM, оптимизировать кампании на них.</li>
+        <li>Ввести пакет перевода «Digital Kids / лагерь → JCA» с бонусом для выпускников.</li>
+        <li>Еженедельно сверять цифры: лиды, записи, доходимость, консультации, длинные договоры.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="alert ok">
+    <h3>Еженедельные контрольные цифры для директора</h3>
+    <p>Около 140 лидов, 63 записи на события, 25 пришедших, 6 длинных договоров в неделю. Ноль просроченных звонков после мероприятия, ноль чатов без ответа больше суток. Если доходимость ниже 35% две недели подряд, проблема в подтверждениях, а не в рекламе.</p>
+  </div>
+</section>
+
+<hr>
+<section class="src">
+  <span class="eyebrow">Источники</span>
+  <span>CRM itstep (филиал global_phi): договоры 01.01–06.11.2026 (197 шт.), интернет-заявки 01.01–05.11.2026, мероприятия октября (252 записи), показатели менеджеров 01.08–05.11, AI-анализ звонков 01.09–05.11 (198 ошибочных из 1 371), индикаторы здоровья филиала, прайс филиала. Отчёт по скорости обработки (SLA) не загрузился из-за таймаута CRM.</span>
+  <span>Meta Ads: кабинет [ITS-AAA-ph-ED-HK-MT-P2-PV-6], кампании 2026 и помесячные траты; библиотека объявлений Meta (PH). Старый кабинет «Philippines» без трат с апреля 2025.</span>
+  <span>Рынок: <a href="https://news.outsourceaccelerator.com/davao-targets-150k-bpo-employees-by-2028/" target="_blank" rel="noopener">Outsource Accelerator — Davao targets 150k BPO employees by 2028</a>, <a href="https://mindanews.com/top-stories/2024/10/davao-it-bpm-labor-force-grows-12-percent/" target="_blank" rel="noopener">MindaNews — Davao IT-BPM labor force</a>, <a href="https://www.sunstar.com.ph/davao/business/tesda-certified-ai-courses-offered-to-davao-youth" target="_blank" rel="noopener">SunStar — TESDA AI courses for Davao youth</a>, <a href="https://tesdatrainingcourses.com/tesda-courses-in-interface-computer-college-davao-city.html" target="_blank" rel="noopener">Interface Computer College Davao</a>, <a href="https://www.sprintzeal.com/course/comptia-security-certification-training/davao-city" target="_blank" rel="noopener">Sprintzeal — Security+ Davao</a>, <a href="https://mindanaotimes.com.ph/scene-city-bricks-4-kidz/amp/" target="_blank" rel="noopener">Mindanao Times — Bricks 4 Kidz</a>, <a href="https://lu.ma/vnckwmop" target="_blank" rel="noopener">DEVCON Kids Davao</a>, <a href="https://brightchamps.com/en-ph/courses/coding-classes-for-kids/grade-6" target="_blank" rel="noopener">BrightCHAMPS PH</a>.</span>
+</section>
+
+</div>
