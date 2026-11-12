@@ -43,3 +43,10 @@ npm run serve   # preview at http://localhost:8080
 ## Hosting
 
 `docs/` is a ready static site: enable GitHub Pages → *Deploy from branch* → folder `/docs`, or upload the folder to any hosting.
+
+## Бюджет лагерей (`budget/`)
+
+Сервис годового бюджета для лагерей: команда (зарплаты по месяцам), лагеря (участники, цена, себестоимость, реклама, админ персонал), общие расходы, итоги и отчёт по месяцам, экспорт в Excel (CSV) и резервная копия (JSON).
+
+- Откройте `budget/index.html` в браузере: всё работает без сервера, данные сохраняются в браузере.
+- Исходник страницы — `budget/app.html`; после правок запустите `sh budget/build.sh`, чтобы обновить `index.html`.
