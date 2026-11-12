@@ -36,6 +36,7 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background
 .brand span{color:var(--muted);font-size:12px}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .field-inline{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.rates input{width:62px;padding:4px 6px;text-align:right}
 nav.sections{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
 nav.sections a{flex:none;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:999px;font-weight:500;font-size:13px}
 nav.sections a:hover,nav.sections a:focus-visible{background:var(--surface-2);color:var(--fg)}
@@ -132,6 +133,15 @@ var MONTHS=["Янв","Фев","Мар","Апр","Май","Июн","Июл","Ав
 var MONTHS_FULL=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 var LS_KEY="camp-budget-draft-v1";
 var CURRENCIES=["₴","$","€"];
+function DEFAULT_RATES(){return {"$":41.5,"€":48}}
+function rateOf(cur){return cur==="₴"?1:(S&&S.rates&&S.rates[cur])||DEFAULT_RATES()[cur]||1}
+// All money amounts are stored in the selected currency; switching currency or changing its rate converts them.
+function convertMoney(f){
+  if(!isFinite(f)||f<=0||f===1)return;
+  S.team.forEach(function(t){t.salary=t.salary.map(function(v){return v*f})});
+  S.camps.forEach(function(c){c.staffPP*=f;c.adsPP*=f;c.bonus*=f});
+  S.sales.base*=f;if(S.sales.bonus)S.sales.bonus*=f;
+}
 var uid=function(){return Math.random().toString(36).slice(2,9)};
 var arr12=function(v){var a=[];for(var i=0;i<12;i++)a.push(v);return a};
 var sum=function(a){return a.reduce(function(x,y){return x+y},0)};
@@ -149,7 +159,7 @@ function example(){
   ].map(function(t){return {id:uid(),role:t.role,salary:arr12(t.v)}});
   team[3].salary=[12000,12000,15000,15000,18000,25000,25000,25000,15000,15000,12000,18000];
   return {
-    example:true, year:new Date().getFullYear()+1, currency:"₴", savedAt:0,
+    example:true, year:new Date().getFullYear()+1, currency:"₴", rates:DEFAULT_RATES(), savedAt:0,
     team:team, sales:{count:2,base:30000,bonus:600}, motiv:DEFAULT_MOTIV(),
     camps:[
       {id:uid(),name:"Весенний IT-лагерь",month:2,participants:40,staffPP:6000,adsPP:1100},
@@ -161,9 +171,9 @@ function example(){
     ]
   };
 }
-function newCamp(){return {id:uid(),name:"Новый лагерь",start:S.year+"-07-01",lead:3,stop:"2w",participants:0,staffPP:0,adsPP:0,bonus:600,capacity:0}}
+function newCamp(){return {id:uid(),name:"Новый лагерь",start:S.year+"-07-01",lead:3,stop:"2w",participants:0,staffPP:0,adsPP:0,bonus:600/rateOf(S.currency),capacity:0}}
 function blank(cur){
-  return {example:false,year:cur.year,currency:cur.currency,savedAt:0,
+  return {example:false,year:cur.year,currency:cur.currency,rates:{"$":cur.rates["$"],"€":cur.rates["€"]},savedAt:0,
     sales:{count:cur.sales.count,base:cur.sales.base,bonus:cur.sales.bonus}, motiv:JSON.parse(JSON.stringify(cur.motiv)),
     team:["Руководитель","Маркетолог","SMM","Куратор"].map(function(r){return {id:uid(),role:r,salary:arr12(0)}}),
     camps:[newCamp()]};
@@ -186,7 +196,7 @@ function normalize(s){
   var motiv={poolPct:sm2.poolPct!=null?n(sm2.poolPct):dm.poolPct,
     shares:{winter:sh.winter!=null?n(sh.winter):dm.shares.winter,spring:sh.spring!=null?n(sh.spring):dm.shares.spring,summer:sh.summer!=null?n(sh.summer):dm.shares.summer,autumn:sh.autumn!=null?n(sh.autumn):dm.shares.autumn},
     tiers:dm.tiers.map(function(t,i){var x=(sm2.tiers&&sm2.tiers.length===dm.tiers.length?sm2.tiers[i]:null)||{};return {fill:x.fill!=null?n(x.fill):t.fill,pct:x.pct!=null?n(x.pct):t.pct}})};
-  return {example:!!s.example,year:n(s.year)||new Date().getFullYear(),currency:CURRENCIES.indexOf(s.currency)>=0?s.currency:"₴",savedAt:n(s.savedAt),
+  return {example:!!s.example,year:n(s.year)||new Date().getFullYear(),currency:CURRENCIES.indexOf(s.currency)>=0?s.currency:"₴",rates:{"$":(s.rates&&n(s.rates["$"])>0)?n(s.rates["$"]):DEFAULT_RATES()["$"],"€":(s.rates&&n(s.rates["€"])>0)?n(s.rates["€"]):DEFAULT_RATES()["€"]},savedAt:n(s.savedAt),
     team:team, sales:sales, motiv:motiv,
     camps:(s.camps||[]).map(function(c){var nm=String(c.name||""),intl=INTL.test(nm),yr=n(s.year)||new Date().getFullYear();return {id:c.id||uid(),name:nm,
       start:/^\d{4}-\d{2}-\d{2}$/.test(c.start)?c.start:yr+"-"+pad2(Math.min(11,Math.max(0,n(c.month)))+1)+"-01",
@@ -282,6 +292,7 @@ function render(){
     '<div class="controls">'+
       '<label class="field-inline" for="year">Год <select id="year">'+yearOpts+'</select></label>'+
       '<label class="field-inline" for="currency">Валюта <select id="currency">'+curOpts+'</select></label>'+
+      '<span class="field-inline rates">Курс: <label for="rate-usd">1 $ =</label><input id="rate-usd" inputmode="decimal" value="'+String(S.rates["$"]).replace(".",",")+'"> ₴ <label for="rate-eur">1 € =</label><input id="rate-eur" inputmode="decimal" value="'+String(S.rates["€"]).replace(".",",")+'"> ₴</span>'+
       '<span class="status" id="status"></span>'+
       '<button class="primary" id="save" type="button">Сохранить</button>'+
     '</div></div>'+
@@ -475,7 +486,9 @@ app.addEventListener("change",function(e){
   var t=e.target,path=t.getAttribute("data-path");
   if(path&&(t.tagName==="SELECT"||t.type==="date")){if(t.type==="date"&&!/^\d{4}-\d{2}-\d{2}$/.test(t.value))return;setPath(path,t.value);changed();recalc();return}
   if(t.id==="year"){var dy=Number(t.value)-S.year;S.camps.forEach(function(c){var p=c.start.split("-");c.start=(+p[0]+dy)+"-"+p[1]+"-"+p[2]});S.year=Number(t.value);rerenderSection("camps");document.getElementById("y-lbl").textContent=S.year;changed()}
-  if(t.id==="currency"){S.currency=t.value;changed();recalc()}
+  if(t.id==="currency"){var from=S.currency,to=t.value;convertMoney(rateOf(from)/rateOf(to));S.currency=to;changed();render();toast(from===to?"":"Суммы пересчитаны: "+from+" → "+to+(to!=="₴"?" по курсу "+String(rateOf(to)).replace(".",",")+" ₴":from!=="₴"?" по курсу "+String(rateOf(from)).replace(".",",")+" ₴":""));return}
+  if(t.id==="rate-usd"||t.id==="rate-eur"){var cur=t.id==="rate-usd"?"$":"€",nv=parseNum(t.value);if(!(nv>0)){t.value=String(S.rates[cur]).replace(".",",");toast("Курс должен быть больше нуля");return}
+    var old=S.rates[cur];S.rates[cur]=nv;if(S.currency===cur){convertMoney(old/nv);changed();render();toast("Курс обновлён, суммы в "+cur+" пересчитаны")}else{changed();toast("Курс "+cur+" сохранён")}return}
   if(t.id==="imp-json"&&t.files&&t.files[0]){var r=new FileReader();r.onload=function(){try{var d=normalize(JSON.parse(r.result));if(!d||!d.team)throw 0;d.example=false;S=d;changed();render();toast("Бюджет загружен из копии")}catch(err){toast("Не удалось прочитать файл: нужен .json, скачанный из этого сервиса")}};r.readAsText(t.files[0]);t.value=""}
 });
 app.addEventListener("focusin",function(e){var t=e.target;if(t.tagName==="INPUT"&&t.type!=="date"&&t.dataset.path&&t.getAttribute("inputmode")==="decimal"){t.value=t.value.replace(/\s| /g,"");t.select()}});
