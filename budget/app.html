@@ -101,6 +101,9 @@ td input.small{width:64px}
 td input.date{width:140px;text-align:left}
 table.tiers td:first-child{position:static;color:var(--muted);font-weight:500}
 table.tiers{width:auto}
+th.over{color:var(--pos);line-height:1.25}
+th.over span{font-weight:500;text-transform:none;letter-spacing:0}
+td.over{color:var(--pos)}
 td.window{color:var(--muted);font-size:12px}
 td select{border-color:transparent;background:transparent;padding:5px 4px}
 td select:hover{border-color:var(--line)}
@@ -369,15 +372,16 @@ function renderSales(M,Y){
   document.getElementById("sales-table").innerHTML=h+'</tbody></table>';
 }
 function teamBonus(){return sum(S.team.filter(function(t){return /бонус/i.test(t.role)}).map(function(t){return sum(t.salary)}))}
+function OVER(){return S.motiv.tiers.slice(3)}
 function renderMotiv(Y){
   var mv=Y.mv,T={camps:0,cap:0,part:0,pool:0,tot:0};
   var pl=document.getElementById("motiv-pool");
   if(pl)pl.innerHTML=mv.hasHead?'Зарплата руководителя за год: <b>'+money(mv.headYear)+'</b> · Фонд бонуса: <b>'+money(mv.pool)+'</b> · По расчёту за год: <b>'+money(sum(SEASONS.map(function(x){return mv.S[x.k].total})))+'</b>'+(teamBonus()?' · В таблице «Команда» заложено бонусов: <b>'+money(teamBonus())+'</b>':'')+(Math.abs(mv.shareSum-100)>0.01?' · <span class="neg">Сумма долей сезонов '+fmt(mv.shareSum)+'%, а должна быть 100%</span>':''):'<span>В таблице «Команда» нет строки «Руководитель»: фонд бонуса не из чего считать.</span>';
-  var h='<table><thead><tr><th>Сезон</th><th>Месяцы</th><th>Доля фонда</th><th>Фонд сезона</th><th>Групп</th><th>Мест</th><th>Продано</th><th>Заполняемость</th><th>Выплата от фонда</th><th>Бонус</th><th>Месяц выплаты</th></tr></thead><tbody>';
+  var h='<table><thead><tr><th>Сезон</th><th>Месяцы</th><th>Доля фонда</th><th>Фонд сезона</th><th>Групп</th><th>Мест</th><th>Продано</th><th>Заполняемость</th><th>Выплата от фонда</th><th>Бонус</th>'+OVER().map(function(t){return '<th class="over" title="Выплата '+fmt(t.pct)+'% от доли сезона">Если '+fmt(t.fill)+'%<br><span>('+fmt(t.pct)+'% доли)</span></th>'}).join("")+'<th>Месяц выплаты</th></tr></thead><tbody>',OT=OVER().map(function(){return 0});
   SEASONS.forEach(function(x){var o=mv.S[x.k];T.camps+=o.camps;T.cap+=o.cap;T.part+=o.part;T.pool+=o.pool;T.tot+=o.total;
     var cls=!o.camps?"":o.coef>=100?"pos":o.coef===0?"neg":"";var over=o.camps&&o.coef>100;
-    h+='<tr><td><b>'+x.name+'</b></td><td>'+x.months+'</td><td>'+fmt(o.share)+'%</td><td>'+fmt(o.pool)+'</td><td>'+(o.camps||"—")+'</td><td>'+(o.cap?fmt(o.cap):"—")+'</td><td>'+(o.part?fmt(o.part):"—")+'</td><td class="'+cls+'">'+(o.camps?pct(o.fill*100):"—")+'</td><td class="'+cls+'">'+(o.camps?fmt(o.coef)+"%":"—")+'</td><td class="total">'+fmt(o.total)+(over?' <span class="chip pos">перевыполнение</span>':'')+'</td><td>'+MONTHS_FULL[x.pay]+'</td></tr>'});
-  h+='</tbody><tfoot><tr><td>За год</td><td></td><td>'+fmt(mv.shareSum)+'%</td><td>'+fmt(T.pool)+'</td><td>'+T.camps+'</td><td>'+fmt(T.cap)+'</td><td>'+fmt(T.part)+'</td><td>'+(T.cap?pct(T.part/T.cap*100):"—")+'</td><td>'+(T.pool?pct(T.tot/T.pool*100):"—")+'</td><td class="total">'+fmt(T.tot)+'</td><td></td></tr></tfoot></table>';
+    h+='<tr><td><b>'+x.name+'</b></td><td>'+x.months+'</td><td>'+fmt(o.share)+'%</td><td>'+fmt(o.pool)+'</td><td>'+(o.camps||"—")+'</td><td>'+(o.cap?fmt(o.cap):"—")+'</td><td>'+(o.part?fmt(o.part):"—")+'</td><td class="'+cls+'">'+(o.camps?pct(o.fill*100):"—")+'</td><td class="'+cls+'">'+(o.camps?fmt(o.coef)+"%":"—")+'</td><td class="total">'+fmt(o.total)+(over?' <span class="chip pos">перевыполнение</span>':'')+'</td>'+OVER().map(function(t,i){var v=o.pool*t.pct/100;OT[i]+=v;return '<td class="over">'+fmt(v)+'</td>'}).join("")+'<td>'+MONTHS_FULL[x.pay]+'</td></tr>'});
+  h+='</tbody><tfoot><tr><td>За год</td><td></td><td>'+fmt(mv.shareSum)+'%</td><td>'+fmt(T.pool)+'</td><td>'+T.camps+'</td><td>'+fmt(T.cap)+'</td><td>'+fmt(T.part)+'</td><td>'+(T.cap?pct(T.part/T.cap*100):"—")+'</td><td>'+(T.pool?pct(T.tot/T.pool*100):"—")+'</td><td class="total">'+fmt(T.tot)+'</td>'+OT.map(function(v){return '<td class="over">'+fmt(v)+'</td>'}).join("")+'<td></td></tr></tfoot></table>';
   document.getElementById("motiv-seasons").innerHTML=h;
   var order=SEASONS.map(function(s){return s.k});
   var r='<table><thead><tr><th>Лагерь</th><th>Сезон</th><th>Мест</th><th>Участников</th><th>Заполняемость</th></tr></thead><tbody>';
@@ -506,8 +510,8 @@ function toCSV(){
   S.camps.forEach(function(c){var k=campCalc(c),w=adsWindow(c);row([c.name,c.start,c.participants,c.capacity,c.staffPP,c.adsPP,c.bonus,new Date(w.begin).toISOString().slice(0,10),new Date(w.end).toISOString().slice(0,10),k.staff,k.ads,k.bonus,k.total])});
   row(["Итого лагеря","",Y.participants,"","","","","","",Y.campStaff,Y.campAds,Y.salesBonus,Y.campStaff+Y.campAds+Y.salesBonus]);row([]);
   row(["ПРОДАЖНИКИ: "+S.sales.count+" чел., ставка "+S.sales.base,"До "+S.year].concat(MONTHS_FULL,["После "+S.year,"За год"]));
-  row(["БОНУС РУКОВОДИТЕЛЯ: фонд "+S.motiv.poolPct+"% от зарплаты за год","Доля, %","Фонд сезона","Групп","Мест","Продано","Заполняемость, %","Выплата от фонда, %","Бонус","Месяц выплаты"]);
-  SEASONS.forEach(function(x){var o=Y.mv.S[x.k];row([x.name,o.share,o.pool,o.camps,o.cap,o.part,o.camps?Math.round(o.fill*1000)/10:"",o.coef,o.total,MONTHS_FULL[x.pay]])});row([]);
+  row(["БОНУС РУКОВОДИТЕЛЯ: фонд "+S.motiv.poolPct+"% от зарплаты за год","Доля, %","Фонд сезона","Групп","Мест","Продано","Заполняемость, %","Выплата от фонда, %","Бонус"].concat(OVER().map(function(t){return "Если "+t.fill+"% ("+t.pct+"% доли)"}),["Месяц выплаты"]));
+  SEASONS.forEach(function(x){var o=Y.mv.S[x.k];row([x.name,o.share,o.pool,o.camps,o.cap,o.part,o.camps?Math.round(o.fill*1000)/10:"",o.coef,o.total].concat(OVER().map(function(t){return o.pool*t.pct/100}),[MONTHS_FULL[x.pay]]))});row([]);
   SALES_ROWS.forEach(function(r){row([r[0],edge(Y,"prev",r[1])].concat(M.map(function(m){return m[r[1]]}),[edge(Y,"next",r[1]),Y[r[1]]]))});row([]);
   row(["ОТЧЁТ ПО МЕСЯЦАМ","До "+S.year].concat(MONTHS_FULL,["После "+S.year,"За год"]));
   REPORT_ROWS.forEach(function(r){row([r[0],edge(Y,"prev",r[1])].concat(M.map(function(m){return m[r[1]]}),[r[1]==="cum"?M[11].cum+Y.nextAds:edge(Y,"next",r[1]),r[1]==="cum"?M[11].cum+Y.nextAds:Y[r[1]]]))});
