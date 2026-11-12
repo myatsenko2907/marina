@@ -131,8 +131,10 @@ var MONTHS=["Янв","Фев","Мар","Апр","Май","Июн","Июл","Ав
 var MONTHS_FULL=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 var KINDS={ads:"Реклама",admin:"Админ персонал",other:"Прочее"};
 var LS_KEY="camp-budget-draft-v1";
+var CURRENCIES=["₴","$","€"];
 var uid=function(){return Math.random().toString(36).slice(2,9)};
 var arr12=function(v){var a=[];for(var i=0;i<12;i++)a.push(v);return a};
+var sum=function(a){return a.reduce(function(x,y){return x+y},0)};
 
 // Capture the page source once, before rendering, so a save can regenerate the document.
 var SRC={
@@ -143,42 +145,42 @@ var SRC={
 
 function example(){
   var team=[
-    {role:"Руководитель",v:150000},{role:"Менеджер по продажам 1",v:80000},{role:"Менеджер по продажам 2",v:80000},
-    {role:"Маркетолог",v:90000},{role:"SMM",v:60000},{role:"Куратор",v:50000}
+    {role:"Руководитель",v:45000},{role:"Менеджер по продажам 1",v:25000},{role:"Менеджер по продажам 2",v:25000},
+    {role:"Маркетолог",v:30000},{role:"SMM",v:20000},{role:"Куратор",v:15000}
   ].map(function(t){return {id:uid(),role:t.role,salary:arr12(t.v)}});
-  team[5].salary=[40000,40000,50000,50000,60000,80000,80000,80000,50000,50000,40000,60000];
+  team[5].salary=[12000,12000,15000,15000,18000,25000,25000,25000,15000,15000,12000,18000];
   return {
-    example:true, year:new Date().getFullYear()+1, currency:"₽", payrollTax:30, revenueTax:6, savedAt:0,
+    example:true, year:new Date().getFullYear()+1, currency:"₴", savedAt:0,
     team:team,
     camps:[
-      {id:uid(),name:"Весенний IT-лагерь",month:2,days:7,participants:40,price:58000,cost:22000,ads:150000,adsMonths:2,admin:90000,other:30000},
-      {id:uid(),name:"Летний лагерь, 1 смена",month:5,days:14,participants:70,price:92000,cost:36000,ads:280000,adsMonths:3,admin:180000,other:50000},
-      {id:uid(),name:"Летний лагерь, 2 смена",month:6,days:14,participants:80,price:92000,cost:36000,ads:250000,adsMonths:3,admin:180000,other:50000},
-      {id:uid(),name:"Летний лагерь, 3 смена",month:7,days:14,participants:60,price:88000,cost:36000,ads:220000,adsMonths:3,admin:170000,other:50000},
-      {id:uid(),name:"Осенний лагерь",month:9,days:7,participants:35,price:58000,cost:22000,ads:120000,adsMonths:2,admin:80000,other:25000},
-      {id:uid(),name:"Зимний лагерь",month:11,days:7,participants:45,price:64000,cost:25000,ads:160000,adsMonths:2,admin:95000,other:30000}
+      {id:uid(),name:"Весенний IT-лагерь",month:2,participants:40,staff:27000,ads:45000},
+      {id:uid(),name:"Летний лагерь, 1 смена",month:5,participants:70,staff:55000,ads:85000},
+      {id:uid(),name:"Летний лагерь, 2 смена",month:6,participants:80,staff:55000,ads:75000},
+      {id:uid(),name:"Летний лагерь, 3 смена",month:7,participants:60,staff:50000,ads:65000},
+      {id:uid(),name:"Осенний лагерь",month:9,participants:35,staff:24000,ads:36000},
+      {id:uid(),name:"Зимний лагерь",month:11,participants:45,staff:28000,ads:48000}
     ],
     overhead:[
-      {id:uid(),name:"Реклама бренда (общая)",kind:"ads",values:[30000,40000,60000,80000,80000,50000,40000,30000,40000,40000,50000,40000]},
-      {id:uid(),name:"Бухгалтер, офис-менеджер",kind:"admin",values:arr12(60000)},
-      {id:uid(),name:"Аренда офиса",kind:"other",values:arr12(40000)},
-      {id:uid(),name:"CRM, телефония, сервисы",kind:"other",values:arr12(15000)}
+      {id:uid(),name:"Реклама бренда (общая)",kind:"ads",values:[9000,12000,18000,24000,24000,15000,12000,9000,12000,12000,15000,12000]},
+      {id:uid(),name:"Бухгалтер, офис-менеджер",kind:"admin",values:arr12(18000)},
+      {id:uid(),name:"Аренда офиса",kind:"other",values:arr12(12000)},
+      {id:uid(),name:"CRM, телефония, сервисы",kind:"other",values:arr12(4500)}
     ]
   };
 }
+function newCamp(){return {id:uid(),name:"Новый лагерь",month:5,participants:0,staff:0,ads:0}}
 function blank(cur){
-  return {example:false,year:cur.year,currency:cur.currency,payrollTax:cur.payrollTax,revenueTax:cur.revenueTax,savedAt:0,
+  return {example:false,year:cur.year,currency:cur.currency,savedAt:0,
     team:["Руководитель","Менеджер по продажам 1","Менеджер по продажам 2","Маркетолог","SMM","Куратор"].map(function(r){return {id:uid(),role:r,salary:arr12(0)}}),
-    camps:[{id:uid(),name:"Новый лагерь",month:5,days:7,participants:0,price:0,cost:0,ads:0,adsMonths:1,admin:0,other:0}],
+    camps:[newCamp()],
     overhead:[{id:uid(),name:"Реклама (общая)",kind:"ads",values:arr12(0)},{id:uid(),name:"Админ персонал",kind:"admin",values:arr12(0)},{id:uid(),name:"Аренда, сервисы",kind:"other",values:arr12(0)}]};
 }
 function normalize(s){
   if(!s||typeof s!=="object")return null;
   var n=function(v){v=Number(v);return isFinite(v)?v:0};
-  return {example:!!s.example,year:n(s.year)||new Date().getFullYear(),currency:String(s.currency||"₽").slice(0,4),
-    payrollTax:n(s.payrollTax),revenueTax:n(s.revenueTax),savedAt:n(s.savedAt),
+  return {example:!!s.example,year:n(s.year)||new Date().getFullYear(),currency:CURRENCIES.indexOf(s.currency)>=0?s.currency:"₴",savedAt:n(s.savedAt),
     team:(s.team||[]).map(function(t){return {id:t.id||uid(),role:String(t.role||""),salary:arr12(0).map(function(_,i){return n((t.salary||[])[i])})}}),
-    camps:(s.camps||[]).map(function(c){return {id:c.id||uid(),name:String(c.name||""),month:Math.min(11,Math.max(0,n(c.month))),days:n(c.days),participants:n(c.participants),price:n(c.price),cost:n(c.cost),ads:n(c.ads),adsMonths:Math.min(12,Math.max(1,n(c.adsMonths)||1)),admin:n(c.admin),other:n(c.other)}}),
+    camps:(s.camps||[]).map(function(c){return {id:c.id||uid(),name:String(c.name||""),month:Math.min(11,Math.max(0,n(c.month))),participants:n(c.participants),staff:n(c.staff!=null?c.staff:c.admin),ads:n(c.ads)}}),
     overhead:(s.overhead||[]).map(function(o){return {id:o.id||uid(),name:String(o.name||""),kind:KINDS[o.kind]?o.kind:"other",values:arr12(0).map(function(_,i){return n((o.values||[])[i])})}})};
 }
 
@@ -187,10 +189,10 @@ var embedded=null;
 try{embedded=normalize(JSON.parse(document.getElementById("budget-data").textContent))}catch(e){}
 var draft=null;
 try{draft=normalize(JSON.parse(localStorage.getItem(LS_KEY)))}catch(e){}
+function stripMeta(s){var c=JSON.parse(JSON.stringify(s));delete c.savedAt;return c}
 var S, dirty=false;
 if(draft&&(!embedded||(draft.savedAt>=embedded.savedAt&&JSON.stringify(stripMeta(draft))!==JSON.stringify(stripMeta(embedded))))){S=draft;dirty=true}
 else S=embedded||example();
-function stripMeta(s){var c=JSON.parse(JSON.stringify(s));delete c.savedAt;return c}
 
 var artifactApi=null, downloadsApi=null, canPublish=true;
 
@@ -199,205 +201,165 @@ var fmt=function(v){return Math.round(v).toLocaleString("ru-RU")};
 var money=function(v){return fmt(v)+" "+S.currency};
 var pct=function(v){return isFinite(v)?(Math.round(v*10)/10).toLocaleString("ru-RU")+"%":"—"};
 function parseNum(str){var v=parseFloat(String(str).replace(/\s| /g,"").replace(",","."));return isFinite(v)?v:0}
+function campCalc(c){var total=c.staff+c.ads;return {total:total,perHead:c.participants?total/c.participants:NaN}}
 
-function campCalc(c){
-  var revenue=c.participants*c.price;
-  var direct=c.participants*c.cost+c.other;
-  var expenses=direct+c.ads+c.admin;
-  var tax=revenue*S.revenueTax/100;
-  var profit=revenue-expenses-tax;
-  return {revenue:revenue,direct:direct,expenses:expenses+tax,tax:tax,profit:profit,margin:revenue?profit/revenue*100:NaN,cac:c.participants?c.ads/c.participants:NaN,perHead:c.participants?(expenses+tax)/c.participants:NaN};
-}
 function compute(){
-  var M=arr12(0).map(function(){return {revenue:0,participants:0,direct:0,campAds:0,campAdmin:0,team:0,teamTax:0,ohAds:0,ohAdmin:0,ohOther:0,tax:0}});
-  S.camps.forEach(function(c){
-    var m=M[c.month];
-    m.revenue+=c.participants*c.price; m.participants+=c.participants;
-    m.direct+=c.participants*c.cost+c.other; m.campAdmin+=c.admin;
-    var k=c.adsMonths, start=c.month-k+1, per=c.ads/k;
-    for(var i=0;i<k;i++){M[Math.max(0,start+i)].campAds+=per}
-  });
-  S.team.forEach(function(t){t.salary.forEach(function(v,i){M[i].team+=v;M[i].teamTax+=v*S.payrollTax/100})});
+  var M=arr12(0).map(function(){return {participants:0,team:0,campStaff:0,campAds:0,ohAds:0,ohAdmin:0,ohOther:0}});
+  S.camps.forEach(function(c){var m=M[c.month];m.participants+=c.participants;m.campStaff+=c.staff;m.campAds+=c.ads});
+  S.team.forEach(function(t){t.salary.forEach(function(v,i){M[i].team+=v})});
   S.overhead.forEach(function(o){o.values.forEach(function(v,i){M[i]["oh"+o.kind.charAt(0).toUpperCase()+o.kind.slice(1)]+=v})});
   var cum=0;
   M.forEach(function(m){
-    m.tax=m.revenue*S.revenueTax/100;
-    m.teamTotal=m.team+m.teamTax;
-    m.ads=m.campAds+m.ohAds; m.admin=m.campAdmin+m.ohAdmin;
-    m.expenses=m.direct+m.ads+m.admin+m.teamTotal+m.ohOther+m.tax;
-    m.profit=m.revenue-m.expenses; cum+=m.profit; m.cum=cum;
+    m.camps=m.campStaff+m.campAds; m.overhead=m.ohAds+m.ohAdmin+m.ohOther; m.ads=m.campAds+m.ohAds;
+    m.expenses=m.team+m.camps+m.overhead; cum+=m.expenses; m.cum=cum;
   });
-  var Y={}; ["revenue","participants","direct","campAds","campAdmin","team","teamTax","teamTotal","ohAds","ohAdmin","ohOther","ads","admin","tax","expenses","profit"].forEach(function(k){Y[k]=M.reduce(function(a,m){return a+m[k]},0)});
-  var variable=Y.direct+Y.campAds+Y.campAdmin+Y.tax, fixed=Y.teamTotal+Y.ohAds+Y.ohAdmin+Y.ohOther;
-  var contrib=Y.participants?(Y.revenue-variable)/Y.participants:0;
-  Y.fixed=fixed; Y.contrib=contrib; Y.breakEven=contrib>0?Math.ceil(fixed/contrib):NaN;
-  Y.margin=Y.revenue?Y.profit/Y.revenue*100:NaN; Y.cac=Y.participants?Y.ads/Y.participants:NaN;
-  Y.minCum=Math.min.apply(null,M.map(function(m){return m.cum}));
+  var Y={};["participants","team","campStaff","campAds","ohAds","ohAdmin","ohOther","camps","overhead","ads","expenses"].forEach(function(k){Y[k]=sum(M.map(function(m){return m[k]}))});
+  Y.perHead=Y.participants?Y.expenses/Y.participants:NaN;
+  Y.campPerHead=Y.participants?Y.camps/Y.participants:NaN;
+  Y.adsPerHead=Y.participants?Y.ads/Y.participants:NaN;
   return {M:M,Y:Y};
 }
 
 // ---------- render ----------
 var app=document.getElementById("app");
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function numInput(path,val,cls){return '<input class="'+(cls||"")+'" id="in-'+path.replace(/\./g,"-")+'" data-path="'+path+'" inputmode="decimal" value="'+(val?fmt(val):"")+'" placeholder="0" aria-label="'+path+'">'}
+function numInput(path,val,cls,label){return '<input class="'+(cls||"")+'" id="in-'+path.replace(/\./g,"-")+'" data-path="'+path+'" inputmode="decimal" value="'+(val?fmt(val):"")+'" placeholder="0" aria-label="'+(label||path)+'">'}
 
 function render(){
   var yearOpts="";for(var y=new Date().getFullYear()-1;y<=new Date().getFullYear()+3;y++)yearOpts+='<option'+(y===S.year?" selected":"")+'>'+y+'</option>';
-  var curs=["₽","₴","₸","$","€","BYN","сум"],curOpts=curs.map(function(c){return '<option'+(c===S.currency?" selected":"")+'>'+c+'</option>'}).join("");
+  var curOpts=CURRENCIES.map(function(c){return '<option'+(c===S.currency?" selected":"")+'>'+c+'</option>'}).join("");
   app.innerHTML=
   '<header class="top"><div class="wrap"><div class="top-row">'+
-    '<div class="brand"><h1>Бюджет лагерей</h1><span>Годовой план: команда, лагеря, реклама, админ персонал</span></div>'+
+    '<div class="brand"><h1>Бюджет лагерей</h1><span>Годовой план расходов: команда, лагеря, общие расходы</span></div>'+
     '<div class="controls">'+
       '<label class="field-inline" for="year">Год <select id="year">'+yearOpts+'</select></label>'+
       '<label class="field-inline" for="currency">Валюта <select id="currency">'+curOpts+'</select></label>'+
       '<span class="status" id="status"></span>'+
       '<button class="primary" id="save" type="button">Сохранить</button>'+
     '</div></div>'+
-    '<nav class="sections" aria-label="Разделы"><a href="#summary">Итоги</a><a href="#team">Команда</a><a href="#camps">Лагеря</a><a href="#overhead">Общие расходы</a><a href="#report">По месяцам</a><a href="#settings">Налоги и файлы</a></nav>'+
+    '<nav class="sections" aria-label="Разделы"><a href="#summary">Итоги</a><a href="#team">Команда</a><a href="#camps">Лагеря</a><a href="#overhead">Общие расходы</a><a href="#report">По месяцам</a><a href="#files">Файлы</a></nav>'+
   '</div></header>'+
   '<main class="wrap">'+
     (S.example?'<div class="banner" id="example-banner"><span><b>Это пример с условными цифрами.</b> Замените их своими или начните с пустого бюджета.</span><span class="confirm" id="clear-zone"><button type="button" id="clear-ask">Начать с пустого</button></span></div>':'')+
     '<section id="summary"><div class="sec-head"><h2>Итоги за <span id="y-lbl">'+S.year+'</span> год</h2></div>'+
       '<div class="kpis" id="kpis"></div>'+
-      '<div class="panels"><div class="panel chart"><h3>Выручка, расходы и прибыль по месяцам</h3>'+
-        '<div class="legend"><span><i style="background:var(--rev)"></i>Выручка</span><span><i style="background:var(--exp)"></i>Расходы</span><span><i class="line" style="background:var(--fg)"></i>Прибыль нарастающим итогом</span></div><div id="chart"></div></div>'+
+      '<div class="panels"><div class="panel chart"><h3>Расходы по месяцам</h3>'+
+        '<div class="legend"><span><i style="background:var(--c-team)"></i>Команда</span><span><i style="background:var(--c-direct)"></i>Персонал лагерей</span><span><i style="background:var(--c-ads)"></i>Реклама</span><span><i style="background:var(--c-admin)"></i>Админ персонал офиса</span><span><i style="background:var(--c-other)"></i>Прочее</span></div><div id="chart"></div></div>'+
         '<div class="panel"><h3>Куда уходят деньги за год</h3><div class="struct" id="struct"></div></div></div>'+
     '</section>'+
     '<section id="team"><div class="sec-head"><h2>Команда</h2><div class="row-tools"><button type="button" id="add-team">+ Сотрудник</button></div>'+
-      '<p>Зарплата на каждый месяц. Кнопка «→» копирует январскую сумму на весь год. Начисления на ЗП задаются в разделе «Налоги и файлы».</p></div>'+
+      '<p>Зарплата на каждый месяц. Кнопка «→» копирует январскую сумму на весь год.</p></div>'+
       '<div class="table-box" id="team-table"></div></section>'+
     '<section id="camps"><div class="sec-head"><h2>Лагеря</h2><div class="row-tools"><button type="button" id="add-camp">+ Лагерь</button></div>'+
-      '<p>Выручка = участники × цена. Себестоимость на участника: проживание, питание, программа. Реклама распределяется равными частями на указанное число месяцев до старта, включая месяц лагеря. Админ персонал лагеря: вожатые, повара, охрана, водители.</p></div>'+
+      '<p>Сумма на персонал и на рекламу по каждому лагерю. Сервис считает общую сумму и сколько она составляет на одного участника. Месяц нужен, чтобы расходы попали в нужный месяц отчёта.</p></div>'+
       '<div class="table-box" id="camp-table"></div></section>'+
     '<section id="overhead"><div class="sec-head"><h2>Общие расходы</h2><div class="row-tools"><button type="button" id="add-oh">+ Статья</button></div>'+
       '<p>Ежемесячные расходы, не привязанные к конкретному лагерю: общая реклама, офисный админ персонал, аренда, сервисы. Тип статьи определяет, в какую группу она попадёт в итогах.</p></div>'+
       '<div class="table-box" id="oh-table"></div></section>'+
     '<section id="report"><div class="sec-head"><h2>Отчёт по месяцам</h2><p>Считается автоматически из таблиц выше.</p></div>'+
       '<div class="table-box" id="report-table"></div></section>'+
-    '<section id="settings"><div class="sec-head"><h2>Налоги и файлы</h2></div>'+
-      '<div class="panel"><div class="settings">'+
-        '<label for="payrollTax">Начисления на ЗП, % <small>взносы сверх оклада, добавляются к ФОТ</small><input id="payrollTax" inputmode="decimal" value="'+S.payrollTax+'"></label>'+
-        '<label for="revenueTax">Налог с выручки, % <small>например, 6% на упрощёнке</small><input id="revenueTax" inputmode="decimal" value="'+S.revenueTax+'"></label>'+
-      '</div></div>'+
+    '<section id="files"><div class="sec-head"><h2>Файлы</h2></div>'+
       '<div class="row-tools"><button type="button" id="exp-csv">Скачать для Excel (CSV)</button><button type="button" id="exp-json">Скачать резервную копию</button>'+
         '<label class="btn" for="imp-json" tabindex="0">Загрузить из копии</label><input type="file" id="imp-json" accept=".json,application/json" hidden></div>'+
       '<p class="hint" id="save-hint"></p>'+
     '</section>'+
   '</main>';
-  renderTeam();renderCamps();renderOverhead();recalc();updateStatus();bindStatic();
+  renderTeam();renderCamps();renderOverhead();recalc();updateStatus();
 }
 
+function monthHead(){return MONTHS.map(function(m){return '<th>'+m+'</th>'}).join("")}
 function renderTeam(){
-  var h='<table><thead><tr><th>Должность</th>'+MONTHS.map(function(m){return '<th>'+m+'</th>'}).join("")+'<th>За год</th><th></th></tr></thead><tbody>';
+  var h='<table><thead><tr><th>Должность</th>'+monthHead()+'<th>За год</th><th></th></tr></thead><tbody>';
   S.team.forEach(function(t,ri){
     h+='<tr><td><input class="name" id="team-'+t.id+'-role" data-path="team.'+ri+'.role" value="'+esc(t.role)+'" aria-label="Должность"></td>'+
-      t.salary.map(function(v,i){return '<td>'+numInput("team."+ri+".salary."+i,v)+'</td>'}).join("")+
+      t.salary.map(function(v,i){return '<td>'+numInput("team."+ri+".salary."+i,v,"",t.role+", "+MONTHS_FULL[i])+'</td>'}).join("")+
       '<td class="total" data-calc="team-row-'+ri+'"></td><td class="actions"><button class="icon fill" type="button" data-fill="team.'+ri+'" title="Скопировать январь на все месяцы">→</button><button class="icon" type="button" data-del="team.'+ri+'" title="Удалить">✕</button></td></tr>';
   });
-  h+='</tbody><tfoot><tr class="sub"><td>Оклады</td>'+MONTHS.map(function(_,i){return '<td data-calc="team-m-'+i+'"></td>'}).join("")+'<td data-calc="team-y"></td><td></td></tr>'+
-    '<tr class="sub"><td>Начисления на ЗП</td>'+MONTHS.map(function(_,i){return '<td data-calc="teamtax-m-'+i+'"></td>'}).join("")+'<td data-calc="teamtax-y"></td><td></td></tr>'+
-    '<tr><td>ФОТ команды</td>'+MONTHS.map(function(_,i){return '<td data-calc="teamtot-m-'+i+'"></td>'}).join("")+'<td class="total" data-calc="teamtot-y"></td><td></td></tr></tfoot></table>';
+  h+='</tbody><tfoot><tr><td>ФОТ команды</td>'+MONTHS.map(function(_,i){return '<td data-calc="team-m-'+i+'"></td>'}).join("")+'<td class="total" data-calc="team-y"></td><td></td></tr></tfoot></table>';
   document.getElementById("team-table").innerHTML=h;
 }
 function renderCamps(){
-  var h='<table><thead><tr><th>Лагерь</th><th>Месяц</th><th>Дней</th><th>Участники</th><th>Цена за участника</th><th>Себест. на участника</th><th>Реклама</th><th>Реклама, мес.</th><th>Админ персонал</th><th>Прочие</th><th>Выручка</th><th>Расходы</th><th>Прибыль</th><th>Маржа</th><th>Реклама на участника</th><th></th></tr></thead><tbody>';
+  var h='<table><thead><tr><th>Лагерь</th><th>Месяц</th><th>Участники</th><th>Персонал</th><th>Реклама</th><th>Всего</th><th>На 1 участника</th><th></th></tr></thead><tbody>';
   S.camps.forEach(function(c,ri){
     var mo=MONTHS_FULL.map(function(m,i){return '<option value="'+i+'"'+(i===c.month?" selected":"")+'>'+m+'</option>'}).join("");
     h+='<tr><td><input class="name" id="camp-'+c.id+'-name" data-path="camps.'+ri+'.name" value="'+esc(c.name)+'" aria-label="Название лагеря"></td>'+
       '<td><select id="camp-'+c.id+'-month" data-path="camps.'+ri+'.month" aria-label="Месяц">'+mo+'</select></td>'+
-      '<td>'+numInput("camps."+ri+".days",c.days,"small")+'</td>'+
-      '<td>'+numInput("camps."+ri+".participants",c.participants,"small")+'</td>'+
-      '<td>'+numInput("camps."+ri+".price",c.price)+'</td>'+
-      '<td>'+numInput("camps."+ri+".cost",c.cost)+'</td>'+
-      '<td>'+numInput("camps."+ri+".ads",c.ads)+'</td>'+
-      '<td>'+numInput("camps."+ri+".adsMonths",c.adsMonths,"small")+'</td>'+
-      '<td>'+numInput("camps."+ri+".admin",c.admin)+'</td>'+
-      '<td>'+numInput("camps."+ri+".other",c.other)+'</td>'+
-      '<td class="calc" data-calc="camp-rev-'+ri+'"></td><td class="calc" data-calc="camp-exp-'+ri+'"></td><td class="calc" data-calc="camp-pr-'+ri+'"></td><td data-calc="camp-mg-'+ri+'"></td><td data-calc="camp-cac-'+ri+'"></td>'+
+      '<td>'+numInput("camps."+ri+".participants",c.participants,"small","Участники")+'</td>'+
+      '<td>'+numInput("camps."+ri+".staff",c.staff,"","Сумма на персонал")+'</td>'+
+      '<td>'+numInput("camps."+ri+".ads",c.ads,"","Сумма на рекламу")+'</td>'+
+      '<td class="total" data-calc="camp-tot-'+ri+'"></td><td class="calc" data-calc="camp-ph-'+ri+'"></td>'+
       '<td class="actions"><button class="icon" type="button" data-del="camps.'+ri+'" title="Удалить">✕</button></td></tr>';
   });
-  h+='</tbody><tfoot><tr><td>Итого лагеря</td><td></td><td></td><td data-calc="camps-part"></td><td></td><td></td><td data-calc="camps-ads"></td><td></td><td data-calc="camps-admin"></td><td data-calc="camps-other"></td><td data-calc="camps-rev"></td><td data-calc="camps-exp"></td><td data-calc="camps-pr"></td><td data-calc="camps-mg"></td><td data-calc="camps-cac"></td><td></td></tr></tfoot></table>';
+  h+='</tbody><tfoot><tr><td>Итого лагеря</td><td></td><td data-calc="camps-part"></td><td data-calc="camps-staff"></td><td data-calc="camps-ads"></td><td class="total" data-calc="camps-tot"></td><td data-calc="camps-ph"></td><td></td></tr></tfoot></table>';
   document.getElementById("camp-table").innerHTML=h;
 }
 function renderOverhead(){
-  var h='<table><thead><tr><th>Статья</th><th>Тип</th>'+MONTHS.map(function(m){return '<th>'+m+'</th>'}).join("")+'<th>За год</th><th></th></tr></thead><tbody>';
+  var h='<table><thead><tr><th>Статья</th><th>Тип</th>'+monthHead()+'<th>За год</th><th></th></tr></thead><tbody>';
   S.overhead.forEach(function(o,ri){
     var ko=Object.keys(KINDS).map(function(k){return '<option value="'+k+'"'+(k===o.kind?" selected":"")+'>'+KINDS[k]+'</option>'}).join("");
     h+='<tr><td><input class="name" id="oh-'+o.id+'-name" data-path="overhead.'+ri+'.name" value="'+esc(o.name)+'" aria-label="Статья"></td><td><select id="oh-'+o.id+'-kind" data-path="overhead.'+ri+'.kind" aria-label="Тип">'+ko+'</select></td>'+
-      o.values.map(function(v,i){return '<td>'+numInput("overhead."+ri+".values."+i,v)+'</td>'}).join("")+
+      o.values.map(function(v,i){return '<td>'+numInput("overhead."+ri+".values."+i,v,"",o.name+", "+MONTHS_FULL[i])+'</td>'}).join("")+
       '<td class="total" data-calc="oh-row-'+ri+'"></td><td class="actions"><button class="icon fill" type="button" data-fill="overhead.'+ri+'" title="Скопировать январь на все месяцы">→</button><button class="icon" type="button" data-del="overhead.'+ri+'" title="Удалить">✕</button></td></tr>';
   });
   h+='</tbody><tfoot><tr><td>Итого</td><td></td>'+MONTHS.map(function(_,i){return '<td data-calc="oh-m-'+i+'"></td>'}).join("")+'<td class="total" data-calc="oh-y"></td><td></td></tr></tfoot></table>';
   document.getElementById("oh-table").innerHTML=h;
 }
 
-function setCalc(key,text,cls){var el=app.querySelector('[data-calc="'+key+'"]');if(el){el.textContent=text;if(cls!==undefined){el.classList.remove("pos","neg");if(cls)el.classList.add(cls)}}}
-function sign(v){return v<0?"neg":v>0?"pos":""}
-
+function setCalc(key,text){var el=app.querySelector('[data-calc="'+key+'"]');if(el)el.textContent=text}
 function recalc(){
   var R=compute(),M=R.M,Y=R.Y;
-  // team
-  S.team.forEach(function(t,ri){setCalc("team-row-"+ri,fmt(t.salary.reduce(function(a,b){return a+b},0)))});
-  M.forEach(function(m,i){setCalc("team-m-"+i,fmt(m.team));setCalc("teamtax-m-"+i,fmt(m.teamTax));setCalc("teamtot-m-"+i,fmt(m.teamTotal))});
-  setCalc("team-y",fmt(Y.team));setCalc("teamtax-y",fmt(Y.teamTax));setCalc("teamtot-y",fmt(Y.teamTotal));
-  // camps
-  var tot={part:0,ads:0,admin:0,other:0,rev:0,exp:0,pr:0};
+  S.team.forEach(function(t,ri){setCalc("team-row-"+ri,fmt(sum(t.salary)))});
+  M.forEach(function(m,i){setCalc("team-m-"+i,fmt(m.team))});setCalc("team-y",fmt(Y.team));
+  var tot={part:0,staff:0,ads:0,all:0};
   S.camps.forEach(function(c,ri){var k=campCalc(c);
-    setCalc("camp-rev-"+ri,fmt(k.revenue));setCalc("camp-exp-"+ri,fmt(k.expenses));setCalc("camp-pr-"+ri,fmt(k.profit),sign(k.profit));
-    setCalc("camp-mg-"+ri,pct(k.margin),isFinite(k.margin)?sign(k.margin):"");setCalc("camp-cac-"+ri,isFinite(k.cac)?fmt(k.cac):"—");
-    tot.part+=c.participants;tot.ads+=c.ads;tot.admin+=c.admin;tot.other+=c.other;tot.rev+=k.revenue;tot.exp+=k.expenses;tot.pr+=k.profit;});
-  setCalc("camps-part",fmt(tot.part));setCalc("camps-ads",fmt(tot.ads));setCalc("camps-admin",fmt(tot.admin));setCalc("camps-other",fmt(tot.other));
-  setCalc("camps-rev",fmt(tot.rev));setCalc("camps-exp",fmt(tot.exp));setCalc("camps-pr",fmt(tot.pr),sign(tot.pr));
-  setCalc("camps-mg",pct(tot.rev?tot.pr/tot.rev*100:NaN));setCalc("camps-cac",tot.part?fmt(tot.ads/tot.part):"—");
-  // overhead
+    setCalc("camp-tot-"+ri,fmt(k.total));setCalc("camp-ph-"+ri,isFinite(k.perHead)?fmt(k.perHead):"—");
+    tot.part+=c.participants;tot.staff+=c.staff;tot.ads+=c.ads;tot.all+=k.total;});
+  setCalc("camps-part",fmt(tot.part));setCalc("camps-staff",fmt(tot.staff));setCalc("camps-ads",fmt(tot.ads));setCalc("camps-tot",fmt(tot.all));
+  setCalc("camps-ph",tot.part?fmt(tot.all/tot.part):"—");
   var ohM=arr12(0);
-  S.overhead.forEach(function(o,ri){setCalc("oh-row-"+ri,fmt(o.values.reduce(function(a,b){return a+b},0)));o.values.forEach(function(v,i){ohM[i]+=v})});
-  ohM.forEach(function(v,i){setCalc("oh-m-"+i,fmt(v))});setCalc("oh-y",fmt(ohM.reduce(function(a,b){return a+b},0)));
+  S.overhead.forEach(function(o,ri){setCalc("oh-row-"+ri,fmt(sum(o.values)));o.values.forEach(function(v,i){ohM[i]+=v})});
+  ohM.forEach(function(v,i){setCalc("oh-m-"+i,fmt(v))});setCalc("oh-y",fmt(sum(ohM)));
   renderKpis(Y);renderChart(M);renderStruct(Y);renderReport(M,Y);
 }
 
 function renderKpis(Y){
   var k=[
-    ["Выручка за год",money(Y.revenue),fmt(Y.participants)+" участников",""],
-    ["Расходы за год",money(Y.expenses),"ФОТ команды: "+money(Y.teamTotal),""],
-    ["Прибыль",money(Y.profit),"Рентабельность "+pct(Y.margin),sign(Y.profit)],
-    ["Точка безубыточности",isFinite(Y.breakEven)?fmt(Y.breakEven)+" участн.":"—",isFinite(Y.breakEven)?"При текущей марже "+money(Y.contrib)+" с участника":"Лагеря не покрывают свои расходы",""],
-    ["Реклама на участника",isFinite(Y.cac)?money(Y.cac):"—","Вся реклама: "+money(Y.ads),""],
-    ["Минимум на счёте",money(Math.min(0,Y.minCum)),Y.minCum<0?"Столько нужно, чтобы пройти кассовый разрыв":"Кассового разрыва нет",Y.minCum<0?"neg":"pos"]
+    ["Бюджет на год",money(Y.expenses),"В среднем "+money(Y.expenses/12)+" в месяц"],
+    ["Команда",money(Y.team),pct(Y.expenses?Y.team/Y.expenses*100:NaN)+" бюджета"],
+    ["Лагеря",money(Y.camps),"Персонал "+money(Y.campStaff)+", реклама "+money(Y.campAds)],
+    ["Общие расходы",money(Y.overhead),pct(Y.expenses?Y.overhead/Y.expenses*100:NaN)+" бюджета"],
+    ["Участников за год",fmt(Y.participants),S.camps.length+" лагер"+plural(S.camps.length,"ь","я","ей")],
+    ["Весь бюджет на 1 участника",isFinite(Y.perHead)?money(Y.perHead):"—","Только лагеря: "+(isFinite(Y.campPerHead)?money(Y.campPerHead):"—")]
   ];
-  document.getElementById("kpis").innerHTML=k.map(function(x){return '<div class="kpi"><span class="lbl">'+x[0]+'</span><span class="val '+x[3]+'">'+x[1]+'</span><span class="sub">'+esc(x[2])+'</span></div>'}).join("");
+  document.getElementById("kpis").innerHTML=k.map(function(x){return '<div class="kpi"><span class="lbl">'+x[0]+'</span><span class="val">'+x[1]+'</span><span class="sub">'+esc(x[2])+'</span></div>'}).join("");
 }
+function plural(n,one,few,many){var a=n%10,b=n%100;return a===1&&b!==11?one:a>=2&&a<=4&&(b<10||b>=20)?few:many}
 function niceMax(v){if(v<=0)return 1;var p=Math.pow(10,Math.floor(Math.log10(v))),n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
 function short(v){var a=Math.abs(v);return a>=1e6?(v/1e6).toLocaleString("ru-RU",{maximumFractionDigits:1})+" млн":a>=1e3?Math.round(v/1e3)+" тыс":String(Math.round(v))}
 function renderChart(M){
   var W=760,H=280,pl=58,pr=12,pt=12,pb=26,iw=W-pl-pr,ih=H-pt-pb;
-  var vals=[];M.forEach(function(m){vals.push(m.revenue,m.expenses,m.cum)});
-  var hi=niceMax(Math.max.apply(null,vals.concat([0]))),lo=Math.min.apply(null,vals.concat([0]));lo=lo<0?-niceMax(-lo):0;
-  var steps=4,range=hi-lo;var y=function(v){return pt+ih-(v-lo)/range*ih};
-  var g="";for(var s=0;s<=steps;s++){var v=lo+range*s/steps;g+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--line)" stroke-width="'+(v===0?1.4:.6)+'"/><text x="'+(pl-6)+'" y="'+(y(v)+4)+'" text-anchor="end">'+short(v)+'</text>'}
-  if(lo<0)g+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="var(--muted)" stroke-width="1"/>';
-  var bw=iw/12,b=Math.min(16,bw*.32),bars="",pts=[];
-  M.forEach(function(m,i){var cx=pl+bw*i+bw/2;
-    bars+='<rect x="'+(cx-b-1)+'" y="'+y(Math.max(m.revenue,0))+'" width="'+b+'" height="'+Math.max(0,y(0)-y(m.revenue))+'" rx="2" fill="var(--rev)"><title>'+MONTHS_FULL[i]+': выручка '+money(m.revenue)+'</title></rect>'+
-      '<rect x="'+(cx+1)+'" y="'+y(Math.max(m.expenses,0))+'" width="'+b+'" height="'+Math.max(0,y(0)-y(m.expenses))+'" rx="2" fill="var(--exp)"><title>'+MONTHS_FULL[i]+': расходы '+money(m.expenses)+'</title></rect>'+
-      '<text x="'+cx+'" y="'+(H-8)+'" text-anchor="middle">'+MONTHS[i]+'</text>';
-    pts.push([cx,y(m.cum),m.cum,i]);});
-  var line='<polyline points="'+pts.map(function(p){return p[0]+","+p[1]}).join(" ")+'" fill="none" stroke="var(--fg)" stroke-width="2" stroke-linejoin="round"/>'+
-    pts.map(function(p){return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(p[3]===11?4:2.5)+'" fill="'+(p[2]<0?"var(--neg)":"var(--fg)")+'"><title>'+MONTHS_FULL[p[3]]+': прибыль нарастающим итогом '+money(p[2])+'</title></circle>'}).join("");
-  document.getElementById("chart").innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="График выручки и расходов по месяцам">'+g+bars+line+'</svg>';
+  var hi=niceMax(Math.max.apply(null,M.map(function(m){return m.expenses}).concat([0])));
+  var y=function(v){return pt+ih-v/hi*ih};
+  var g="";for(var s=0;s<=4;s++){var v=hi*s/4;g+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--line)" stroke-width="'+(s===0?1.2:.6)+'"/><text x="'+(pl-6)+'" y="'+(y(v)+4)+'" text-anchor="end">'+short(v)+'</text>'}
+  var parts=[["team","--c-team","Команда"],["campStaff","--c-direct","Персонал лагерей"],["ads","--c-ads","Реклама"],["ohAdmin","--c-admin","Админ персонал офиса"],["ohOther","--c-other","Прочее"]];
+  var bw=iw/12,b=Math.min(34,bw*.62),bars="";
+  M.forEach(function(m,i){var cx=pl+bw*i+bw/2,acc=0;
+    parts.forEach(function(p){var v=m[p[0]];if(v<=0)return;
+      bars+='<rect x="'+(cx-b/2)+'" y="'+y(acc+v)+'" width="'+b+'" height="'+Math.max(0,y(acc)-y(acc+v))+'" fill="var('+p[1]+')"><title>'+MONTHS_FULL[i]+', '+p[2].toLowerCase()+': '+money(v)+'</title></rect>';acc+=v});
+    bars+='<text x="'+cx+'" y="'+(H-8)+'" text-anchor="middle">'+MONTHS[i]+'</text>';});
+  document.getElementById("chart").innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Расходы по месяцам">'+g+bars+'</svg>';
 }
 function renderStruct(Y){
-  var rows=[["ФОТ команды (с начислениями)",Y.teamTotal,"--c-team"],["Реклама (лагеря и общая)",Y.ads,"--c-ads"],["Админ персонал (лагеря и офис)",Y.admin,"--c-admin"],["Проживание, питание, программа",Y.direct,"--c-direct"],["Аренда, сервисы, прочее",Y.ohOther,"--c-other"],["Налог с выручки",Y.tax,"--c-tax"]];
+  var rows=[["Команда",Y.team,"--c-team"],["Персонал лагерей",Y.campStaff,"--c-direct"],["Реклама (лагеря и общая)",Y.ads,"--c-ads"],["Админ персонал офиса",Y.ohAdmin,"--c-admin"],["Аренда, сервисы, прочее",Y.ohOther,"--c-other"]];
   var tot=Y.expenses||1;
   document.getElementById("struct").innerHTML=rows.map(function(r){var p=r[1]/tot*100;return '<div class="struct-row"><span>'+r[0]+'</span><span class="num"><b>'+fmt(r[1])+'</b> · '+pct(Y.expenses?p:0)+'</span><div class="bar"><span style="width:'+Math.max(0,Math.min(100,p))+'%;background:var('+r[2]+')"></span></div></div>'}).join("");
 }
+var REPORT_ROWS=[["Участники","participants",0],["Команда","team",0],["Персонал лагерей","campStaff",0],["Реклама лагерей","campAds",0],["Реклама общая","ohAds",0],["Админ персонал офиса","ohAdmin",0],["Аренда, сервисы, прочее","ohOther",0],["Расходы всего","expenses",1],["Нарастающим итогом","cum",1]];
 function renderReport(M,Y){
-  var rows=[["Участники","participants",0],["Выручка","revenue",1],["Проживание, питание, программа","direct",0],["Реклама лагерей","campAds",0],["Реклама общая","ohAds",0],["Админ персонал лагерей","campAdmin",0],["Админ персонал офиса","ohAdmin",0],["ФОТ команды","teamTotal",0],["Аренда, сервисы, прочее","ohOther",0],["Налог с выручки","tax",0],["Расходы всего","expenses",1],["Прибыль","profit",2],["Нарастающим итогом","cum",3]];
-  var h='<table><thead><tr><th>Статья</th>'+MONTHS.map(function(m){return '<th>'+m+'</th>'}).join("")+'<th>За год</th></tr></thead><tbody>';
-  rows.forEach(function(r){
-    h+='<tr><td'+(r[2]?' style="font-weight:600"':'')+'>'+r[0]+'</td>'+M.map(function(m){var v=m[r[1]];return '<td class="'+(r[2]>=2?sign(v):"")+'"'+(r[2]?' style="font-weight:600"':'')+'>'+(v?fmt(v):"—")+'</td>'}).join("")+
-      '<td class="total '+(r[2]>=2?sign(r[1]==="cum"?M[11].cum:Y[r[1]]):"")+'">'+fmt(r[1]==="cum"?M[11].cum:Y[r[1]])+'</td></tr>';
-  });
+  var h='<table><thead><tr><th>Статья</th>'+monthHead()+'<th>За год</th></tr></thead><tbody>';
+  REPORT_ROWS.forEach(function(r){var st=r[2]?' style="font-weight:600"':'';
+    h+='<tr><td'+st+'>'+r[0]+'</td>'+M.map(function(m){var v=m[r[1]];return '<td'+st+'>'+(v?fmt(v):"—")+'</td>'}).join("")+
+      '<td class="total">'+fmt(r[1]==="cum"?M[11].cum:Y[r[1]])+'</td></tr>';});
   document.getElementById("report-table").innerHTML=h+'</tbody></table>';
 }
 
@@ -410,31 +372,27 @@ function changed(){
   updateStatus();
 }
 app.addEventListener("input",function(e){
-  var t=e.target,path=t.getAttribute("data-path");if(!path)return;
+  var t=e.target,path=t.getAttribute("data-path");if(!path||t.tagName==="SELECT")return;
   var last=path.split(".").pop();
   if(last==="role"||last==="name"){setPath(path,t.value);changed();return}
-  if(t.tagName==="SELECT")return;
-  var v=parseNum(t.value);
-  if(last==="adsMonths")v=Math.min(12,Math.max(1,Math.round(v)||1));
-  setPath(path,v);changed();recalc();
+  setPath(path,parseNum(t.value));changed();recalc();
 });
 app.addEventListener("change",function(e){
   var t=e.target,path=t.getAttribute("data-path");
-  if(path&&t.tagName==="SELECT"){setPath(path,path.endsWith("month")?Number(t.value):t.value);changed();recalc();return}
+  if(path&&t.tagName==="SELECT"){setPath(path,path.slice(-5)==="month"?Number(t.value):t.value);changed();recalc();return}
   if(t.id==="year"){S.year=Number(t.value);document.getElementById("y-lbl").textContent=S.year;changed()}
   if(t.id==="currency"){S.currency=t.value;changed();recalc()}
-  if(t.id==="payrollTax"||t.id==="revenueTax"){S[t.id]=parseNum(t.value);changed();recalc()}
   if(t.id==="imp-json"&&t.files&&t.files[0]){var r=new FileReader();r.onload=function(){try{var d=normalize(JSON.parse(r.result));if(!d||!d.team)throw 0;d.example=false;S=d;changed();render();toast("Бюджет загружен из копии")}catch(err){toast("Не удалось прочитать файл: нужен .json, скачанный из этого сервиса")}};r.readAsText(t.files[0]);t.value=""}
 });
-app.addEventListener("focusin",function(e){var t=e.target;if(t.tagName==="INPUT"&&t.getAttribute("inputmode")==="decimal"&&t.dataset.path){t.value=t.value.replace(/\s| /g,"");t.select()}});
+app.addEventListener("focusin",function(e){var t=e.target;if(t.tagName==="INPUT"&&t.dataset.path&&t.getAttribute("inputmode")==="decimal"){t.value=t.value.replace(/\s| /g,"");t.select()}});
 app.addEventListener("focusout",function(e){var t=e.target;if(t.tagName==="INPUT"&&t.dataset.path&&t.getAttribute("inputmode")==="decimal"){var v=parseNum(t.value);t.value=v?fmt(v):""}});
 app.addEventListener("click",function(e){
-  var b=e.target.closest("button,label.btn");if(!b)return;
+  var b=e.target.closest("button");if(!b)return;
   if(b.dataset.del){var p=b.dataset.del.split(".");S[p[0]].splice(Number(p[1]),1);changed();rerenderSection(p[0]);return}
   if(b.dataset.fill){var q=b.dataset.fill.split("."),row=S[q[0]][Number(q[1])],key=q[0]==="team"?"salary":"values";row[key]=arr12(row[key][0]);changed();rerenderSection(q[0]);return}
   switch(b.id){
     case "add-team":S.team.push({id:uid(),role:"Новая должность",salary:arr12(0)});changed();rerenderSection("team");break;
-    case "add-camp":S.camps.push({id:uid(),name:"Новый лагерь",month:5,days:7,participants:0,price:0,cost:0,ads:0,adsMonths:1,admin:0,other:0});changed();rerenderSection("camps");break;
+    case "add-camp":S.camps.push(newCamp());changed();rerenderSection("camps");break;
     case "add-oh":S.overhead.push({id:uid(),name:"Новая статья",kind:"other",values:arr12(0)});changed();rerenderSection("overhead");break;
     case "clear-ask":document.getElementById("clear-zone").innerHTML='<span>Удалить все примерные цифры?</span><button type="button" id="clear-yes">Да, очистить</button><button type="button" id="clear-no">Отмена</button>';break;
     case "clear-no":document.getElementById("clear-zone").innerHTML='<button type="button" id="clear-ask">Начать с пустого</button>';break;
@@ -446,24 +404,22 @@ app.addEventListener("click",function(e){
 });
 app.addEventListener("keydown",function(e){if(e.target.matches("label.btn")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();document.getElementById("imp-json").click()}});
 function rerenderSection(name){({team:renderTeam,camps:renderCamps,overhead:renderOverhead})[name]();recalc()}
-function bindStatic(){}
 
 // ---------- files ----------
 function toCSV(){
-  var R=compute(),M=R.M,Y=R.Y,L=[],sep=";";
-  var row=function(a){L.push(a.map(function(x){x=typeof x==="number"?String(Math.round(x)):String(x);return /[;"\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}).join(sep))};
+  var R=compute(),M=R.M,Y=R.Y,L=[];
+  var row=function(a){L.push(a.map(function(x){x=typeof x==="number"?String(Math.round(x)):String(x);return /[;"\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}).join(";"))};
   row(["Бюджет лагерей",S.year,"Валюта",S.currency]);row([]);
   row(["КОМАНДА"].concat(MONTHS_FULL,["За год"]));
-  S.team.forEach(function(t){row([t.role].concat(t.salary,[t.salary.reduce(function(a,b){return a+b},0)]))});
-  row(["Начисления на ЗП "+S.payrollTax+"%"].concat(M.map(function(m){return m.teamTax}),[Y.teamTax]));
-  row(["ФОТ команды"].concat(M.map(function(m){return m.teamTotal}),[Y.teamTotal]));row([]);
-  row(["ЛАГЕРЯ","Месяц","Дней","Участники","Цена","Себестоимость на участника","Реклама","Реклама, мес.","Админ персонал","Прочие","Выручка","Расходы","Прибыль"]);
-  S.camps.forEach(function(c){var k=campCalc(c);row([c.name,MONTHS_FULL[c.month],c.days,c.participants,c.price,c.cost,c.ads,c.adsMonths,c.admin,c.other,k.revenue,k.expenses,k.profit])});row([]);
+  S.team.forEach(function(t){row([t.role].concat(t.salary,[sum(t.salary)]))});
+  row(["ФОТ команды"].concat(M.map(function(m){return m.team}),[Y.team]));row([]);
+  row(["ЛАГЕРЯ","Месяц","Участники","Персонал","Реклама","Всего","На 1 участника"]);
+  S.camps.forEach(function(c){var k=campCalc(c);row([c.name,MONTHS_FULL[c.month],c.participants,c.staff,c.ads,k.total,isFinite(k.perHead)?k.perHead:""])});
+  row(["Итого лагеря","",Y.participants,Y.campStaff,Y.campAds,Y.camps,isFinite(Y.campPerHead)?Y.campPerHead:""]);row([]);
   row(["ОБЩИЕ РАСХОДЫ","Тип"].concat(MONTHS_FULL,["За год"]));
-  S.overhead.forEach(function(o){row([o.name,KINDS[o.kind]].concat(o.values,[o.values.reduce(function(a,b){return a+b},0)]))});row([]);
+  S.overhead.forEach(function(o){row([o.name,KINDS[o.kind]].concat(o.values,[sum(o.values)]))});row([]);
   row(["ОТЧЁТ ПО МЕСЯЦАМ"].concat(MONTHS_FULL,["За год"]));
-  [["Участники","participants"],["Выручка","revenue"],["Проживание, питание, программа","direct"],["Реклама","ads"],["Админ персонал","admin"],["ФОТ команды","teamTotal"],["Аренда, сервисы, прочее","ohOther"],["Налог с выручки","tax"],["Расходы всего","expenses"],["Прибыль","profit"]].forEach(function(r){row([r[0]].concat(M.map(function(m){return m[r[1]]}),[Y[r[1]]]))});
-  row(["Нарастающим итогом"].concat(M.map(function(m){return m.cum}),[M[11].cum]));
+  REPORT_ROWS.forEach(function(r){row([r[0]].concat(M.map(function(m){return m[r[1]]}),[r[1]==="cum"?M[11].cum:Y[r[1]]]))});
   return L.join("\r\n");
 }
 function download(name,data,type){
@@ -501,7 +457,7 @@ function save(){
   },function(err){
     S.savedAt=prev;btn.textContent="Сохранить";var c=err&&err.code;
     if(c==="conflict"){toast("Кто-то сохранил бюджет раньше вас, страница обновится. Ваш черновик остался в браузере.")}
-    else if(c==="not_writer"||c==="not_granted"||c==="consent_required"||c==="capability_disabled"||c==="capability_removed"||c==="not_declared"){canPublish=false;updateStatus();toast("Эту страницу нельзя изменить с вашего аккаунта")}
+    else if(c==="not_writer"||c==="not_granted"||c==="consent_required"||c==="capability_disabled"||c==="capability_removed"||c==="not_declared"){canPublish=false;toast("Эту страницу нельзя изменить с вашего аккаунта")}
     else if(c==="rate_limited"){toast("Слишком часто. Подождите минуту и сохраните снова")}
     else{toast("Не удалось сохранить. Попробуйте ещё раз")}
     updateStatus();
