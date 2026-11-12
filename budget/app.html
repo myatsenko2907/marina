@@ -98,6 +98,8 @@ td input:hover{border-color:var(--line)}
 td input:focus{border-color:var(--accent);background:var(--surface);outline:none}
 td input.name{width:200px;text-align:left;font-weight:500}
 td input.small{width:64px}
+td input.date{width:140px;text-align:left}
+td.window{color:var(--muted);font-size:12px}
 td select{border-color:transparent;background:transparent;padding:5px 4px}
 td select:hover{border-color:var(--line)}
 td.actions{white-space:nowrap;text-align:right;padding-inline:2px}
@@ -153,19 +155,23 @@ function example(){
     ]
   };
 }
-function newCamp(){return {id:uid(),name:"Новый лагерь",month:5,participants:0,staffPP:0,adsPP:0}}
+function newCamp(){return {id:uid(),name:"Новый лагерь",start:S.year+"-07-01",lead:3,stop:"2w",participants:0,staffPP:0,adsPP:0}}
 function blank(cur){
   return {example:false,year:cur.year,currency:cur.currency,savedAt:0,
     team:["Руководитель","Менеджер по продажам 1","Менеджер по продажам 2","Маркетолог","SMM","Куратор"].map(function(r){return {id:uid(),role:r,salary:arr12(0)}}),
     camps:[newCamp()]};
 }
+var INTL=/япон|сша|лондон|коре|usa|japan|london|korea/i;
+function pad2(v){return (v<10?"0":"")+v}
 function perHead(total,p){total=Number(total)||0;p=Number(p)||0;return p>0?Math.round(total/p):0}
 function normalize(s){
   if(!s||typeof s!=="object")return null;
   var n=function(v){v=Number(v);return isFinite(v)?v:0};
   return {example:!!s.example,year:n(s.year)||new Date().getFullYear(),currency:CURRENCIES.indexOf(s.currency)>=0?s.currency:"₴",savedAt:n(s.savedAt),
     team:(s.team||[]).map(function(t){return {id:t.id||uid(),role:String(t.role||""),salary:arr12(0).map(function(_,i){return n((t.salary||[])[i])})}}),
-    camps:(s.camps||[]).map(function(c){return {id:c.id||uid(),name:String(c.name||""),month:Math.min(11,Math.max(0,n(c.month))),participants:n(c.participants),staffPP:c.staffPP!=null?n(c.staffPP):perHead(c.staff!=null?c.staff:c.admin,c.participants),adsPP:c.adsPP!=null?n(c.adsPP):perHead(c.ads,c.participants)}})};
+    camps:(s.camps||[]).map(function(c){var nm=String(c.name||""),intl=INTL.test(nm),yr=n(s.year)||new Date().getFullYear();return {id:c.id||uid(),name:nm,
+      start:/^\d{4}-\d{2}-\d{2}$/.test(c.start)?c.start:yr+"-"+pad2(Math.min(11,Math.max(0,n(c.month)))+1)+"-01",
+      lead:c.lead!=null?Math.min(12,Math.max(1,n(c.lead)||1)):(intl?4:3),stop:c.stop==="1m"||c.stop==="2w"?c.stop:(intl?"1m":"2w"),participants:n(c.participants),staffPP:c.staffPP!=null?n(c.staffPP):perHead(c.staff!=null?c.staff:c.admin,c.participants),adsPP:c.adsPP!=null?n(c.adsPP):perHead(c.ads,c.participants)}})};
 }
 
 // ---------- state ----------
@@ -176,7 +182,7 @@ try{draft=normalize(JSON.parse(localStorage.getItem(LS_KEY)))}catch(e){}
 function stripMeta(s){var c=JSON.parse(JSON.stringify(s));delete c.savedAt;return c}
 var S, dirty=false;
 if(draft&&(!embedded||(draft.savedAt>=embedded.savedAt&&JSON.stringify(stripMeta(draft))!==JSON.stringify(stripMeta(embedded))))){S=draft;dirty=true}
-else S=embedded||example();
+else S=embedded||normalize(example());
 
 var artifactApi=null, downloadsApi=null, canPublish=true;
 
@@ -185,18 +191,32 @@ var fmt=function(v){return Math.round(v).toLocaleString("ru-RU")};
 var money=function(v){return fmt(v)+" "+S.currency};
 var pct=function(v){return isFinite(v)?(Math.round(v*10)/10).toLocaleString("ru-RU")+"%":"—"};
 function parseNum(str){var v=parseFloat(String(str).replace(/\s| /g,"").replace(",","."));return isFinite(v)?v:0}
+var DAY=864e5;
+function parseD(v){var p=String(v).split("-");return Date.UTC(+p[0],(+p[1]||1)-1,+p[2]||1)}
+function addMonthsUTC(t,k){var d=new Date(t),y=d.getUTCFullYear(),m=d.getUTCMonth()+k,last=new Date(Date.UTC(y,m+1,0)).getUTCDate();return Date.UTC(y,m,Math.min(d.getUTCDate(),last))}
+function fmtD(t){return new Date(t).toLocaleDateString("ru-RU",{day:"numeric",month:"short",timeZone:"UTC"})}
+function monthIdx(t){var d=new Date(t);return (d.getUTCFullYear()-S.year)*12+d.getUTCMonth()}
+function campMonth(c){return Math.min(11,Math.max(0,monthIdx(parseD(c.start))))}
+function adsWindow(c){var st=parseD(c.start),begin=addMonthsUTC(st,-Math.max(1,c.lead||1)),end=c.stop==="1m"?addMonthsUTC(st,-1):st-14*DAY;if(end<=begin)end=begin+DAY;return {begin:begin,end:end}}
+function adsAlloc(c,total){
+  var w=adsWindow(c),days=Math.round((w.end-w.begin)/DAY),per=total/days,r={m:arr12(0),prev:0,next:0};
+  for(var t=w.begin;t<w.end;t+=DAY){var i=monthIdx(t);if(i<0)r.prev+=per;else if(i>11)r.next+=per;else r.m[i]+=per}
+  return r;
+}
 function campCalc(c){var staff=c.participants*c.staffPP,ads=c.participants*c.adsPP;return {staff:staff,ads:ads,total:staff+ads,perHead:c.staffPP+c.adsPP}}
 
 function compute(){
-  var M=arr12(0).map(function(){return {participants:0,team:0,campStaff:0,campAds:0}});
-  S.camps.forEach(function(c){var m=M[c.month],k=campCalc(c);m.participants+=c.participants;m.campStaff+=k.staff;m.campAds+=k.ads});
+  var M=arr12(0).map(function(){return {participants:0,team:0,campStaff:0,campAds:0}}),prev=0,next=0;
+  S.camps.forEach(function(c){var m=M[campMonth(c)],k=campCalc(c),a=adsAlloc(c,k.ads);m.participants+=c.participants;m.campStaff+=k.staff;
+    a.m.forEach(function(v,i){M[i].campAds+=v});prev+=a.prev;next+=a.next});
   S.team.forEach(function(t){t.salary.forEach(function(v,i){M[i].team+=v})});
-  var cum=0;
+  var cum=prev;
   M.forEach(function(m){
     m.camps=m.campAds; m.ads=m.campAds;
     m.expenses=m.team+m.camps; cum+=m.expenses; m.cum=cum;
   });
   var Y={};["participants","team","campStaff","campAds","camps","ads","expenses"].forEach(function(k){Y[k]=sum(M.map(function(m){return m[k]}))});
+  ["campAds","camps","ads","expenses"].forEach(function(k){Y[k]+=prev+next});Y.prevAds=prev;Y.nextAds=next;
   Y.perHead=Y.participants?Y.expenses/Y.participants:NaN;
   Y.campPerHead=Y.participants?Y.camps/Y.participants:NaN;
   Y.coverage=Y.campStaff-Y.team; Y.needPP=Y.participants?Y.team/Y.participants:NaN;
@@ -235,9 +255,9 @@ function render(){
       '<p>Зарплата на каждый месяц. Кнопка «→» копирует январскую сумму на весь год.</p></div>'+
       '<div class="table-box" id="team-table"></div></section>'+
     '<section id="camps"><div class="sec-head"><h2>Лагеря</h2><div class="row-tools"><button type="button" id="add-camp">+ Лагерь</button></div>'+
-      '<p>Введите количество участников и сколько заложено на одного участника на персонал и на рекламу. Персонал — это команда из первой таблицы: сумма на персонал показывает, сколько с каждого участника идёт на её зарплаты, и сравнивается с ФОТ команды. Реклама лагеря добавляется к расходам в месяце лагеря.</p></div>'+
+      '<p>Введите количество участников и сколько заложено на одного участника на персонал и на рекламу. Персонал — это команда из первой таблицы: сумма на персонал показывает, сколько с каждого участника идёт на её зарплаты, и сравнивается с ФОТ команды. Реклама запускается за указанное число месяцев до старта и выключается за 2 недели или за 1 месяц до него; сумма делится по месяцам пропорционально дням показа.</p></div>'+
       '<div class="table-box" id="camp-table"></div><div class="banner" id="coverage"></div></section>'+
-    '<section id="report"><div class="sec-head"><h2>Отчёт по месяцам</h2><p>Считается автоматически из таблиц выше.</p></div>'+
+    '<section id="report"><div class="sec-head"><h2>Отчёт по месяцам</h2><p>Считается автоматически из таблиц выше. Если реклама весенних лагерей начинается ещё в прошлом году, эта часть показана отдельной колонкой.</p></div>'+
       '<div class="table-box" id="report-table"></div></section>'+
     '<section id="files"><div class="sec-head"><h2>Файлы</h2></div>'+
       '<div class="row-tools"><button type="button" id="exp-csv">Скачать для Excel (CSV)</button><button type="button" id="exp-json">Скачать резервную копию</button>'+
@@ -260,18 +280,21 @@ function renderTeam(){
   document.getElementById("team-table").innerHTML=h;
 }
 function renderCamps(){
-  var h='<table><thead><tr><th>Лагерь</th><th>Месяц</th><th>Участники</th><th>Персонал на 1 участника</th><th>Реклама на 1 участника</th><th>Персонал всего</th><th>Реклама всего</th><th>Всего</th><th></th></tr></thead><tbody>';
+  var h='<table><thead><tr><th>Лагерь</th><th>Дата старта</th><th>Участники</th><th>Персонал на 1 участника</th><th>Реклама на 1 участника</th><th>Реклама за, мес.</th><th>Выключить за</th><th>Реклама идёт</th><th>Персонал всего</th><th>Реклама всего</th><th>Всего</th><th></th></tr></thead><tbody>';
   S.camps.forEach(function(c,ri){
-    var mo=MONTHS_FULL.map(function(m,i){return '<option value="'+i+'"'+(i===c.month?" selected":"")+'>'+m+'</option>'}).join("");
+    var so='<option value="2w"'+(c.stop==="2w"?" selected":"")+'>2 недели</option><option value="1m"'+(c.stop==="1m"?" selected":"")+'>1 месяц</option>';
     h+='<tr><td><input class="name" id="camp-'+c.id+'-name" data-path="camps.'+ri+'.name" value="'+esc(c.name)+'" aria-label="Название лагеря"></td>'+
-      '<td><select id="camp-'+c.id+'-month" data-path="camps.'+ri+'.month" aria-label="Месяц">'+mo+'</select></td>'+
+      '<td><input type="date" class="date" id="camp-'+c.id+'-start" data-path="camps.'+ri+'.start" value="'+esc(c.start)+'" aria-label="Дата старта"></td>'+
       '<td>'+numInput("camps."+ri+".participants",c.participants,"small","Участники")+'</td>'+
       '<td>'+numInput("camps."+ri+".staffPP",c.staffPP,"","Персонал на 1 участника")+'</td>'+
       '<td>'+numInput("camps."+ri+".adsPP",c.adsPP,"","Реклама на 1 участника")+'</td>'+
+      '<td>'+numInput("camps."+ri+".lead",c.lead,"small","За сколько месяцев до старта начать рекламу")+'</td>'+
+      '<td><select id="camp-'+c.id+'-stop" data-path="camps.'+ri+'.stop" aria-label="Выключить рекламу за">'+so+'</select></td>'+
+      '<td class="window" data-calc="camp-win-'+ri+'"></td>'+
       '<td class="calc" data-calc="camp-staff-'+ri+'"></td><td class="calc" data-calc="camp-ads-'+ri+'"></td><td class="total" data-calc="camp-tot-'+ri+'"></td>'+
       '<td class="actions"><button class="icon" type="button" data-del="camps.'+ri+'" title="Удалить">✕</button></td></tr>';
   });
-  h+='</tbody><tfoot><tr><td>Итого лагеря</td><td></td><td data-calc="camps-part"></td><td data-calc="camps-staffpp"></td><td data-calc="camps-adspp"></td><td data-calc="camps-staff"></td><td data-calc="camps-ads"></td><td class="total" data-calc="camps-tot"></td><td></td></tr></tfoot></table>';
+  h+='</tbody><tfoot><tr><td>Итого лагеря</td><td></td><td data-calc="camps-part"></td><td data-calc="camps-staffpp"></td><td data-calc="camps-adspp"></td><td></td><td></td><td></td><td data-calc="camps-staff"></td><td data-calc="camps-ads"></td><td class="total" data-calc="camps-tot"></td><td></td></tr></tfoot></table>';
   document.getElementById("camp-table").innerHTML=h;
 }
 
@@ -282,6 +305,7 @@ function recalc(){
   M.forEach(function(m,i){setCalc("team-m-"+i,fmt(m.team))});setCalc("team-y",fmt(Y.team));
   var tot={part:0,staff:0,ads:0,all:0};
   S.camps.forEach(function(c,ri){var k=campCalc(c);
+    var w=adsWindow(c);setCalc("camp-win-"+ri,fmtD(w.begin)+" – "+fmtD(w.end));
     setCalc("camp-staff-"+ri,fmt(k.staff));setCalc("camp-ads-"+ri,fmt(k.ads));setCalc("camp-tot-"+ri,fmt(k.total));
     tot.part+=c.participants;tot.staff+=k.staff;tot.ads+=k.ads;tot.all+=k.total;});
   setCalc("camps-part",fmt(tot.part));setCalc("camps-staff",fmt(tot.staff));setCalc("camps-ads",fmt(tot.ads));setCalc("camps-tot",fmt(tot.all));
@@ -330,11 +354,13 @@ function renderStruct(Y){
   document.getElementById("struct").innerHTML=rows.map(function(r){var p=r[1]/tot*100;return '<div class="struct-row"><span>'+r[0]+'</span><span class="num"><b>'+fmt(r[1])+'</b> · '+pct(Y.expenses?p:0)+'</span><div class="bar"><span style="width:'+Math.max(0,Math.min(100,p))+'%;background:var('+r[2]+')"></span></div></div>'}).join("");
 }
 var REPORT_ROWS=[["Участники","participants",0],["Команда","team",0],["Реклама лагерей","campAds",0],["Расходы всего","expenses",1],["Нарастающим итогом","cum",1],["Заложено в лагерях на персонал (команду)","campStaff",0]];
+function edgeVal(key,v){return key==="campAds"||key==="expenses"||key==="ads"?v:0}
 function renderReport(M,Y){
-  var h='<table><thead><tr><th>Статья</th>'+monthHead()+'<th>За год</th></tr></thead><tbody>';
-  REPORT_ROWS.forEach(function(r){var st=r[2]?' style="font-weight:600"':'';
-    h+='<tr><td'+st+'>'+r[0]+'</td>'+M.map(function(m){var v=m[r[1]];return '<td'+st+'>'+(v?fmt(v):"—")+'</td>'}).join("")+
-      '<td class="total">'+fmt(r[1]==="cum"?M[11].cum:Y[r[1]])+'</td></tr>';});
+  var P=Y.prevAds>0.5,N=Y.nextAds>0.5;
+  var h='<table><thead><tr><th>Статья</th>'+(P?'<th title="Реклама лагерей, которая идёт до января">'+(S.year-1)+'</th>':'')+monthHead()+(N?'<th>'+(S.year+1)+'</th>':'')+'<th>За год</th></tr></thead><tbody>';
+  REPORT_ROWS.forEach(function(r){var st=r[2]?' style="font-weight:600"':'';var cell=function(v){return '<td'+st+'>'+(v?fmt(v):"—")+'</td>'};
+    h+='<tr><td'+st+'>'+r[0]+'</td>'+(P?cell(r[1]==="cum"?Y.prevAds:edgeVal(r[1],Y.prevAds)):'')+M.map(function(m){return cell(m[r[1]])}).join("")+(N?cell(r[1]==="cum"?M[11].cum+Y.nextAds:edgeVal(r[1],Y.nextAds)):'')+
+      '<td class="total">'+fmt(r[1]==="cum"?M[11].cum+Y.nextAds:Y[r[1]])+'</td></tr>';});
   document.getElementById("report-table").innerHTML=h+'</tbody></table>';
 }
 
@@ -347,19 +373,19 @@ function changed(){
   updateStatus();
 }
 app.addEventListener("input",function(e){
-  var t=e.target,path=t.getAttribute("data-path");if(!path||t.tagName==="SELECT")return;
+  var t=e.target,path=t.getAttribute("data-path");if(!path||t.tagName==="SELECT"||t.type==="date")return;
   var last=path.split(".").pop();
   if(last==="role"||last==="name"){setPath(path,t.value);changed();return}
-  setPath(path,parseNum(t.value));changed();recalc();
+  var v=parseNum(t.value);if(last==="lead")v=Math.min(12,Math.max(1,Math.round(v)||1));setPath(path,v);changed();recalc();
 });
 app.addEventListener("change",function(e){
   var t=e.target,path=t.getAttribute("data-path");
-  if(path&&t.tagName==="SELECT"){setPath(path,path.slice(-5)==="month"?Number(t.value):t.value);changed();recalc();return}
-  if(t.id==="year"){S.year=Number(t.value);document.getElementById("y-lbl").textContent=S.year;changed()}
+  if(path&&(t.tagName==="SELECT"||t.type==="date")){if(t.type==="date"&&!/^\d{4}-\d{2}-\d{2}$/.test(t.value))return;setPath(path,t.value);changed();recalc();return}
+  if(t.id==="year"){var dy=Number(t.value)-S.year;S.camps.forEach(function(c){var p=c.start.split("-");c.start=(+p[0]+dy)+"-"+p[1]+"-"+p[2]});S.year=Number(t.value);rerenderSection("camps");document.getElementById("y-lbl").textContent=S.year;changed()}
   if(t.id==="currency"){S.currency=t.value;changed();recalc()}
   if(t.id==="imp-json"&&t.files&&t.files[0]){var r=new FileReader();r.onload=function(){try{var d=normalize(JSON.parse(r.result));if(!d||!d.team)throw 0;d.example=false;S=d;changed();render();toast("Бюджет загружен из копии")}catch(err){toast("Не удалось прочитать файл: нужен .json, скачанный из этого сервиса")}};r.readAsText(t.files[0]);t.value=""}
 });
-app.addEventListener("focusin",function(e){var t=e.target;if(t.tagName==="INPUT"&&t.dataset.path&&t.getAttribute("inputmode")==="decimal"){t.value=t.value.replace(/\s| /g,"");t.select()}});
+app.addEventListener("focusin",function(e){var t=e.target;if(t.tagName==="INPUT"&&t.type!=="date"&&t.dataset.path&&t.getAttribute("inputmode")==="decimal"){t.value=t.value.replace(/\s| /g,"");t.select()}});
 app.addEventListener("focusout",function(e){var t=e.target;if(t.tagName==="INPUT"&&t.dataset.path&&t.getAttribute("inputmode")==="decimal"){var v=parseNum(t.value);t.value=v?fmt(v):""}});
 app.addEventListener("click",function(e){
   var b=e.target.closest("button");if(!b)return;
@@ -387,11 +413,11 @@ function toCSV(){
   row(["КОМАНДА"].concat(MONTHS_FULL,["За год"]));
   S.team.forEach(function(t){row([t.role].concat(t.salary,[sum(t.salary)]))});
   row(["ФОТ команды"].concat(M.map(function(m){return m.team}),[Y.team]));row([]);
-  row(["ЛАГЕРЯ","Месяц","Участники","Персонал на 1 участника","Реклама на 1 участника","Персонал всего","Реклама всего","Всего"]);
-  S.camps.forEach(function(c){var k=campCalc(c);row([c.name,MONTHS_FULL[c.month],c.participants,c.staffPP,c.adsPP,k.staff,k.ads,k.total])});
-  row(["Итого лагеря","",Y.participants,"","",Y.campStaff,Y.campAds,Y.camps]);row([]);
-  row(["ОТЧЁТ ПО МЕСЯЦАМ"].concat(MONTHS_FULL,["За год"]));
-  REPORT_ROWS.forEach(function(r){row([r[0]].concat(M.map(function(m){return m[r[1]]}),[r[1]==="cum"?M[11].cum:Y[r[1]]]))});
+  row(["ЛАГЕРЯ","Дата старта","Участники","Персонал на 1 участника","Реклама на 1 участника","Реклама идёт с","Реклама идёт до","Персонал всего","Реклама всего","Всего"]);
+  S.camps.forEach(function(c){var k=campCalc(c),w=adsWindow(c);row([c.name,c.start,c.participants,c.staffPP,c.adsPP,new Date(w.begin).toISOString().slice(0,10),new Date(w.end).toISOString().slice(0,10),k.staff,k.ads,k.total])});
+  row(["Итого лагеря","",Y.participants,"","","","",Y.campStaff,Y.campAds,Y.campStaff+Y.campAds]);row([]);
+  row(["ОТЧЁТ ПО МЕСЯЦАМ","До "+S.year].concat(MONTHS_FULL,["После "+S.year,"За год"]));
+  REPORT_ROWS.forEach(function(r){row([r[0],r[1]==="cum"?Y.prevAds:edgeVal(r[1],Y.prevAds)].concat(M.map(function(m){return m[r[1]]}),[r[1]==="cum"?M[11].cum+Y.nextAds:edgeVal(r[1],Y.nextAds),r[1]==="cum"?M[11].cum+Y.nextAds:Y[r[1]]]))});
   return L.join("\r\n");
 }
 function download(name,data,type){
