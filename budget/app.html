@@ -237,7 +237,7 @@ function compute(){
   Y.staffAll=Y.team+Y.sales; Y.E=E; Y.prevAds=E.prev.expenses; Y.nextAds=E.next.expenses;
   Y.perHead=Y.participants?Y.expenses/Y.participants:NaN;
   Y.campPerHead=Y.participants?Y.camps/Y.participants:NaN;
-  Y.coverage=Y.campStaff-Y.staffAll; Y.needPP=Y.participants?Y.staffAll/Y.participants:NaN;
+  Y.staffFixed=Y.team+Y.salesBase; Y.coverage=Y.campStaff-Y.staffFixed; Y.needPP=Y.participants?Y.staffFixed/Y.participants:NaN;
   Y.adsPerHead=Y.participants?Y.ads/Y.participants:NaN;
   return {M:M,Y:Y};
 }
@@ -347,7 +347,7 @@ function recalc(){
   setCalc("camps-staffpp",tot.part?"в ср. "+fmt(tot.staff/tot.part):"—");setCalc("camps-adspp",tot.part?"в ср. "+fmt(tot.ads/tot.part):"—");
   var cv=document.getElementById("coverage");
   if(cv){cv.style.background=Y.coverage<0?"color-mix(in srgb,var(--neg) 12%,transparent)":"color-mix(in srgb,var(--pos) 12%,transparent)";cv.style.color=Y.coverage<0?"var(--neg)":"var(--pos)";
-    cv.innerHTML='<span>Заложено на персонал: <b>'+money(Y.campStaff)+'</b> · ФОТ команды и продажников за год: <b>'+money(Y.staffAll)+'</b> · '+(Y.coverage<0?'Не хватает <b>'+money(-Y.coverage)+'</b>':'Запас <b>'+money(Y.coverage)+'</b>')+(isFinite(Y.needPP)&&Y.staffAll?' · Чтобы покрыть ФОТ, нужно в среднем <b>'+money(Y.needPP)+'</b> на участника':'')+'</span>';}
+    cv.innerHTML='<span>Заложено на персонал: <b>'+money(Y.campStaff)+'</b> · ФОТ команды и ставки продажников за год: <b>'+money(Y.staffFixed)+'</b> · '+(Y.coverage<0?'Не хватает <b>'+money(-Y.coverage)+'</b>':'Запас <b>'+money(Y.coverage)+'</b>')+(isFinite(Y.needPP)&&Y.staffFixed?' · Чтобы покрыть ФОТ, нужно в среднем <b>'+money(Y.needPP)+'</b> на участника':'')+' · Бонусы продажникам сюда не входят: на них есть колонка «Бонус за договор» ('+money(Y.salesBonus)+')</span>';}
   renderSales(M,Y);renderKpis(Y);renderChart(M);renderStruct(Y);renderReport(M,Y);
 }
 
@@ -364,8 +364,8 @@ function renderKpis(Y){
   document.getElementById("kpis").innerHTML=k.map(function(x){return '<div class="kpi"><span class="lbl">'+x[0]+'</span><span class="val '+(x[3]||"")+'">'+x[1]+'</span><span class="sub">'+esc(x[2])+'</span></div>'}).join("");
 }
 function coverageText(Y){
-  if(!Y.staffAll)return "ФОТ пока не заполнен";
-  return Y.coverage>=0?"Покрывает ФОТ, запас "+money(Y.coverage):"Не хватает "+money(-Y.coverage)+" до ФОТ команды и продажников ("+money(Y.staffAll)+")";
+  if(!Y.staffFixed)return "ФОТ пока не заполнен";
+  return Y.coverage>=0?"Покрывает ФОТ команды и ставки продажников, запас "+money(Y.coverage):"Не хватает "+money(-Y.coverage)+" до ФОТ команды и ставок продажников ("+money(Y.staffFixed)+")";
 }
 function campCount(){return S.camps.filter(function(c){return c.participants>0}).length}
 function plural(n,one,few,many){var a=n%10,b=n%100;return a===1&&b!==11?one:a>=2&&a<=4&&(b<10||b>=20)?few:many}
