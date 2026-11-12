@@ -325,7 +325,7 @@ function renderKpis(Y){
     ["Команда",money(Y.team),pct(Y.expenses?Y.team/Y.expenses*100:NaN)+" бюджета"],
     ["Реклама лагерей",money(Y.campAds),"Общая реклама: "+money(Y.ohAds)],
     ["Общие расходы",money(Y.overhead),pct(Y.expenses?Y.overhead/Y.expenses*100:NaN)+" бюджета"],
-    ["Участников за год",fmt(Y.participants),S.camps.length+" лагер"+plural(S.camps.length,"ь","я","ей")],
+    ["Участников за год",fmt(Y.participants),campCount()+" лагер"+plural(campCount(),"ь","я","ей")],
     ["Весь бюджет на 1 участника",isFinite(Y.perHead)?money(Y.perHead):"—","Реклама лагерей на 1: "+(isFinite(Y.campPerHead)?money(Y.campPerHead):"—")],
     ["Заложено на персонал",money(Y.campStaff),coverageText(Y),Y.coverage<0?"neg":"pos"]
   ];
@@ -335,6 +335,7 @@ function coverageText(Y){
   if(!Y.team)return "ФОТ команды пока не заполнен";
   return Y.coverage>=0?"Покрывает ФОТ команды, запас "+money(Y.coverage):"Не хватает "+money(-Y.coverage)+" до ФОТ команды ("+money(Y.team)+")";
 }
+function campCount(){return S.camps.filter(function(c){return c.participants>0}).length}
 function plural(n,one,few,many){var a=n%10,b=n%100;return a===1&&b!==11?one:a>=2&&a<=4&&(b<10||b>=20)?few:many}
 function niceMax(v){if(v<=0)return 1;var p=Math.pow(10,Math.floor(Math.log10(v))),n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
 function short(v){var a=Math.abs(v);return a>=1e6?(v/1e6).toLocaleString("ru-RU",{maximumFractionDigits:1})+" млн":a>=1e3?Math.round(v/1e3)+" тыс":String(Math.round(v))}
