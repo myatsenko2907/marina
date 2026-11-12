@@ -165,7 +165,7 @@ function blank(cur){
     team:["Руководитель","Маркетолог","SMM","Куратор"].map(function(r){return {id:uid(),role:r,salary:arr12(0)}}),
     camps:[newCamp()]};
 }
-function DEFAULT_MOTIV(){return {poolPct:50,shares:{winter:15,spring:20,summer:45,autumn:20},tiers:[{fill:70,pct:50},{fill:80,pct:75},{fill:90,pct:100}]}}
+function DEFAULT_MOTIV(){return {poolPct:50,shares:{winter:15,spring:20,summer:45,autumn:20},tiers:[{fill:70,pct:50},{fill:80,pct:75},{fill:90,pct:100},{fill:105,pct:115},{fill:110,pct:130}]}}
 var HEAD_RE=/руководител/i;
 var SALES_RE=/менеджер\s*по\s*продаж|продажник/i;
 var INTL=/япон|сша|лондон|коре|usa|japan|london|korea/i;
@@ -222,14 +222,14 @@ function adsAlloc(c,total){
 var SEASONS=[{k:"winter",name:"Зима",pay:11,months:"янв, фев, дек"},{k:"spring",name:"Весна",pay:4,months:"мар – май"},{k:"summer",name:"Лето",pay:7,months:"июн – авг"},{k:"autumn",name:"Осень",pay:10,months:"сен – ноя"}];
 function seasonOf(c){var m=campMonth(c);return m>=2&&m<=4?"spring":m>=5&&m<=7?"summer":m>=8&&m<=10?"autumn":"winter"}
 function seasonName(k){for(var i=0;i<SEASONS.length;i++)if(SEASONS[i].k===k)return SEASONS[i].name;return ""}
-function fillOf(c){return c.capacity>0?Math.min(1,c.participants/c.capacity):NaN}
+function fillOf(c){return c.capacity>0?c.participants/c.capacity:NaN}
 function coefFor(fill){var f=fill*100+1e-9,c=0;S.motiv.tiers.forEach(function(t){if(f>=t.fill)c=Math.max(c,t.pct)});return c}
 function motivCalc(){
   var head=S.team.filter(function(t){return HEAD_RE.test(t.role)}),headYear=sum(head.map(function(t){return sum(t.salary)}));
   var pool=headYear*S.motiv.poolPct/100,out={},rows=[];
   SEASONS.forEach(function(x){out[x.k]={camps:0,cap:0,part:0,share:S.motiv.shares[x.k]||0,pool:pool*(S.motiv.shares[x.k]||0)/100,coef:0,total:0}});
   S.camps.forEach(function(c){if(!(c.capacity>0&&c.participants>0))return;var k=seasonOf(c),o=out[k];
-    o.camps++;o.cap+=c.capacity;o.part+=Math.min(c.participants,c.capacity);rows.push({c:c,season:k,fill:fillOf(c)})});
+    o.camps++;o.cap+=c.capacity;o.part+=c.participants;rows.push({c:c,season:k,fill:fillOf(c)})});
   SEASONS.forEach(function(x){var o=out[x.k];o.fill=o.cap?o.part/o.cap:NaN;o.coef=o.camps?coefFor(o.fill):0;o.total=o.pool*o.coef/100});
   return {S:out,rows:rows,headYear:headYear,hasHead:head.length>0,pool:pool,shareSum:SEASONS.reduce(function(a,x){return a+(S.motiv.shares[x.k]||0)},0)};
 }
@@ -310,7 +310,7 @@ function render(){
       '</div><p class="hint" id="motiv-pool" style="margin-top:10px"></p>'+
       '<div class="table-box" style="border:0;margin-top:10px"><table class="tiers"><thead><tr><th>Заполняемость сезона от, %</th><th>Выплачивается от доли сезона, %</th></tr></thead><tbody>'+
         S.motiv.tiers.map(function(t,i){return '<tr><td>'+numInput("motiv.tiers."+i+".fill",t.fill,"small","Порог заполняемости")+'</td><td>'+numInput("motiv.tiers."+i+".pct",t.pct,"small","Процент выплаты")+'</td></tr>'}).join("")+
-        '</tbody></table></div><p class="hint">Ниже первого порога бонус за сезон не выплачивается.</p></div>'+
+        '</tbody></table></div><p class="hint">Ниже первого порога бонус за сезон не выплачивается. Перевыполнение: если продано больше мест, чем запланировано в «Мест в группе», заполняемость выше 100% и выплата больше доли сезона (по умолчанию от 105% — 115% доли, от 110% — 130%).</p></div>'+
       '<div class="table-box" id="motiv-seasons"></div><div class="table-box" id="motiv-camps"></div></section>'+
     '<section id="camps"><div class="sec-head"><h2>Лагеря</h2><div class="row-tools"><button type="button" id="add-camp">+ Лагерь</button></div>'+
       '<p>Введите количество участников и сколько заложено на одного участника на персонал и на рекламу. Персонал — это команда из первой таблицы: сумма на персонал показывает, сколько с каждого участника идёт на её зарплаты, и сравнивается с ФОТ команды. Бонус за договор (по умолчанию 600 ₴) можно менять у каждого лагеря: он сразу попадает в зарплату продажников. Реклама запускается за указанное число месяцев до старта и выключается за 2 недели или за 1 месяц до него; сумма делится по месяцам пропорционально дням показа.</p></div>'+
@@ -373,8 +373,8 @@ function renderMotiv(Y){
   if(pl)pl.innerHTML=mv.hasHead?'Зарплата руководителя за год: <b>'+money(mv.headYear)+'</b> · Фонд бонуса: <b>'+money(mv.pool)+'</b>'+(Math.abs(mv.shareSum-100)>0.01?' · <span class="neg">Сумма долей сезонов '+fmt(mv.shareSum)+'%, а должна быть 100%</span>':''):'<span class="neg">В таблице «Команда» нет строки «Руководитель»: фонд бонуса не из чего считать.</span>';
   var h='<table><thead><tr><th>Сезон</th><th>Месяцы</th><th>Доля фонда</th><th>Фонд сезона</th><th>Групп</th><th>Мест</th><th>Продано</th><th>Заполняемость</th><th>Выплата от фонда</th><th>Бонус</th><th>Месяц выплаты</th></tr></thead><tbody>';
   SEASONS.forEach(function(x){var o=mv.S[x.k];T.camps+=o.camps;T.cap+=o.cap;T.part+=o.part;T.pool+=o.pool;T.tot+=o.total;
-    var cls=!o.camps?"":o.coef>=100?"pos":o.coef===0?"neg":"";
-    h+='<tr><td><b>'+x.name+'</b></td><td>'+x.months+'</td><td>'+fmt(o.share)+'%</td><td>'+fmt(o.pool)+'</td><td>'+(o.camps||"—")+'</td><td>'+(o.cap?fmt(o.cap):"—")+'</td><td>'+(o.part?fmt(o.part):"—")+'</td><td class="'+cls+'">'+(o.camps?pct(o.fill*100):"—")+'</td><td class="'+cls+'">'+(o.camps?fmt(o.coef)+"%":"—")+'</td><td class="total">'+fmt(o.total)+'</td><td>'+MONTHS_FULL[x.pay]+'</td></tr>'});
+    var cls=!o.camps?"":o.coef>=100?"pos":o.coef===0?"neg":"";var over=o.camps&&o.coef>100;
+    h+='<tr><td><b>'+x.name+'</b></td><td>'+x.months+'</td><td>'+fmt(o.share)+'%</td><td>'+fmt(o.pool)+'</td><td>'+(o.camps||"—")+'</td><td>'+(o.cap?fmt(o.cap):"—")+'</td><td>'+(o.part?fmt(o.part):"—")+'</td><td class="'+cls+'">'+(o.camps?pct(o.fill*100):"—")+'</td><td class="'+cls+'">'+(o.camps?fmt(o.coef)+"%":"—")+'</td><td class="total">'+fmt(o.total)+(over?' <span class="chip pos">перевыполнение</span>':'')+'</td><td>'+MONTHS_FULL[x.pay]+'</td></tr>'});
   h+='</tbody><tfoot><tr><td>За год</td><td></td><td>'+fmt(mv.shareSum)+'%</td><td>'+fmt(T.pool)+'</td><td>'+T.camps+'</td><td>'+fmt(T.cap)+'</td><td>'+fmt(T.part)+'</td><td>'+(T.cap?pct(T.part/T.cap*100):"—")+'</td><td>'+(T.pool?pct(T.tot/T.pool*100):"—")+'</td><td class="total">'+fmt(T.tot)+'</td><td></td></tr></tfoot></table>';
   document.getElementById("motiv-seasons").innerHTML=h;
   var order=SEASONS.map(function(s){return s.k});
@@ -390,7 +390,7 @@ function recalc(){
   M.forEach(function(m,i){setCalc("team-m-"+i,fmt(m.team))});setCalc("team-y",fmt(Y.team));
   var tot={cap:0,inCap:0,part:0,staff:0,ads:0,bonus:0,all:0};
   S.camps.forEach(function(c,ri){var k=campCalc(c);
-    var fl=fillOf(c);setCalc("camp-fill-"+ri,isFinite(fl)?pct(fl*100):"—");tot.cap+=c.capacity>0?c.capacity:0;tot.inCap+=c.capacity>0?Math.min(c.participants,c.capacity):0;
+    var fl=fillOf(c);setCalc("camp-fill-"+ri,isFinite(fl)?pct(fl*100):"—");tot.cap+=c.capacity>0?c.capacity:0;tot.inCap+=c.capacity>0?c.participants:0;
     var w=adsWindow(c);setCalc("camp-win-"+ri,fmtD(w.begin)+" – "+fmtD(w.end));
     setCalc("camp-staff-"+ri,fmt(k.staff));setCalc("camp-ads-"+ri,fmt(k.ads));setCalc("camp-bonus-"+ri,fmt(k.bonus));setCalc("camp-tot-"+ri,fmt(k.total));
     tot.part+=c.participants;tot.staff+=k.staff;tot.ads+=k.ads;tot.bonus+=k.bonus;tot.all+=k.total;});
