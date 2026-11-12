@@ -141,7 +141,7 @@ var MONTHS=["Янв","Фев","Мар","Апр","Май","Июн","Июл","Ав
 var MONTHS_FULL=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 var LS_KEY="camp-budget-draft-v1";
 var CURRENCIES=["₴","$","€"];
-function DEFAULT_RATES(){return {"$":41.5,"€":48}}
+function DEFAULT_RATES(){return {"$":46.2,"€":52}}
 function rateOf(cur){return cur==="₴"?1:(S&&S.rates&&S.rates[cur])||DEFAULT_RATES()[cur]||1}
 // All money amounts are stored in the selected currency; switching currency or changing its rate converts them.
 function convertMoney(f){
@@ -204,6 +204,7 @@ function normalize(s){
   var motiv={poolPct:sm2.poolPct!=null?n(sm2.poolPct):dm.poolPct,
     shares:{winter:sh.winter!=null?n(sh.winter):dm.shares.winter,spring:sh.spring!=null?n(sh.spring):dm.shares.spring,summer:sh.summer!=null?n(sh.summer):dm.shares.summer,autumn:sh.autumn!=null?n(sh.autumn):dm.shares.autumn},
     tiers:dm.tiers.map(function(t,i){var x=(sm2.tiers&&sm2.tiers.length===dm.tiers.length?sm2.tiers[i]:null)||{};return {fill:x.fill!=null?n(x.fill):t.fill,pct:x.pct!=null?n(x.pct):t.pct}})};
+  if(s.rates&&Number(s.rates["$"])===41.5&&Number(s.rates["€"])===48&&s.currency==="₴")s.rates=null;
   return {example:!!s.example,year:n(s.year)||new Date().getFullYear(),currency:CURRENCIES.indexOf(s.currency)>=0?s.currency:"₴",rates:{"$":(s.rates&&n(s.rates["$"])>0)?n(s.rates["$"]):DEFAULT_RATES()["$"],"€":(s.rates&&n(s.rates["€"])>0)?n(s.rates["€"]):DEFAULT_RATES()["€"]},savedAt:n(s.savedAt),
     team:team, sales:sales, motiv:motiv,
     camps:(s.camps||[]).map(function(c){var nm=String(c.name||""),intl=INTL.test(nm),yr=n(s.year)||new Date().getFullYear();return {id:c.id||uid(),name:nm,
