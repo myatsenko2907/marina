@@ -244,7 +244,7 @@ TEMPLATE = r"""<!doctype html>
   const LESSONS = __LESSONS__;
   const EXAMPLES = __EXAMPLES__;
   const exGrid = () => `<div class="exg">${EXAMPLES.map(([f, t, m]) => `<figure class="ex"><video data-src="media/vivix/${f}.mp4" poster="media/vivix/${f}.jpg" muted loop playsinline></video><figcaption><b>${esc(t)}</b><small>${esc(m)}</small></figcaption></figure>`).join('')}</div>`;
-  function liveVideos(){ const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { if (!v.getAttribute('src')) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause(); }), {rootMargin: '150px'}); document.querySelectorAll('video[data-src]').forEach(v => io.observe(v)); }
+  function liveVideos(){ const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { if (!v.getAttribute('src')) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause(); }), {rootMargin: '150px'}); document.querySelectorAll('video[data-src]').forEach(v => io.observe(v)); document.querySelectorAll('.ex').forEach(f => { if (f.dataset.tap) return; f.dataset.tap = 1; f.style.cursor = 'pointer'; f.addEventListener('click', () => { const v = f.querySelector('video'); if (!v.getAttribute('src')) v.src = v.dataset.src; if (v.paused || v.muted) { v.muted = false; v.play().catch(() => {}); } else v.pause(); }); }); }
 
   // ====== Стан (лише в браузері учня) ======
   const store = {
