@@ -26,7 +26,7 @@ TEMPLATE = r"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AI Creator Старт</title>
-<meta name="description" content="Мінікурс AI Creator: Старт — 2 уроки з відео, конспектом і завданнями. Перше рекламне AI-фото і перший AI-ролик.">
+<meta name="description" content="Мінікурс AI Creator: Старт — 3 уроки з відео, конспектом і завданнями. Перше рекламне AI-фото і перший AI-ролик.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -222,7 +222,7 @@ TEMPLATE = r"""<!doctype html>
 <header>
   <div class="wrap nav">
     <a class="logo" href="#home"><i>AI</i>AI Creator <small>Старт</small></a>
-    <div class="navprog" id="navprog"><span id="navprogtxt">0 з 2 уроків</span><span class="bar"><i id="navbar" style="width:0"></i></span></div>
+    <div class="navprog" id="navprog"><span id="navprogtxt">0 з 3 уроків</span><span class="bar"><i id="navbar" style="width:0"></i></span></div>
     <a class="btn btn-hot" id="navbtn" href="#buy">Купити за 499 грн</a>
   </div>
 </header>
@@ -280,9 +280,9 @@ TEMPLATE = r"""<!doctype html>
     $app.innerHTML = `
     <section class="hero"><div class="wrap hero-grid">
       <div>
-        <span class="tag">Мінікурс · 2 уроки</span>
-        <h1>Твої перші <span class="g">AI-роботи</span> за один вечір</h1>
-        <p class="lead">Два практичні уроки з відео, конспектом і завданнями. Ти зробиш рекламні фото свого товару і перший AI-ролик для Reels. Без досвіду і безкоштовними нейромережами.</p>
+        <span class="tag">Мінікурс · 3 уроки</span>
+        <h1>Твої перші <span class="g">AI-роботи</span> за два вечори</h1>
+        <p class="lead">Три практичні уроки з відео, конспектом і завданнями. Ти зробиш рекламні фото свого товару, перший AI-ролик для Reels і власний мультфільм з милим героєм. Без досвіду і безкоштовними нейромережами.</p>
         <div class="row"><a class="btn btn-hot" href="#buy">Отримати доступ ${ic('arr')}</a><a class="btn btn-ghost" href="#lessons">Що всередині</a></div>
         <div class="price-chip"><b>${CONFIG.price} грн</b><s>${CONFIG.oldPrice} грн</s><span>доступ назавжди</span></div>
       </div>
@@ -291,7 +291,7 @@ TEMPLATE = r"""<!doctype html>
     </div></section>
 
     <section id="lessons" style="padding-top:0"><div class="wrap">
-      <span class="tag">Програма</span><h2>2 уроки — 2 <span class="g">реальні роботи</span></h2>
+      <span class="tag">Програма</span><h2>3 уроки — 3 <span class="g">реальні роботи</span></h2>
       <p class="lead">Кожен урок закінчується готовою роботою, яку можна показати в портфоліо або клієнту.</p>
       <div class="lcards">${cards}</div>
     </div></section>
@@ -316,12 +316,12 @@ TEMPLATE = r"""<!doctype html>
       <img src="media/host.png" alt="AI-ментор ${esc(CONFIG.host.name)}">
       <div><span class="tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff">Хто веде</span>
       <h2>${esc(CONFIG.host.name)}, <span class="g">AI-ментор</span></h2>
-      <p>Пояснює просто, показує на прикладах і дає формули, які працюють у будь-якій нейромережі. Цей мінікурс — перші 2 уроки з основного курсу AI Creator на 4 місяці.</p></div>
+      <p>Пояснює просто, показує на прикладах і дає формули, які працюють у будь-якій нейромережі. Цей мінікурс — перші уроки з основного курсу AI Creator на 4 місяці.</p></div>
     </div></div></section>
 
     <section id="buy" style="padding-top:0"><div class="wrap"><div class="buy">
       <div><span class="tag">Доступ</span><h2>AI Creator: <span class="g">Старт</span></h2>
-        <ul><li>${ic('chk')}2 відеоуроки з AI-ментором</li><li>${ic('chk')}Конспекти і 10 готових промптів</li><li>${ic('chk')}Завдання з чек-листами і критеріями</li><li>${ic('chk')}Доступ назавжди, з телефона і комп'ютера</li></ul></div>
+        <ul><li>${ic('chk')}3 відеоуроки з AI-ментором</li><li>${ic('chk')}Конспекти і 15 готових промптів</li><li>${ic('chk')}Завдання з чек-листами і критеріями</li><li>${ic('chk')}Доступ назавжди, з телефона і комп'ютера</li></ul></div>
       <div style="display:grid;gap:14px">
         <div><s style="color:var(--sub);font-weight:700">${CONFIG.oldPrice} грн</s><div class="big">${CONFIG.price} грн</div></div>
         <a class="btn btn-hot" id="paybtn" href="${esc(CONFIG.payUrl || '#buy')}" target="_blank" rel="noopener">Оплатити ${CONFIG.price} грн ${ic('arr')}</a>
@@ -335,8 +335,8 @@ TEMPLATE = r"""<!doctype html>
       <span class="tag">Питання</span><h2>Перед покупкою</h2>
       <div class="faq">
         <details><summary>Потрібен досвід?${ic('plus')}</summary><div class="a">Ні. Уроки розраховані на тих, хто ніколи не працював з нейромережами.</div></details>
-        <details><summary>Які сервіси потрібні і скільки вони коштують?${ic('plus')}</summary><div class="a">Gemini, Canva, Kling або Veo, Suno і CapCut. У всіх є безкоштовні тарифи, яких вистачає на завдання уроків.</div></details>
-        <details><summary>Скільки часу займе?${ic('plus')}</summary><div class="a">Близько 10 хвилин відео і 1–2 години практики на обидва уроки. Можна пройти за один вечір.</div></details>
+        <details><summary>Які сервіси потрібні і скільки вони коштують?${ic('plus')}</summary><div class="a">ChatGPT або Claude, Gemini, Canva, Kling або Veo, Suno і CapCut. У всіх є безкоштовні тарифи, яких вистачає на завдання уроків.</div></details>
+        <details><summary>Скільки часу займе?${ic('plus')}</summary><div class="a">Близько 17 хвилин відео і 2–3 години практики на всі три уроки. Можна пройти за два вечори.</div></details>
         <details><summary>Що далі після мінікурсу?${ic('plus')}</summary><div class="a">Якщо сподобається, приходь на основний курс AI Creator: 4 місяці, 32 заняття, 70+ робіт у портфоліо, реальні замовлення від брендів.</div></details>
       </div>
     </div></section>`;
@@ -429,8 +429,8 @@ TEMPLATE = r"""<!doctype html>
       <div class="fin-card">
         <span class="tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff;justify-self:start">Мінікурс пройдено</span>
         <h1>Ти вже <span class="g">AI Creator</span></h1>
-        <p>За один вечір ти зробив те, за що бізнес платить фотографам і відеографам. Це перші роботи у твоєму портфоліо.</p>
-        <div class="made"><div>${ic('chk')}3 рекламні фото товару</div><div>${ic('chk')}Банер для Instagram</div><div>${ic('chk')}Рекламний AI-ролик для Reels</div><div>${ic('chk')}Формули промптів для фото і відео</div></div>
+        <p>За два вечори ти зробив те, за що бізнес платить фотографам, відеографам і аніматорам. Це перші роботи у твоєму портфоліо.</p>
+        <div class="made"><div>${ic('chk')}3 рекламні фото товару</div><div>${ic('chk')}Банер для Instagram</div><div>${ic('chk')}Рекламний AI-ролик для Reels</div><div>${ic('chk')}Мультфільм 30 секунд з власним героєм</div><div>${ic('chk')}Формули промптів для фото, відео і сюжетів</div></div>
       </div>
       <h2 style="margin-top:56px">Це <span class="g">крапля в морі</span></h2>
       <p class="lead">На основному курсі AI Creator за 4 місяці ти пройдеш шлях від перших робіт до клієнтів.</p>
