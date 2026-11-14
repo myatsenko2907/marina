@@ -12,7 +12,7 @@ const fs = require('fs'), path = require('path'), { execFileSync } = require('ch
   await p.goto('file://' + path.join(__dirname, 'studio.html'), { waitUntil: 'networkidle' });
   await p.evaluate(() => document.fonts.ready);
   const base = 'file://' + path.resolve(path.dirname(scFile), sc.assetsBase || '.') + '/';
-  const steps = JSON.parse(JSON.stringify(sc.steps).replace(/"@([^"]+)"/g, (_, f) => JSON.stringify(base + f)));
+  const steps = JSON.parse(JSON.stringify(sc.steps).replace(/"@([^"|]+)(\|[^"]*)?"/g, (_, f, cap) => JSON.stringify(base + f + (cap || ''))));
   await p.waitForTimeout(600);
   await p.evaluate(s => window.runScenario(s), steps);
   await p.waitForTimeout(sc.tail || 1500);

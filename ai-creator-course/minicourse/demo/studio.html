@@ -34,7 +34,12 @@
   .res{position:absolute;inset:0;display:grid;gap:10px;padding:10px;opacity:0;transition:opacity .6s}
   .res.on{opacity:1}
   .res img,.res video{width:100%;height:100%;object-fit:cover;border-radius:12px;min-height:0}
+  .res figure{position:relative;min-height:0}
+  .res figure figcaption{position:absolute;left:10px;bottom:10px;background:rgba(18,19,23,.78);color:#fff;font:800 13px Manrope;padding:6px 10px;border-radius:8px}
   .res.one{grid-template-columns:1fr}
+  .res.one img,.res.one video{object-fit:contain;background:#0E0F12}
+  .res.phone{grid-template-columns:1fr;place-items:center}
+  .res.phone video,.res.phone img{width:auto;height:100%;aspect-ratio:9/16;border-radius:26px;border:8px solid #000;box-shadow:0 0 0 2px #333}
   .res.three{grid-template-columns:repeat(3,1fr)}
   .tagok{position:absolute;right:16px;top:16px;background:#fff;color:var(--ok);font:800 13px Manrope;padding:7px 11px;border-radius:999px;opacity:0;transition:opacity .4s}
   .tagok.on{opacity:1}
@@ -104,7 +109,7 @@
   }
   function show(items, layout = 'one'){
     const r = $('res'); r.className = 'res ' + layout;
-    r.innerHTML = items.map(s => s.endsWith('.mp4') ? `<video src="${s}" muted autoplay loop playsinline></video>` : `<img src="${s}" alt="">`).join('');
+    r.innerHTML = items.map(it => { const [s, cap] = it.split('|'); const m = s.endsWith('.mp4') ? `<video src="${s}" muted autoplay loop playsinline></video>` : `<img src="${s}" alt="">`; return cap ? `<figure>${m}<figcaption>${cap}</figcaption></figure>` : m; }).join('');
     requestAnimationFrame(() => r.classList.add('on'));
   }
   const actions = {
@@ -119,6 +124,7 @@
     note: async ([t, ms]) => note(t, ms),
     point: async ([sel, dx, dy]) => moveTo(document.querySelector(sel), dx, dy),
     wait: async ms => sleep(ms),
+    solo: async () => { document.querySelector('.work').style.gridTemplateColumns = '1fr'; document.querySelector('.work .panel').style.display = 'none'; },
   };
   window.runScenario = async steps => { for (const [a, p] of steps) await actions[a](p); window.DONE = true; };
 </script>

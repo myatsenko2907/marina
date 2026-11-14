@@ -16,6 +16,7 @@ def minutes(lid):
 
 
 EXAMPLES = [("01-serum", "Сироватка біля басейну", "Наїзд + крапля"), ("02-candle", "Свічка на підвіконні", "Статика + дим"), ("03-headphones", "Навушники в студії", "Орбіта"), ("04-coffee", "Кава на терасі", "Золота година"), ("05-perfume", "Парфуми з тіні", "Розкриття світлом"), ("06-sneakers", "Кросівок", "Легкий поворот")]
+EXAMPLES = [("reel-final", "Готовий ролик з уроку 2", "Хук + товар + оффер")] + EXAMPLES[:5]
 
 data = [{k: l[k] for k in ("id", "n", "title", "subtitle", "result", "tools", "guide", "prompts", "task")} | {"duration": minutes(l["id"])} for l in LESSONS]
 
@@ -304,7 +305,7 @@ TEMPLATE = r"""<!doctype html>
     <section style="padding-top:0"><div class="wrap">
       <span class="tag">Формат</span><h2>Що в кожному <span class="g">уроці</span></h2>
       <div class="inside">
-        <div class="ins"><div class="ic">${ic('play')}</div><h3>Відео з AI-ментором</h3><p>4–5 хвилин: пояснення, приклади і покрокова інструкція.</p></div>
+        <div class="ins"><div class="ic">${ic('play')}</div><h3>Відео з AI-ментором</h3><p>5–6 хвилин: пояснення, демонстрація наживо і готові приклади.</p></div>
         <div class="ins"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h6M9 15h6"/></svg></div><h3>Конспект</h3><p>Усі кроки текстом, щоб повертатися під час роботи.</p></div>
         <div class="ins"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg></div><h3>Готові промпти</h3><p>Шаблони, які копіюєш в один клік і підставляєш свій товар.</p></div>
         <div class="ins"><div class="ic">${ic('chk')}</div><h3>Завдання з чек-листом</h3><p>Критерії якості, щоб робота виглядала професійно.</p></div>
