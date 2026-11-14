@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>AI Studio demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Демонстраційна «студія» для запису екрана: промпт друкується, йде генерація, з'являється справжній результат */
+  :root{--bg:#F4F3F0;--card:#fff;--ink:#121317;--sub:#62666F;--line:#E4E2DD;--grad:linear-gradient(100deg,#FF4A1C,#FF2D78 55%,#FFB01F 110%);--ok:#12A150}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{width:1280px;height:720px;overflow:hidden;background:var(--bg);font:600 16px/1.45 Manrope,sans-serif;color:var(--ink)}
+  .app{display:grid;grid-template-columns:230px 1fr;height:720px}
+  .side{background:#15161A;color:#C9CBD2;padding:22px 18px;display:flex;flex-direction:column;gap:8px}
+  .brand{display:flex;gap:10px;align-items:center;color:#fff;font:800 16px Unbounded;margin-bottom:18px}
+  .brand i{width:28px;height:28px;border-radius:8px;background:var(--grad);display:grid;place-items:center;font:800 10px Unbounded;font-style:normal}
+  .tab{padding:11px 12px;border-radius:12px;font-weight:700;font-size:15px;display:flex;gap:10px;align-items:center}
+  .tab.on{background:rgba(255,255,255,.09);color:#fff}
+  .tab b{width:8px;height:8px;border-radius:50%;background:#3A3D46}
+  .tab.on b{background:var(--grad)}
+  .main{padding:22px 26px;display:grid;grid-template-rows:auto 1fr auto;gap:16px;min-width:0}
+  .head{display:flex;justify-content:space-between;align-items:center}
+  .head h1{font:800 22px Unbounded;letter-spacing:-.02em}
+  .badge{font:800 12px Manrope;letter-spacing:.08em;text-transform:uppercase;background:#FFE4EE;color:#B0154F;padding:6px 10px;border-radius:8px}
+  .work{display:grid;grid-template-columns:300px 1fr;gap:16px;min-height:0}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0}
+  .panel h3{font:700 13px Manrope;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+  .drop{flex:1;border:2px dashed var(--line);border-radius:14px;display:grid;place-items:center;color:var(--sub);font-weight:700;position:relative;overflow:hidden;min-height:0}
+  .drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
+  .drop.has img{opacity:1}
+  .drop .lbl{position:absolute;left:10px;bottom:10px;background:rgba(18,19,23,.75);color:#fff;font-size:12px;padding:5px 8px;border-radius:8px;opacity:0}
+  .drop.has .lbl{opacity:1}
+  .stage{position:relative;background:#1A1B1F;border-radius:18px;overflow:hidden;min-height:0;display:grid;place-items:center}
+  .stage .empty{color:#6F727C;font-weight:700}
+  .res{position:absolute;inset:0;display:grid;gap:10px;padding:10px;opacity:0;transition:opacity .6s}
+  .res.on{opacity:1}
+  .res img,.res video{width:100%;height:100%;object-fit:cover;border-radius:12px;min-height:0}
+  .res.one{grid-template-columns:1fr}
+  .res.three{grid-template-columns:repeat(3,1fr)}
+  .tagok{position:absolute;right:16px;top:16px;background:#fff;color:var(--ok);font:800 13px Manrope;padding:7px 11px;border-radius:999px;opacity:0;transition:opacity .4s}
+  .tagok.on{opacity:1}
+  .prog{position:absolute;left:24px;right:24px;bottom:24px;opacity:0;transition:opacity .3s}
+  .prog.on{opacity:1}
+  .prog .t{display:flex;justify-content:space-between;color:#fff;font:700 13px Manrope;margin-bottom:8px}
+  .prog .b{height:8px;border-radius:8px;background:rgba(255,255,255,.12);overflow:hidden}
+  .prog .b i{display:block;height:100%;width:0;background:var(--grad);border-radius:8px}
+  .bar{display:flex;gap:12px;align-items:stretch}
+  .prompt{flex:1;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;font:600 15px/1.45 Manrope;min-height:76px;white-space:pre-wrap}
+  .prompt.focus{border-color:#FF2D78;box-shadow:0 0 0 4px rgba(255,45,120,.12)}
+  .prompt .ph{color:#A6A8AF}
+  .caret{display:inline-block;width:2px;height:18px;background:#FF2D78;vertical-align:-3px;animation:bl .8s step-end infinite}
+  @keyframes bl{50%{opacity:0}}
+  .gen{width:150px;border:0;border-radius:16px;background:var(--grad);color:#fff;font:800 16px Manrope;display:grid;place-items:center;transition:transform .15s}
+  .gen.press{transform:scale(.95)}
+  .cursor{position:fixed;left:0;top:0;width:26px;height:26px;z-index:9;transition:transform .7s cubic-bezier(.45,.05,.3,1);pointer-events:none}
+  .cursor svg{width:26px;height:26px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+  .click{position:fixed;width:40px;height:40px;border-radius:50%;border:3px solid #FF2D78;z-index:8;transform:translate(-50%,-50%) scale(.3);opacity:0;pointer-events:none}
+  .click.go{animation:ck .5s ease-out}
+  @keyframes ck{0%{opacity:1;transform:translate(-50%,-50%) scale(.3)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.3)}}
+  .note{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:var(--ink);color:#fff;font:800 14px Manrope;padding:9px 16px;border-radius:999px;z-index:7;opacity:0;transition:opacity .3s}
+  .note.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><i>AI</i>AI Studio</div>
+    <div class="tab" id="t-img"><b></b>Фото → Реклама</div>
+    <div class="tab" id="t-vid"><b></b>Фото → Відео</div>
+    <div class="tab"><b></b>Мої роботи</div>
+  </aside>
+  <section class="main">
+    <div class="head"><h1 id="title">Рекламне фото товару</h1><span class="badge" id="badge">Урок 1 · демонстрація</span></div>
+    <div class="work">
+      <div class="panel"><h3>Твоє фото</h3><div class="drop" id="drop">Перетягни фото сюди<img id="srcimg" alt=""><span class="lbl" id="srclbl">Фото з телефона</span></div></div>
+      <div class="stage" id="stage"><span class="empty" id="empty">Результат з'явиться тут</span>
+        <div class="res one" id="res"></div>
+        <span class="tagok" id="ok">✓ Товар збережено</span>
+        <div class="prog" id="prog"><div class="t"><span>Генерація…</span><span id="pct">0%</span></div><div class="b"><i id="pb"></i></div></div>
+      </div>
+    </div>
+    <div class="bar"><div class="prompt" id="prompt"><span class="ph">Опиши сцену: об'єкт, сцена, світло, камера, стиль…</span></div><button class="gen" id="gen">Згенерувати</button></div>
+  </section>
+</div>
+<div class="cursor" id="cur"><svg viewBox="0 0 24 24"><path d="M3 2l7 19 2.5-7.5L20 11z" fill="#fff" stroke="#121317" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+<div class="click" id="clk"></div>
+<div class="note" id="note"></div>
+<script>
+  // Сценарій задається в window.SCENARIO (підставляє record_demo.cjs). Кожен крок: [дія, параметри]
+  const $ = id => document.getElementById(id);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const cur = $('cur');
+  let cx = 900, cy = 600; cur.style.transform = `translate(${cx}px,${cy}px)`;
+  async function moveTo(el, dx = .5, dy = .5){ const r = (typeof el === 'string' ? $(el) : el).getBoundingClientRect(); cx = r.left + r.width * dx; cy = r.top + r.height * dy; cur.style.transform = `translate(${cx}px,${cy}px)`; await sleep(800); }
+  async function click(){ const c = $('clk'); c.style.left = cx + 'px'; c.style.top = cy + 'px'; c.classList.remove('go'); void c.offsetWidth; c.classList.add('go'); await sleep(350); }
+  async function type(text, cps = 32){ const p = $('prompt'); p.classList.add('focus'); p.innerHTML = '<span id="tx"></span><span class="caret"></span>'; const tx = $('tx'); for (const ch of text){ tx.textContent += ch; await sleep(1000 / cps * (ch === ' ' ? .6 : 1)); } await sleep(400); }
+  async function note(t, ms = 1800){ const n = $('note'); n.textContent = t; n.classList.add('on'); await sleep(ms); n.classList.remove('on'); }
+  async function generate(ms = 4200, label = '×8 прискорено'){
+    await moveTo('gen'); await click(); $('gen').classList.add('press'); await sleep(150); $('gen').classList.remove('press');
+    $('prompt').classList.remove('focus'); $('res').classList.remove('on'); $('ok').classList.remove('on'); $('empty').hidden = true;
+    const pr = $('prog'); pr.classList.add('on'); pr.querySelector('.t span').textContent = 'Генерація… ' + label;
+    const t0 = performance.now();
+    while (true){ const k = Math.min(1, (performance.now() - t0) / ms); $('pb').style.width = (k * 100) + '%'; $('pct').textContent = Math.round(k * 100) + '%'; if (k >= 1) break; await sleep(50); }
+    pr.classList.remove('on');
+  }
+  function show(items, layout = 'one'){
+    const r = $('res'); r.className = 'res ' + layout;
+    r.innerHTML = items.map(s => s.endsWith('.mp4') ? `<video src="${s}" muted autoplay loop playsinline></video>` : `<img src="${s}" alt="">`).join('');
+    requestAnimationFrame(() => r.classList.add('on'));
+  }
+  const actions = {
+    tab: async id => { document.querySelectorAll('.tab').forEach(t => t.classList.remove('on')); $(id).classList.add('on'); },
+    title: async ([t, b]) => { $('title').textContent = t; $('badge').textContent = b; },
+    upload: async ([src, lbl]) => { await moveTo('drop'); await click(); await sleep(300); $('srcimg').src = src; $('srclbl').textContent = lbl || 'Фото з телефона'; $('drop').classList.add('has'); await sleep(900); },
+    focus: async () => { await moveTo('prompt', .2, .5); await click(); },
+    type: async ([t, cps]) => type(t, cps),
+    generate: async ([ms, label]) => generate(ms, label),
+    show: async ([items, layout]) => { show(items, layout); await sleep(700); },
+    ok: async t => { $('ok').textContent = t || '✓ Товар збережено'; $('ok').classList.add('on'); },
+    note: async ([t, ms]) => note(t, ms),
+    point: async ([sel, dx, dy]) => moveTo(document.querySelector(sel), dx, dy),
+    wait: async ms => sleep(ms),
+  };
+  window.runScenario = async steps => { for (const [a, p] of steps) await actions[a](p); window.DONE = true; };
+</script>
+</body>
+</html>
