@@ -15,6 +15,8 @@ FPS = 25
 W, H = 1280, 720
 VOICE = "uk-UA-PolinaNeural"
 ELEVEN_VOICE = os.environ.get("ELEVEN_VOICE", "")  # id голосу ElevenLabs; порожньо = edge-tts
+ELEVEN_HOST = os.environ.get("ELEVEN_HOST", "api.elevenlabs.io")
+ELEVEN_KEY = os.environ.get("ELEVEN_KEY", "proxy-injected")  # ключ лише зі змінної оточення, не з коду
 
 OUT.mkdir(parents=True, exist_ok=True)
 WORK.mkdir(parents=True, exist_ok=True)
@@ -140,7 +142,7 @@ def eleven_ok():
     if not ELEVEN_VOICE:
         return False
     try:
-        req = urllib.request.Request("https://api.elevenlabs.io/v1/user/subscription", headers={"xi-api-key": "proxy-injected"})
+        req = urllib.request.Request(f"https://{ELEVEN_HOST}/v1/user/subscription", headers={"xi-api-key": ELEVEN_KEY})
         urllib.request.urlopen(req, timeout=20)
         return True
     except Exception:
@@ -150,8 +152,8 @@ def eleven_ok():
 def tts(text, path, use_eleven):
     if use_eleven:
         body = json.dumps({"text": text, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.45, "similarity_boost": 0.8, "style": 0.25}}).encode()
-        req = urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVEN_VOICE}?output_format=mp3_44100_128", data=body,
-                                     headers={"xi-api-key": "proxy-injected", "Content-Type": "application/json"})
+        req = urllib.request.Request(f"https://{ELEVEN_HOST}/v1/text-to-speech/{ELEVEN_VOICE}?output_format=mp3_44100_128", data=body,
+                                     headers={"xi-api-key": ELEVEN_KEY, "Content-Type": "application/json"})
         path.write_bytes(urllib.request.urlopen(req, timeout=120).read())
     else:
         import edge_tts
