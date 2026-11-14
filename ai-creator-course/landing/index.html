@@ -3,71 +3,240 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AI Creator — професія за 4 місяці</title>
-<meta name="description" content="Курс AI Creator: створюй рекламні фото й відео з AI для брендів і продавай це клієнтам. 16 тижнів, живі заняття, реальні брифи, перше замовлення.">
+<title>AI Creator</title>
+<meta name="description" content="Курс AI Creator: навчись створювати рекламні AI-відео та фото для брендів і заробляти на цьому. 4 місяці, живі заняття, реальні замовлення.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* ====== Палітра і шрифти: міняти тут ====== */
+  /* Макет: світлий продаючий лендинг, один яскравий акцент (корал), темний блок лише для тарифів */
   :root{
-    color-scheme:dark;
-    --ink:#0F0F11;        /* фон */
-    --paper:#F2EFE6;      /* основний текст / світлі секції */
-    --lime:#D7FF3B;       /* акцент */
-    --ember:#FF5A36;      /* другий акцент (дрібні деталі) */
-    --muted:#9B9890;
-    --line:rgba(242,239,230,.14);
+    color-scheme:light;
+    --bg:#FFFFFF;
+    --soft:#F4F5F8;        /* світло-сірі секції */
+    --ink:#15171C;         /* текст */
+    --sub:#5A5F6B;         /* другорядний текст */
+    --line:#E3E5EA;
+    --accent:#FF4F1F;      /* головний колір кнопок і акцентів */
+    --accent-soft:#FFE7DE;
+    --ok:#18A058;
+    /* для намальованих прев'ю робіт */
+    --paper:#F2EFE6; --lime:#D7FF3B; --ember:#FF5A36;
     --display:'Unbounded',system-ui,sans-serif;
     --text:'Manrope',system-ui,sans-serif;
-    --r:18px;
+    --r:20px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
   html{scroll-behavior:smooth}
-  body{background:var(--ink);color:var(--paper);font:400 17px/1.55 var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{background:var(--bg);color:var(--ink);font:500 17px/1.55 var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
   a{color:inherit}
-  img{max-width:100%;display:block}
-  .wrap{width:100%;max-width:1200px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
-  section{padding:88px 0}
-  h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.05;letter-spacing:-.02em}
-  h2{font-size:clamp(30px,5.2vw,56px);margin-bottom:18px}
-  h3{font-size:20px;line-height:1.2}
-  .eyebrow{font:600 13px/1 var(--text);letter-spacing:.14em;text-transform:uppercase;color:var(--lime);margin-bottom:18px;display:inline-flex;gap:10px;align-items:center}
-  .eyebrow::before{content:"";width:22px;height:2px;background:currentColor}
-  .lead{font-size:19px;color:#CFCBC0;max-width:640px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:0 28px;border-radius:999px;font:700 16px/1 var(--text);text-decoration:none;border:2px solid transparent;cursor:pointer;transition:transform .15s ease, background .15s}
+  .wrap{width:100%;max-width:1180px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+  section{padding-block:80px}
+  .soft{background:var(--soft)}
+  h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.08;letter-spacing:-.02em;text-wrap:balance}
+  h2{font-size:clamp(28px,4.6vw,48px);margin-bottom:16px}
+  h3{font-size:19px;line-height:1.25}
+  .center{text-align:center}
+  .center .lead{margin-inline:auto}
+  .kicker{display:inline-block;font:800 12px/1 var(--text);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:8px 12px;border-radius:999px;margin-bottom:18px}
+  .lead{font-size:18px;color:var(--sub);max-width:660px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:58px;padding:0 30px;border-radius:14px;font:800 16px/1.1 var(--text);text-decoration:none;border:2px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s;text-align:center}
   .btn:hover{transform:translateY(-2px)}
-  .btn-lime{background:var(--lime);color:var(--ink)}
-  .btn-ghost{border-color:var(--line);color:var(--paper)}
-  .btn-ghost:hover{border-color:var(--paper)}
-  .btn svg{width:18px;height:18px}
+  .btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+  .btn-main{background:var(--accent);color:#fff;box-shadow:0 10px 24px -8px rgba(255,79,31,.6)}
+  .btn-line{border-color:var(--line);background:#fff;color:var(--ink)}
+  .btn-line:hover{border-color:var(--ink)}
+  .btn svg{width:18px;height:18px;flex:none}
+  .ico{width:22px;height:22px;flex:none}
 
-  /* header */
-  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(15,15,17,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-  .nav{display:flex;align-items:center;justify-content:space-between;height:68px}
-  .logo{font:800 17px/1 var(--display);letter-spacing:.02em;text-decoration:none}
-  .logo span{color:var(--lime)}
-  .nav ul{display:none;list-style:none;gap:30px;font-weight:600;font-size:15px}
-  .nav ul a{text-decoration:none;color:#CFCBC0}
-  .nav ul a:hover{color:var(--paper)}
-  .nav .btn{min-height:44px;padding:0 20px;font-size:14px}
+  /* top bar */
+  .topbar{background:var(--ink);color:#fff;font-size:14px;font-weight:600}
+  .topbar .wrap{display:flex;justify-content:center;align-items:center;gap:10px;min-height:42px;flex-wrap:wrap;text-align:center;padding-block:6px}
+  .topbar b{color:var(--lime)}
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:#fff}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:66px;gap:16px}
+  .logo{font:800 17px/1 var(--display);text-decoration:none;display:flex;align-items:center;gap:8px}
+  .logo i{width:26px;height:26px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-style:normal;font-size:13px}
+  .nav ul{display:none;list-style:none;gap:28px;font-weight:700;font-size:15px}
+  .nav ul a{text-decoration:none;color:var(--sub)}
+  .nav ul a:hover{color:var(--ink)}
+  .nav .btn{min-height:44px;padding:0 18px;font-size:14px;border-radius:12px}
 
   /* hero */
-  .hero{padding:56px 0 72px;position:relative}
-  .hero-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
-  .chip{border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;color:#CFCBC0}
-  .chip b{color:var(--lime);font-weight:700}
-  .hero h1{font-size:clamp(42px,9vw,104px);font-weight:800;margin-bottom:24px}
-  .hero h1 em{font-style:normal;color:var(--lime)}
-  .hero .lead{margin-bottom:32px}
-  .cta-row{display:flex;flex-wrap:wrap;gap:12px}
-  .hero-grid{display:grid;gap:40px}
-  .reel{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:64px;gap:10px;margin-top:8px}
-  .f1{grid-column:span 4;grid-row:span 3}
-  .f2{grid-column:span 2;grid-row:span 3}
-  .f3{grid-column:span 2;grid-row:span 2}
-  .f4{grid-column:span 2;grid-row:span 2}
-  .f5{grid-column:span 2;grid-row:span 2}
+  .hero{padding-block:48px 64px}
+  .hero-grid{display:grid;gap:40px;align-items:center}
+  .hero h1{font-size:clamp(34px,6.4vw,68px);font-weight:800;margin-bottom:20px}
+  .hero h1 mark{background:none;color:var(--accent)}
+  .checks{list-style:none;display:grid;gap:12px;margin:0 0 30px}
+  .checks li{display:flex;gap:12px;align-items:flex-start;font-weight:600}
+  .checks li svg{color:var(--ok);margin-top:2px}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .promise{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--sub);margin-top:16px}
+  .promise .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(24,160,88,.18)}
+  .hero-media{position:relative}
+  .showreel{position:relative;border-radius:24px;overflow:hidden;aspect-ratio:4/3;max-width:100%;box-shadow:0 30px 60px -30px rgba(21,23,28,.45)}
+  .showreel .art,.showreel video{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0}
+  .floating{position:absolute;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 16px 30px -12px rgba(21,23,28,.3);display:flex;gap:10px;align-items:center;font-size:13px;font-weight:700;line-height:1.25}
+  .floating b{display:block;font:800 18px/1 var(--display);color:var(--accent)}
+  .fl-1{left:-8px;bottom:-18px}
+  .fl-2{right:-8px;top:18px}
+
+  /* tools strip */
+  .strip{border-block:1px solid var(--line);padding-block:22px;overflow:hidden}
+  .strip-in{display:flex;gap:36px;white-space:nowrap;font:700 18px/1 var(--display);color:#9AA0AC;animation:marq 40s linear infinite;width:max-content}
+  .strip-in span{display:flex;align-items:center;gap:36px}
+  .strip-in span::after{content:"✦";color:var(--accent);font-size:12px}
+  @keyframes marq{to{transform:translateX(-50%)}}
+
+  /* gallery */
+  .gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:40px}
+  .clip{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:9/16;max-width:100%;cursor:pointer;background:#111;border:0;padding:0;text-align:left;font:inherit;color:#fff}
+  .clip .art,.clip video{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0;object-fit:cover}
+  .clip video{opacity:0;transition:opacity .3s}
+  .clip.has-video video{opacity:1}
+  .clip .meta{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:44px 14px 14px;background:linear-gradient(transparent,rgba(0,0,0,.72))}
+  .clip .meta b{display:block;font:700 15px/1.2 var(--display)}
+  .clip .meta small{font-size:12px;opacity:.85}
+  .clip .pl{position:absolute;top:12px;right:12px;z-index:4;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center}
+  .clip .pl svg{width:14px;height:14px;margin-left:2px;color:var(--ink)}
+  .clip .art .lbl{display:none}
+
+  /* money calc */
+  .calc{display:grid;gap:24px;margin-top:40px}
+  .calc-box{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px;display:grid;gap:22px}
+  .field{display:grid;gap:10px}
+  .field-head{display:flex;justify-content:space-between;font-weight:700}
+  .field-head output{color:var(--accent);font-family:var(--display)}
+  input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .seg label{position:relative}
+  .seg input{position:absolute;opacity:0}
+  .seg span{display:block;text-align:center;padding:12px 6px;border:1.5px solid var(--line);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;line-height:1.25}
+  .seg span small{display:block;font-weight:600;color:var(--sub);font-size:12px}
+  .seg input:checked+span{border-color:var(--accent);background:var(--accent-soft)}
+  .seg input:focus-visible+span{outline:3px solid var(--ink);outline-offset:2px}
+  .result{background:var(--ink);color:#fff;border-radius:var(--r);padding:28px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+  .result .big{font:800 clamp(38px,6vw,60px)/1 var(--display);color:var(--lime);font-variant-numeric:tabular-nums}
+  .result p{color:#C9CCD3;font-size:15px}
+  .result .uah{font:700 20px var(--display)}
+
+  /* cards */
+  .grid-4{display:grid;gap:14px;margin-top:40px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:10px}
+  .soft .card{border-color:transparent}
+  .card .ic{width:48px;height:48px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:6px}
+  .card p{color:var(--sub);font-size:15px}
+
+  /* steps */
+  .steps{display:grid;gap:14px;margin-top:40px}
+  .step{display:grid;grid-template-columns:52px 1fr;gap:16px;align-items:start;background:#fff;border-radius:var(--r);padding:24px}
+  .step .num{width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:800 18px var(--display)}
+  .step p{color:var(--sub);font-size:15px;margin-top:6px}
+
+  /* program */
+  .program{margin-top:40px;display:grid;gap:10px}
+  details.mod{background:#fff;border:1px solid var(--line);border-radius:16px}
+  details.mod[open]{border-color:var(--ink)}
+  details.mod summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:20px}
+  details.mod summary::-webkit-details-marker{display:none}
+  .wk{font:800 12px/1.2 var(--text);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:8px 10px;border-radius:10px;text-align:center;min-width:76px}
+  .mt{font:700 clamp(16px,2.2vw,20px)/1.25 var(--display)}
+  .tg{width:34px;height:34px;border-radius:50%;background:var(--soft);display:grid;place-items:center;transition:transform .2s}
+  details[open] .tg{transform:rotate(45deg);background:var(--ink);color:#fff}
+  .tg svg{width:14px;height:14px}
+  .mb{padding:0 20px 22px;display:grid;gap:14px}
+  .mb ul{list-style:none;display:grid;gap:8px}
+  .mb li{padding-left:24px;position:relative;color:var(--sub)}
+  .mb li::before{content:"";position:absolute;left:2px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .res{background:var(--soft);border-radius:12px;padding:12px 14px;font-size:15px;font-weight:600}
+  .res b{color:var(--accent)}
+
+  /* compare */
+  .compare{margin-top:40px;display:grid;gap:14px}
+  .col{border-radius:var(--r);padding:28px;display:grid;gap:14px;align-content:start}
+  .col.bad{background:var(--soft)}
+  .col.good{background:#fff;border:2px solid var(--accent);box-shadow:0 20px 40px -24px rgba(255,79,31,.45)}
+  .col h3{font-size:22px}
+  .col ul{list-style:none;display:grid;gap:12px}
+  .col li{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:15px}
+  .col.bad li{color:var(--sub)}
+  .col.bad svg{color:#B4B8C2}
+  .col.good svg{color:var(--ok)}
+
+  /* reviews */
+  .reviews{display:grid;gap:14px;margin-top:40px}
+  .rv{background:#fff;border-radius:var(--r);padding:24px;display:grid;gap:14px;align-content:start}
+  .rv .vid{aspect-ratio:16/10;border-radius:14px;background:linear-gradient(135deg,#E9EBF0,#D9DCE3);display:grid;place-items:center;color:var(--sub);font-size:13px;font-weight:700;max-width:100%}
+  .rv .who{display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .rv .who b{font-family:var(--display);font-size:15px}
+  .rv .earn{font:800 13px var(--text);color:var(--ok);background:#E3F5EB;padding:6px 10px;border-radius:999px;white-space:nowrap}
+  .rv p{color:var(--sub);font-size:15px}
+  .ph-note{display:inline-block;margin-top:14px;font-size:13px;font-weight:700;color:#fff;background:var(--accent);padding:5px 10px;border-radius:8px}
+
+  /* pricing */
+  .pricing{background:var(--ink);color:#fff}
+  .pricing .lead{color:#B9BDC6}
+  .pricing .kicker{background:rgba(255,79,31,.16)}
+  .deadline{display:inline-flex;gap:10px;align-items:center;background:rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;font-weight:700;font-size:15px;margin-top:8px}
+  .deadline b{color:var(--lime)}
+  .plans{display:grid;gap:14px;margin-top:40px}
+  .plan{background:#1E2027;border-radius:var(--r);padding:28px;display:flex;flex-direction:column;gap:18px;position:relative;border:1px solid #2C2F38}
+  .plan.hot{background:#fff;color:var(--ink);border-color:#fff}
+  .badge{position:absolute;top:-13px;left:28px;background:var(--accent);color:#fff;font:800 12px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border-radius:999px}
+  .plan h3{font-size:22px}
+  .plan .for{font-size:14px;color:#9EA3AE;margin-top:-10px}
+  .plan.hot .for{color:var(--sub)}
+  .old{font-size:15px;color:#9EA3AE;text-decoration:line-through}
+  .price{font:800 40px/1 var(--display);font-variant-numeric:tabular-nums}
+  .price small{font:700 15px var(--text);color:#9EA3AE}
+  .plan.hot .price small{color:var(--sub)}
+  .per{font-size:14px;color:#9EA3AE;margin-top:6px}
+  .plan.hot .per{color:var(--sub)}
+  .plan ul{list-style:none;display:grid;gap:10px;font-size:15px;flex:1}
+  .plan li{display:flex;gap:10px;align-items:flex-start}
+  .plan li svg{color:var(--lime);margin-top:2px;width:18px;height:18px;flex:none}
+  .plan.hot li svg{color:var(--ok)}
+  .plan li.off{opacity:.45}
+  .plan .btn{width:100%}
+  .plan:not(.hot) .btn-line{background:transparent;color:#fff;border-color:#3A3D47}
+  .guarantee{margin-top:28px;display:flex;gap:16px;align-items:center;background:rgba(255,255,255,.06);border-radius:var(--r);padding:20px 22px}
+  .guarantee .shield{width:52px;height:52px;border-radius:14px;background:var(--lime);color:var(--ink);display:grid;place-items:center;flex:none}
+  .guarantee p{color:#C9CCD3;font-size:15px}
+  .guarantee b{color:#fff}
+
+  /* gift */
+  .gift{background:var(--accent);color:#fff;border-radius:28px;padding:36px 24px;display:grid;gap:22px;align-items:center}
+  .gift h2{margin-bottom:8px}
+  .gift p{font-size:17px;opacity:.95}
+  .gift .btn{background:#fff;color:var(--ink)}
+
+  /* faq */
+  .faq{margin-top:40px;display:grid;gap:10px;max-width:860px}
+  .faq details{background:#fff;border-radius:16px}
+  .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 22px;font-weight:800;font-size:17px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq .a{padding:0 22px 20px;color:var(--sub)}
+
+  /* form */
+  .final{display:grid;gap:36px;align-items:start}
+  form{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;display:grid;gap:14px;box-shadow:0 30px 60px -40px rgba(21,23,28,.4)}
+  form h3{font-size:22px}
+  label.f{display:grid;gap:8px;font-size:14px;font-weight:700}
+  input[type=text],input[type=tel],select{width:100%;min-height:54px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font:600 16px var(--text);padding:0 14px}
+  .consent{font-size:12px;color:var(--sub)}
+  .thanks{padding:24px;border-radius:16px;background:#E3F5EB;color:#0F5F33;font-weight:700}
+  .contacts{display:grid;gap:12px;margin-top:22px}
+  .contacts div{display:flex;gap:12px;align-items:center;font-weight:700}
+  .contacts .ci{width:44px;height:44px;border-radius:12px;background:var(--soft);display:grid;place-items:center}
+
+  footer{border-top:1px solid var(--line);padding-block:36px 110px;font-size:14px;color:var(--sub)}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
+
+  .mcta{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;display:flex;transform:translateY(160%);transition:transform .25s}
+  .mcta.show{transform:none}
+  .mcta .btn{flex:1}
 
   /* ====== Намальовані «роботи» (замінити на реальні роботи студентів) ====== */
   .art{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--line);isolation:isolate}
@@ -133,526 +302,316 @@
   .a-infl .ui{position:absolute;right:10px;top:10px;z-index:2;font:700 10px/1 var(--text);color:#fff;background:rgba(0,0,0,.45);padding:5px 7px;border-radius:999px}
   @media (prefers-reduced-motion:reduce){.a-clip::before{animation:none}}
 
-  /* stats */
-  .stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:0}
-  .stats .wrap{display:grid;grid-template-columns:1fr 1fr}
-  .stat{padding:28px 0;border-bottom:1px solid var(--line)}
-  .stat:nth-child(odd){padding-right:16px;border-right:1px solid var(--line)}
-  .stat:nth-child(even){padding-left:16px}
-  .stat b{display:block;font:800 clamp(30px,5vw,48px)/1 var(--display);color:var(--lime);margin-bottom:8px}
-  .stat p{font-size:14px;color:#CFCBC0}
-  .stat small{display:block;margin-top:6px;font-size:12px;color:var(--muted)}
 
-  /* why */
-  .why-list{display:grid;gap:0;margin-top:40px;border-top:1px solid var(--line)}
-  .why-item{display:grid;grid-template-columns:56px 1fr;gap:16px;padding:28px 0;border-bottom:1px solid var(--line)}
-  .why-item .n{font:700 15px/1 var(--display);color:var(--lime);padding-top:4px}
-  .why-item h3{margin-bottom:8px}
-  .why-item p{color:#CFCBC0}
-
-  /* light section */
-  .light{background:var(--paper);color:var(--ink)}
-  .light .eyebrow{color:#5B6B00}
-  .light .lead{color:#3E3C37}
-  .who{display:grid;gap:14px;margin-top:40px}
-  .who-card{padding:26px;border-radius:var(--r);background:#E7E3D7;display:flex;flex-direction:column;gap:10px}
-  .who-card:nth-child(1){background:var(--ink);color:var(--paper)}
-  .who-card:nth-child(1) p{color:#CFCBC0}
-  .who-card .tag{font:700 12px/1 var(--text);letter-spacing:.1em;text-transform:uppercase;color:#5B6B00}
-  .who-card:nth-child(1) .tag{color:var(--lime)}
-  .who-card p{color:#3E3C37}
-
-  /* steps */
-  .steps{display:grid;gap:14px;margin-top:40px;counter-reset:s}
-  .step{border:1px solid var(--line);border-radius:var(--r);padding:28px;position:relative}
-  .step::before{counter-increment:s;content:"0" counter(s);font:800 54px/1 var(--display);color:transparent;-webkit-text-stroke:1.5px var(--lime);display:block;margin-bottom:18px}
-  .step h3{margin-bottom:10px}
-  .step p{color:#CFCBC0}
-
-  /* program */
-  .program{margin-top:40px;border-top:1px solid var(--line)}
-  details{border-bottom:1px solid var(--line)}
-  summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:24px 0}
-  summary::-webkit-details-marker{display:none}
-  .mod-head{display:flex;flex-direction:column;gap:6px}
-  .mod-week{font-size:13px;font-weight:700;color:var(--lime);letter-spacing:.06em;text-transform:uppercase}
-  .mod-title{font:700 clamp(18px,2.6vw,24px)/1.2 var(--display)}
-  .plus{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;transition:transform .2s}
-  details[open] .plus{transform:rotate(45deg);background:var(--lime);border-color:var(--lime);color:var(--ink)}
-  .plus svg{width:16px;height:16px}
-  .mod-body{padding:0 0 26px;display:grid;gap:14px;max-width:820px}
-  .mod-body ul{list-style:none;display:grid;gap:8px}
-  .mod-body li{padding-left:22px;position:relative;color:#CFCBC0}
-  .mod-body li::before{content:"";position:absolute;left:0;top:11px;width:10px;height:2px;background:var(--lime)}
-  .port{display:inline-flex;gap:10px;align-items:flex-start;background:#1C1C1F;border-radius:12px;padding:12px 16px;font-size:15px}
-  .port b{color:var(--lime);white-space:nowrap}
-  .tracks{display:grid;gap:10px}
-  .track{border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .track b{color:var(--lime)}
-
-  /* tools */
-  .tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px}
-  .tool{border:1px solid var(--line);border-radius:999px;padding:10px 16px;font-weight:600;font-size:15px}
-  .note{margin-top:20px;font-size:14px;color:var(--muted);max-width:720px}
-
-  /* usp */
-  .usp-grid{display:grid;gap:14px;margin-top:40px}
-  .usp{border-radius:var(--r);padding:28px;background:#E7E3D7}
-  .usp.big{background:var(--lime)}
-  .usp h3{margin-bottom:10px;font-size:22px}
-  .usp p{color:#3E3C37}
-  .compare{margin-top:56px;border-radius:var(--r);overflow:hidden;border:1px solid #D3CEBF}
-  .compare table{width:100%;border-collapse:collapse;font-size:15px}
-  .compare th,.compare td{padding:14px 14px;text-align:left;border-bottom:1px solid #D3CEBF;vertical-align:top}
-  .compare thead th{font:700 13px/1.2 var(--text);letter-spacing:.06em;text-transform:uppercase;background:#E7E3D7}
-  .compare thead th:last-child{background:var(--ink);color:var(--lime)}
-  .compare td:last-child{font-weight:700;background:#FBF9F3}
-  .compare tr:last-child td{border-bottom:0}
-  .yes{color:#3E7D00}.no{color:#A0402A}
-
-  /* money */
-  .ladder{display:grid;gap:14px;margin-top:40px}
-  .rung{border:1px solid var(--line);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:10px}
-  .rung .lvl{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-  .rung .sum{font:800 clamp(26px,3.6vw,36px)/1.05 var(--display);color:var(--lime)}
-  .rung p{color:#CFCBC0;font-size:15px}
-  .rung:last-child{background:#18181B}
-
-  /* works + reviews */
-  .wall{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:150px;gap:10px;margin-top:40px}
-  .wall .tall{grid-row:span 2}
-  .reviews{display:grid;gap:14px;margin-top:20px}
-  .review{background:#E7E3D7;border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:14px}
-  .review p{color:#3E3C37;font-size:15px}
-  .tag-b{font:700 12px/1 var(--text);letter-spacing:.1em;text-transform:uppercase;color:#5B6B00}
-  .who-r{display:flex;gap:12px;align-items:center;font-size:14px}
-  .av{width:42px;height:42px;border-radius:50%;background:#CFC9B9;flex:none}
-  .placeholder{display:inline-block;background:var(--ember);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:6px}
-
-  /* mentors */
-  .mentors{display:grid;gap:14px;margin-top:40px}
-  .mentor{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-  .mentor .mono{height:120px;display:grid;place-items:center;font:800 40px/1 var(--display);color:transparent;-webkit-text-stroke:1.5px var(--lime);background:#18181B;border-bottom:1px solid var(--line)}
-  .mentor .in{padding:20px;display:grid;gap:6px}
-  .mentor .in p{color:#CFCBC0;font-size:15px}
-
-  /* pricing */
-  .plans{display:grid;gap:14px;margin-top:40px}
-  .plan{border:1px solid #D3CEBF;border-radius:var(--r);padding:28px;display:flex;flex-direction:column;gap:18px;background:#FBF9F3}
-  .plan.hot{background:var(--ink);color:var(--paper);border-color:var(--ink);position:relative}
-  .plan.hot .badge{position:absolute;top:-13px;left:28px;background:var(--lime);color:var(--ink);font:700 12px/1 var(--text);letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;border-radius:999px}
-  .plan .price{font:800 40px/1 var(--display)}
-  .plan .price small{font:600 15px var(--text);color:var(--muted)}
-  .plan .total{font-size:14px;color:var(--muted);margin-top:-8px}
-  .plan ul{list-style:none;display:grid;gap:10px;font-size:15px;flex:1}
-  .plan li{padding-left:26px;position:relative}
-  .plan li::before{content:"";position:absolute;left:0;top:5px;width:14px;height:8px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);color:#5B6B00}
-  .plan.hot li::before{color:var(--lime)}
-  .plan .btn{width:100%}
-  .plan:not(.hot) .btn-ghost{border-color:#BDB7A6;color:var(--ink)}
-  .pay-note{margin-top:24px;font-size:15px;color:#3E3C37;display:flex;flex-wrap:wrap;gap:8px 24px}
-  .pay-note span::before{content:"→ ";color:#5B6B00;font-weight:700}
-
-  /* intensive */
-  .intensive{border-radius:28px;background:var(--lime);color:var(--ink);padding:40px 24px;display:grid;gap:24px}
-  .intensive h2{margin-bottom:6px}
-  .intensive p{font-size:18px;max-width:560px}
-  .intensive ol{list-style:none;display:grid;gap:10px;counter-reset:d}
-  .intensive li{display:flex;gap:14px;align-items:baseline;font-weight:600}
-  .intensive li::before{counter-increment:d;content:"День " counter(d);font:700 12px/1 var(--text);letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--lime);padding:6px 10px;border-radius:999px;white-space:nowrap}
-  .btn-ink{background:var(--ink);color:var(--paper)}
-
-  /* faq */
-  .faq{margin-top:40px;border-top:1px solid var(--line)}
-  .faq summary{padding:22px 0}
-  .faq .q{font:600 18px/1.35 var(--text)}
-  .faq .a{padding:0 0 22px;color:#CFCBC0;max-width:780px}
-
-  /* form */
-  .final{display:grid;gap:40px}
-  form{display:grid;gap:14px;background:#18181B;border:1px solid var(--line);border-radius:24px;padding:24px}
-  label{display:grid;gap:8px;font-size:14px;font-weight:600;color:#CFCBC0}
-  input,select{width:100%;min-height:54px;border-radius:12px;border:1px solid var(--line);background:var(--ink);color:var(--paper);font:500 16px var(--text);padding:0 16px}
-  input:focus,select:focus{outline:2px solid var(--lime);outline-offset:1px;border-color:transparent}
-  .consent{font-size:12px;color:var(--muted)}
-  .thanks{display:none;padding:24px;border-radius:16px;background:var(--lime);color:var(--ink);font-weight:700}
-  .contacts{display:grid;gap:10px;margin-top:24px}
-  .contacts a{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:600}
-  .contacts a span{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center}
-  .contacts svg{width:18px;height:18px}
-
-  footer{border-top:1px solid var(--line);padding:40px 0 100px;font-size:14px;color:var(--muted)}
-  footer .wrap{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between}
-
-  /* sticky mobile cta */
-  .mcta{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;transform:translateY(140%);transition:transform .25s ease}
-  .mcta.show{transform:none}
-  .mcta .btn{flex:1;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 
   @media (min-width:720px){
-    .stats .wrap{grid-template-columns:repeat(4,1fr)}
-    .stat{border-bottom:0;padding:32px 20px!important;border-right:1px solid var(--line)}
-    .stat:last-child{border-right:0}
-    .stat:first-child{padding-left:0!important}
-    .who{grid-template-columns:repeat(2,1fr)}
-    .steps{grid-template-columns:repeat(3,1fr)}
-    .usp-grid{grid-template-columns:repeat(3,1fr)}
-    .usp.big{grid-column:span 3}
-    .ladder{grid-template-columns:repeat(3,1fr)}
-    .wall{grid-template-columns:repeat(4,1fr)}
+    .gallery{grid-template-columns:repeat(3,1fr)}
+    .grid-4{grid-template-columns:repeat(2,1fr)}
+    .steps{grid-template-columns:repeat(2,1fr)}
+    .calc{grid-template-columns:1.2fr 1fr}
+    .compare{grid-template-columns:1fr 1fr}
     .reviews{grid-template-columns:repeat(3,1fr)}
-    .mentors{grid-template-columns:repeat(3,1fr)}
-    .plans{grid-template-columns:repeat(3,1fr);align-items:stretch}
-    .tracks{grid-template-columns:repeat(2,1fr)}
-    .intensive{padding:56px;grid-template-columns:1.2fr 1fr;align-items:center}
-    .final{grid-template-columns:1fr 1fr;align-items:start}
+    .plans{grid-template-columns:repeat(3,1fr)}
+    .gift{grid-template-columns:1.4fr 1fr;padding:48px}
+    .final{grid-template-columns:1fr 1fr}
     form{padding:32px}
   }
-  @media (min-width:960px){
-    section{padding:120px 0}
+  @media (min-width:980px){
+    section{padding-block:110px}
     .nav ul{display:flex}
-    .hero{padding:80px 0 96px}
-    .hero-grid{grid-template-columns:1.15fr 1fr;align-items:end}
-    .reel{grid-auto-rows:72px}
+    .hero{padding-block:72px 96px}
+    .hero-grid{grid-template-columns:1.05fr 1fr}
+    .grid-4{grid-template-columns:repeat(4,1fr)}
+    .steps{grid-template-columns:repeat(4,1fr)}
+    .step{grid-template-columns:1fr}
+    .gallery{grid-template-columns:repeat(6,1fr)}
     .mcta{display:none}
-    footer{padding-bottom:40px}
-    .usp.big{grid-column:span 1}
-    .usp-grid{grid-template-columns:1.3fr 1fr 1fr}
+    footer{padding-bottom:36px}
   }
-  @media (max-width:520px){
-    .compare{overflow-x:auto}
-    .compare table{min-width:520px}
-  }
-  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="chk" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M4 12.5l5 5L20 6.5"/></symbol>
+  <symbol id="x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="arr" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5v15l13-7.5z"/></symbol>
+</svg>
+
+<div class="topbar"><div class="wrap">Старт потоку <b data-cfg="startDate">8 грудня</b> · ціна раннього запису діє до <b data-cfg="earlyUntil">30 листопада</b></div></div>
 
 <header>
   <div class="wrap nav">
-    <a class="logo" href="#top">AI<span>/</span>CREATOR</a>
+    <a class="logo" href="#top"><i>AI</i>AI Creator</a>
     <ul>
-      <li><a href="#program">Програма</a></li>
+      <li><a href="#works">Роботи</a></li>
       <li><a href="#money">Заробіток</a></li>
+      <li><a href="#program">Програма</a></li>
       <li><a href="#pricing">Ціни</a></li>
       <li><a href="#faq">Питання</a></li>
     </ul>
-    <a class="btn btn-lime" href="#apply">Записатися</a>
+    <a class="btn btn-main" href="#apply">Консультація</a>
   </div>
 </header>
 
 <main id="top">
 
-<!-- 1. HERO -->
+<!-- HERO -->
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="hero-meta">
-        <span class="chip"><b>Набір відкрито</b></span>
-        <span class="chip">16 тижнів</span>
-        <span class="chip">Онлайн або офлайн</span>
-      </div>
-      <h1>Професія <em>AI&nbsp;Creator</em> за&nbsp;4&nbsp;місяці</h1>
-      <p class="lead">Навчимо створювати рекламні фото й відео з AI для брендів і продавати це клієнтам в Україні та за кордоном. Від нуля до першого реального замовлення.</p>
+      <span class="kicker">Онлайн-професія · 4 місяці</span>
+      <h1>Заробляй на <mark>AI-відео</mark> для брендів</h1>
+      <ul class="checks">
+        <li><svg class="ico"><use href="#chk"/></svg>Навчишся робити рекламні ролики, фото й AI-аватари для бізнесу</li>
+        <li><svg class="ico"><use href="#chk"/></svg>Зробиш реальні замовлення від брендів ще під час навчання</li>
+        <li><svg class="ico"><use href="#chk"/></svg>Вийдеш на клієнтів з України, США та Європи з портфоліо з 10+ робіт</li>
+      </ul>
       <div class="cta-row">
-        <a class="btn btn-lime" href="#apply">Отримати програму і ціну
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-        <a class="btn btn-ghost" href="#intensive">Безкоштовний інтенсив</a>
+        <a class="btn btn-main" href="#apply">Отримати безкоштовну консультацію <svg><use href="#arr"/></svg></a>
+        <a class="btn btn-line" href="#works">Дивитися роботи</a>
       </div>
+      <p class="promise"><span class="dot"></span>Передзвонимо протягом 15 хвилин у робочий час</p>
     </div>
-    <div class="reel" aria-label="Приклади робіт, які студенти роблять на курсі">
-      <div class="art a-video f1"><div class="scene"><span class="rec">REC</span><span class="tc">00:00:12:08</span><div class="play"><svg viewBox="0 0 24 24" fill="#0F0F11"><path d="M6 4l14 8-14 8z"/></svg></div></div><div class="tl"><div class="tr v"><i style="width:30%"></i><i style="width:22%"></i><i style="width:40%"></i></div><div class="tr a"><i style="width:70%"></i><i style="width:24%"></i></div><div class="tr s"><i style="width:18%"></i><i style="width:12%"></i><i style="width:30%"></i></div></div></div>
-      <div class="art a-ugc f2"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><p class="cap"><b>3 тижні шукала цей крем</b></p><span class="lbl">UGC-реклама</span></div>
-      <div class="art a-product f3"><div class="shadow"></div><span class="tag">SÉRUM</span><span class="lbl">Предметка</span></div>
-      <div class="art a-mascot f4"><div class="m"></div><div class="smile"></div><span class="lbl">Маскот</span></div>
-      <div class="art a-fashion f5"><div class="arch"></div><div class="fig"></div><span class="lbl">Fashion</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- STATS -->
-<section class="stats" aria-label="Цифри ринку">
-  <div class="wrap">
-    <div class="stat"><b>+329%</b><p>зріс попит на AI-відео на Upwork за рік, найшвидше серед AI-навичок</p><small>Upwork, In-Demand Skills 2026</small></div>
-    <div class="stat"><b>+84%</b><p>зросла медіанна зарплата AI creator в Україні за рік</p><small>Work.ua, 2026</small></div>
-    <div class="stat"><b>10+</b><p>комерційних робіт у твоєму портфоліо після курсу</p><small>+ шоурил і профіль на Upwork</small></div>
-    <div class="stat"><b>64</b><p>академічні години живих занять з ментором-практиком</p><small>2 заняття на тиждень</small></div>
-  </div>
-</section>
-
-<!-- 2. WHY -->
-<section>
-  <div class="wrap">
-    <div class="eyebrow">Чому зараз</div>
-    <h2>AI не забере твою роботу. Її забере той, хто вміє з AI працювати</h2>
-    <div class="why-list">
-      <div class="why-item"><div class="n">01</div><div><h3>Бізнес переходить на AI-продакшн</h3><p>Рекламний ролик за 2 дні замість 2 тижнів і за частку бюджету зйомки. Брендам потрібні люди, які вміють зробити це якісно.</p></div></div>
-      <div class="why-item"><div class="n">02</div><div><h3>Платять за відео й рекламу, а не за картинки</h3><p>Ринок «красивих картинок» дешевшає, а рекламне AI-відео росте. Тому ми вчимо того, за що клієнти платять: продуктові ролики, UGC-креативи, промо.</p></div></div>
-      <div class="why-item"><div class="n">03</div><div><h3>Робота з будь-якої точки світу</h3><p>Портфоліо, англійська для брифів і профіль на міжнародних біржах. Замовники з США та Європи платять у валюті.</p></div></div>
+    <div class="hero-media">
+      <div class="showreel">
+        <div class="art a-video"><div class="scene"><span class="rec">REC</span><span class="tc">00:00:12:08</span><div class="play"><svg viewBox="0 0 24 24" fill="#0F0F11"><path d="M6 4l14 8-14 8z"/></svg></div></div><div class="tl"><div class="tr v"><i style="width:30%"></i><i style="width:22%"></i><i style="width:40%"></i></div><div class="tr a"><i style="width:70%"></i><i style="width:24%"></i></div><div class="tr s"><i style="width:18%"></i><i style="width:12%"></i><i style="width:30%"></i></div></div></div>
+        <video data-src="videos/00-showreel.mp4" muted loop playsinline autoplay preload="none"></video>
+      </div>
+      <div class="floating fl-1"><div><b>+329%</b>попит на AI-відео<br>на Upwork за рік</div></div>
+      <div class="floating fl-2"><div><b>$150–1200</b>за один рекламний<br>AI-ролик</div></div>
     </div>
   </div>
 </section>
 
-<!-- WHO -->
-<section class="light">
-  <div class="wrap">
-    <div class="eyebrow">Для кого</div>
-    <h2>Досвід в AI не потрібен</h2>
-    <p class="lead">Потрібні комп'ютер, 6–8 годин на тиждень і бажання робити комерційний результат.</p>
-    <div class="who">
-      <div class="who-card"><span class="tag">Дизайнерам і SMM</span><h3>Перейти на бік тих, хто керує AI</h3><p>Додай до своїх послуг AI-продакшн і підніми чек утричі.</p></div>
-      <div class="who-card"><span class="tag">Тим, хто змінює професію</span><h3>Нова професія без коду</h3><p>4 місяці від нуля до портфоліо і першого замовлення.</p></div>
-      <div class="who-card"><span class="tag">Хто хоче віддалену роботу</span><h3>Клієнти по всьому світу</h3><p>Upwork, Contra, Freelancehunt і прямі продажі. Гнучкий графік.</p></div>
-      <div class="who-card"><span class="tag">Підприємцям і блогерам</span><h3>Контент без агенції</h3><p>Роби фото, відео й рекламу для свого бізнесу сам і економ бюджет.</p></div>
-    </div>
+<div class="strip" aria-label="Нейромережі курсу">
+  <div class="strip-in"><span>Veo</span><span>Sora</span><span>Kling</span><span>Runway</span><span>Midjourney</span><span>Nano Banana</span><span>Flux</span><span>Higgsfield</span><span>ElevenLabs</span><span>HeyGen</span><span>Suno</span><span>ChatGPT</span><span>Claude</span><span>Veo</span><span>Sora</span><span>Kling</span><span>Runway</span><span>Midjourney</span><span>Nano Banana</span><span>Flux</span><span>Higgsfield</span><span>ElevenLabs</span><span>HeyGen</span><span>Suno</span><span>ChatGPT</span><span>Claude</span></div>
+</div>
+
+<!-- WORKS -->
+<section id="works">
+  <div class="wrap center">
+    <span class="kicker">Що ти будеш створювати</span>
+    <h2>Контент, за який бізнес платить уже зараз</h2>
+    <p class="lead">Усі ролики нижче створені повністю в нейромережах: без камери, акторів і студії. Натисни, щоб переглянути.</p>
   </div>
-</section>
-
-<!-- 3. HOW -->
-<section>
   <div class="wrap">
-    <div class="eyebrow">Як проходить навчання</div>
-    <h2>Не уроки в записі, а робота як у студії</h2>
-    <div class="steps">
-      <div class="step"><h3>Вчишся на живих заняттях</h3><p>Група до 16 людей, ментор-практик, домашні завдання з розбором. Записи залишаються з тобою.</p></div>
-      <div class="step"><h3>Робиш реальні брифи</h3><p>Завдання від справжніх брендів і бізнесів, а не вигадані вправи. Кожен модуль дає роботу в портфоліо.</p></div>
-      <div class="step"><h3>Виходиш на ринок</h3><p>Demo Day перед замовниками й агенціями, профіль на біржах, свій прайс і 3 місяці кар'єрного супроводу.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- PROGRAM -->
-<section id="program" style="padding-top:0">
-  <div class="wrap">
-    <div class="eyebrow">Програма · 16 тижнів</div>
-    <h2>9 модулів від першого промпту до першого замовлення</h2>
-    <p class="lead">Інструменти оновлюємо щомісяця. В основі принципи, які не застаріють: світло, кадр, монтаж, маркетинг.</p>
-
-    <div class="program">
-      <details open>
-        <summary><div class="mod-head"><span class="mod-week">Тиждень 1</span><span class="mod-title">Старт: професія і AI-асистент</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body"><ul><li>Ролі на ринку: AI-креатор, AI-відеомейкер, AI-арт-директор, AI-UGC-продюсер</li><li>Твій набір нейромереж і як вкластися в $30–60 на місяць</li><li>ChatGPT, Claude і Gemini як креативний директор: ідеї, сценарії, промпти</li></ul><div class="port"><b>Результат:</b> власний AI-асистент під креативні задачі</div></div>
-      </details>
-      <details>
-        <summary><div class="mod-head"><span class="mod-week">Тижні 2–4</span><span class="mod-title">Візуал і AI-зображення</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body"><ul><li>Композиція, світло, колір, оптика. Без цього AI-картинки виглядають «пластиковими»</li><li>Midjourney, Flux, Imagen, Ideogram, Krea; редагування в Nano Banana і Flux Kontext; апскейл</li><li>Предметна зйомка, картки для маркетплейсів, fashion-лукбук, банери</li></ul><div class="port"><b>У портфоліо:</b> предметна зйомка для бренду + серія рекламних креативів</div></div>
-      </details>
-      <details>
-        <summary><div class="mod-head"><span class="mod-week">Тиждень 5</span><span class="mod-title">Персонажі та цифрові двійники</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body"><ul><li>Цифровий двійник (LoRA), маскот бренду, один герой у багатьох сценах</li><li>AI-інфлюенсер: концепт, візуальна біблія, контент-план</li><li>Право й етика: згода на зовнішність, діпфейки, маркування AI-контенту</li></ul><div class="port"><b>У портфоліо:</b> маскот бренду в 10 сценах</div></div>
-      </details>
-      <details>
-        <summary><div class="mod-head"><span class="mod-week">Тижні 6–8</span><span class="mod-title">AI-відео і монтаж</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body"><ul><li>Мова кіно: кадр, план, рух камери, ритм</li><li>Veo, Sora, Kling, Runway, Seedance, Higgsfield: з тексту, з фото, контроль руху</li><li>Сторіборд, послідовність героя, монтаж і формати під Reels, TikTok, YouTube</li></ul><div class="port"><b>У портфоліо:</b> 30-секундний продуктовий ролик + 3 вертикальні відео</div></div>
-      </details>
-      <details>
-        <summary><div class="mod-head"><span class="mod-week">Тиждень 9</span><span class="mod-title">Звук, голос, AI-аватари</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body"><ul><li>ElevenLabs: озвучка, клонування голосу, кілька мов</li><li>Музика в Suno й Udio, саунд-дизайн</li><li>Lip-sync і аватари, що говорять: HeyGen, Synthesia</li></ul><div class="port"><b>У портфоліо:</b> ролик з AI-ведучим двома мовами</div></div>
-      </details>
-      <details>
-        <summary><div class="mod-head"><span class="mod-week">Тижні 10–11</span><span class="mod-title">Реклама, за яку платять: AI-UGC і промо</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body"><ul><li>AI-UGC: хуки, структура «проблема → рішення → заклик», 10 варіантів для A/B-тестів</li><li>Промо для Meta й TikTok Ads, контент для маркетплейсів, мультфільми і кліпи</li><li>Робота з реальним брифом від партнера</li></ul><div class="port"><b>У портфоліо:</b> пакет UGC-креативів + рекламний ролик за реальним брифом</div></div>
-      </details>
-      <details>
-        <summary><div class="mod-head"><span class="mod-week">Тиждень 12</span><span class="mod-title">AI-агенти і креативні пайплайни</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body"><ul><li>Агент як продюсер: Claude і ChatGPT самі ведуть ланцюжок «бриф → сценарії → промпти → генерація»</li><li>Нодові креативні полотна: Figma Weave, Flora, Krea Nodes. 50 варіантів креативу за одну схему</li><li>Запуск готових схем за розкладом</li></ul><div class="port"><b>У портфоліо:</b> система «бриф клієнта → 20 креативів за годину»</div></div>
-      </details>
-      <details>
-        <summary><div class="mod-head"><span class="mod-week">Тижні 13–14</span><span class="mod-title">Бізнес AI-креатора</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body"><ul><li>Ніша, офер, портфоліо на Behance і сайт-візитка за годину</li><li>Upwork, Fiverr, Contra, Freelancehunt, LinkedIn, Instagram, холодні листи</li><li>Ціни: за одиницю, пакет, абонемент. Як підняти чек зі $100 до $1000</li><li>Договір, права на контент, оплата з України (ФОП, Payoneer, Wise)</li><li>Англійська для брифів: шаблони листів і дзвінків з клієнтом</li></ul><div class="port"><b>Результат:</b> перші відгуки і перше замовлення</div></div>
-      </details>
-      <details>
-        <summary><div class="mod-head"><span class="mod-week">Тижні 15–16</span><span class="mod-title">Спеціалізація, фінальний проєкт, Demo Day</span></div><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <div class="mod-body">
-          <div class="tracks">
-            <div class="track"><b>A · AI-реклама і UGC.</b> Performance-креативи для брендів</div>
-            <div class="track"><b>B · AI-фільммейкінг.</b> Кліпи, короткий метр, реклама «під ТБ»</div>
-            <div class="track"><b>C · AI-персонажі.</b> Віртуальний блогер і його монетизація</div>
-            <div class="track"><b>D · AI-автоматизація.</b> Контент-системи для бізнесу</div>
-          </div>
-          <div class="port"><b>Фінал:</b> проєкт для реального замовника і захист перед брендами та агенціями</div>
-        </div>
-      </details>
-    </div>
-
-    <div class="tools" aria-label="Інструменти">
-      <span class="tool">ChatGPT</span><span class="tool">Claude</span><span class="tool">Gemini</span><span class="tool">Midjourney</span><span class="tool">Flux</span><span class="tool">Nano Banana</span><span class="tool">Ideogram</span><span class="tool">Krea</span><span class="tool">Veo</span><span class="tool">Sora</span><span class="tool">Kling</span><span class="tool">Runway</span><span class="tool">Higgsfield</span><span class="tool">ElevenLabs</span><span class="tool">Suno</span><span class="tool">HeyGen</span><span class="tool">Figma Weave</span><span class="tool">CapCut</span><span class="tool">DaVinci</span>
-    </div>
-    <p class="note">Жодних російських сервісів: ні в програмі, ні в домашніх завданнях.</p>
-  </div>
-</section>
-
-<!-- USP + COMPARE -->
-<section class="light">
-  <div class="wrap">
-    <div class="eyebrow">Чим ми відрізняємось</div>
-    <h2>Ти виходиш не з сертифікатом, а з першим клієнтом</h2>
-    <div class="usp-grid">
-      <div class="usp big"><h3>Реальні брифи від бізнесу</h3><p>Під час навчання робиш завдання для справжніх брендів-партнерів. У фіналі Demo Day: показуєш роботи замовникам, агенціям і рекрутерам.</p></div>
-      <div class="usp"><h3>2 тижні про гроші</h3><p>Ціни, договори, переговори, англійська для іноземних клієнтів. Не один урок «як зареєструватися на Upwork».</p></div>
-      <div class="usp"><h3>3 місяці після курсу</h3><p>Чат замовлень від партнерів, розбір відгуків на вакансії, щомісячні ефіри про нові інструменти.</p></div>
-    </div>
-
-    <div class="compare">
-      <table>
-        <thead><tr><th></th><th>Курси в записі</th><th>AI Creator</th></tr></thead>
-        <tbody>
-          <tr><td>Формат</td><td>Відео в Telegram, сам на сам</td><td>Живі заняття, група до 16</td></tr>
-          <tr><td>Перевірка робіт</td><td class="no">Немає або за доплату</td><td class="yes">Кожне ДЗ з розбором</td></tr>
-          <tr><td>Реальні замовники</td><td class="no">Немає</td><td class="yes">Брифи від партнерів + Demo Day</td></tr>
-          <tr><td>Продажі й англійська</td><td>1–2 уроки</td><td class="yes">Окремий модуль на 2 тижні</td></tr>
-          <tr><td>Після курсу</td><td class="no">Доступ до записів</td><td class="yes">3 місяці кар'єрного центру</td></tr>
-        </tbody>
-      </table>
+    <div class="gallery">
+      <button class="clip" type="button"><div class="art a-product"><div class="shadow"></div><span class="tag">SÉRUM</span></div><video data-src="videos/01-cosmetics.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Реклама косметики</b><small>Veo · 15 с</small></span></button>
+      <button class="clip" type="button"><div class="art a-ugc"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><p class="cap"><b>3 тижні шукала цей крем</b></p></div><video data-src="videos/02-ugc.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>UGC-відгук для Reels</b><small>Higgsfield · 20 с</small></span></button>
+      <button class="clip" type="button"><div class="art a-infl"><span class="ui">● LIVE</span><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div></div><video data-src="videos/03-avatar.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>AI-аватар експерта</b><small>HeyGen · ElevenLabs</small></span></button>
+      <button class="clip" type="button"><div class="art a-mascot"><div class="m"></div><div class="smile"></div></div><video data-src="videos/04-cartoon.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Мультфільм з маскотом</b><small>Kling · Suno</small></span></button>
+      <button class="clip" type="button"><div class="art a-fashion"><div class="arch"></div><div class="fig"></div></div><video data-src="videos/05-fashion.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Fashion-кампанія</b><small>Nano Banana · Kling</small></span></button>
+      <button class="clip" type="button"><div class="art a-clip"></div><video data-src="videos/06-music.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Музичний кліп</b><small>Sora · Suno</small></span></button>
     </div>
   </div>
 </section>
 
 <!-- MONEY -->
-<section id="money">
+<section id="money" class="soft">
   <div class="wrap">
-    <div class="eyebrow">Скільки можна заробляти</div>
-    <h2>Чесні цифри замість «$10 000 з першого місяця»</h2>
-    <p class="lead">Дохід залежить від портфоліо, ніші та кількості клієнтів. Ось реальні діапазони ринку.</p>
-    <div class="ladder">
-      <div class="rung"><span class="lvl">Старт · в Україні</span><span class="sum">30–45 тис. грн</span><p>Медіанна зарплата AI creator на Work.ua. На віддаленій роботі до 141 тис. грн.</p></div>
-      <div class="rung"><span class="lvl">Фриланс · за ролик</span><span class="sum">$150–1200</span><p>Ставки за AI-ролик для e-commerce-брендів: від початкового до середнього рівня.</p></div>
-      <div class="rung"><span class="lvl">Студія або агенція</span><span class="sum">$1500–3000</span><p>За пакет креативів для кількох платформ. Абонемент з 2–3 брендами дає стабільний дохід.</p></div>
-    </div>
-    <p class="note">Джерела: Work.ua (зарплатна статистика за запитом «AI creator», 2026), галузеві огляди ставок AI-відео 2026. Ми не гарантуємо дохід: він залежить від твоєї роботи.</p>
-  </div>
-</section>
-
-<!-- WORKS + BRIEFS -->
-<section class="light">
-  <div class="wrap">
-    <div class="eyebrow">Портфоліо</div>
-    <h2>Що буде у твоєму портфоліо</h2>
-    <p class="lead">Кожен модуль закінчується комерційною роботою. До кінця курсу збираєш 10+ робіт і шоурил.</p>
-    <div class="wall">
-      <div class="art a-product tall"><div class="shadow"></div><span class="tag">SÉRUM</span><span class="lbl">Предметна зйомка</span></div>
-      <div class="art a-ugc"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><span class="lbl">UGC-креатив</span></div>
-      <div class="art a-mascot"><div class="m"></div><div class="smile"></div><span class="lbl">Маскот бренду</span></div>
-      <div class="art a-infl tall"><span class="ui">● LIVE</span><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div><span class="lbl">AI-інфлюенсер</span></div>
-      <div class="art a-fashion"><div class="arch"></div><div class="fig"></div><span class="lbl">Fashion-лукбук</span></div>
-      <div class="art a-clip"><span class="lbl">Музичний кліп</span></div>
-    </div>
-    <div class="reviews">
-      <div class="review"><span class="tag-b">Бриф · косметика</span><h3>10 UGC-креативів для Meta Ads за 2 дні</h3><p>Хуки, сценарії, AI-ведуча, монтаж під Reels. Бренд тестує варіанти і бере ті, що дають найкращий CTR.</p></div>
-      <div class="review"><span class="tag-b">Бриф · e-commerce</span><h3>Предметка для 20 карток маркетплейсу</h3><p>Один товар, 20 сцен і фонів без фотостудії. Тиждень роботи фотографа за один вечір.</p></div>
-      <div class="review"><span class="tag-b">Бриф · ресторан</span><h3>Маскот і 30-секундний проморолик</h3><p>Персонаж бренду, озвучка українською та англійською, версії для TikTok і YouTube.</p></div>
+    <span class="kicker">Скільки можна заробляти</span>
+    <h2>Порахуй свій дохід</h2>
+    <p class="lead">AI-креатор зазвичай працює з кількома брендами на абонементі. Обери кількість клієнтів і формат роботи.</p>
+    <div class="calc">
+      <div class="calc-box">
+        <div class="field">
+          <div class="field-head"><span>Клієнтів на місяць</span><output id="cOut">4</output></div>
+          <input id="clients" type="range" min="1" max="10" value="4" aria-label="Кількість клієнтів">
+        </div>
+        <div class="field">
+          <div class="field-head"><span>Що робиш для клієнта</span></div>
+          <div class="seg" role="radiogroup" aria-label="Формат роботи">
+            <label><input type="radio" name="fmt" value="250"><span>Фото<small>$250 / міс</small></span></label>
+            <label><input type="radio" name="fmt" value="500" checked><span>Відео + фото<small>$500 / міс</small></span></label>
+            <label><input type="radio" name="fmt" value="900"><span>Реклама під ключ<small>$900 / міс</small></span></label>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--sub)">Ціни абонементу орієнтовні, на основі ринкових ставок AI-відео у 2026 році. Дохід залежить від портфоліо, ніші та кількості клієнтів.</p>
+      </div>
+      <div class="result" aria-live="polite">
+        <p>Твій можливий дохід на місяць</p>
+        <div class="big" id="usd">$2 000</div>
+        <div class="uah" id="uah">≈ 83 000 грн</div>
+        <p>Медіана зарплати AI creator в Україні на Work.ua: 30–45 тис. грн. На фрилансі з іноземними клієнтами дохід вищий.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- MENTORS -->
+<!-- WHO -->
 <section>
   <div class="wrap">
-    <div class="eyebrow">Ментори</div>
-    <h2>Вчать практики, які продають AI-контент</h2>
-    <p class="lead">Кожен ментор щомісяця виконує комерційні замовлення. Ти вчишся на тому, що працює на ринку зараз.</p>
-    <div class="mentors">
-      <div class="mentor"><div class="mono">AV</div><div class="in"><h3>AI-відео і реклама</h3><p>Продуктові ролики, UGC і промо для брендів. Веде модулі 3, 5 і трек «AI-реклама».</p></div></div>
-      <div class="mentor"><div class="mono">VS</div><div class="in"><h3>AI-візуал і персонажі</h3><p>Предметка, fashion, маскоти та цифрові двійники. Веде модулі 1, 2 і трек «AI-персонажі».</p></div></div>
-      <div class="mentor"><div class="mono">$</div><div class="in"><h3>Продажі та фриланс</h3><p>Upwork, ціни, переговори з іноземними клієнтами. Веде модуль 7 і кар'єрний центр.</p></div></div>
+    <span class="kicker">Для кого курс</span>
+    <h2>Досвід в AI чи дизайні не потрібен</h2>
+    <div class="grid-4">
+      <div class="card"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg></div><h3>Дизайнерам і SMM</h3><p>Додай AI-продакшн до своїх послуг і підніми середній чек у 2–3 рази.</p></div>
+      <div class="card"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M14 6l6 6-6 6"/></svg></div><h3>Тим, хто змінює професію</h3><p>Нова професія без коду і без вищої освіти. Від нуля до першого замовлення за 4 місяці.</p></div>
+      <div class="card"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div><h3>Мамам у декреті та на віддаленці</h3><p>Працюй з дому у зручному графіку з клієнтами з будь-якої країни.</p></div>
+      <div class="card"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V9l9-6 9 6v12H3zM9 21v-6h6v6"/></svg></div><h3>Підприємцям і блогерам</h3><p>Роби рекламу і контент для свого бізнесу сам, без агенції і зйомок.</p></div>
     </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="soft">
+  <div class="wrap">
+    <span class="kicker">Як проходить навчання</span>
+    <h2>Від першого промпту до першого клієнта</h2>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h3>Живі заняття</h3><p>2 рази на тиждень онлайн з ментором-практиком. Група до 16 людей, усі записи залишаються в тебе.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h3>Практика щотижня</h3><p>Кожне домашнє завдання ментор перевіряє і розбирає. Без перевірки не буде прогресу.</p></div></div>
+      <div class="step"><div class="num">3</div><div><h3>Реальні брифи</h3><p>Робиш замовлення для справжніх брендів-партнерів і збираєш портфоліо з 10+ робіт.</p></div></div>
+      <div class="step"><div class="num">4</div><div><h3>Перші клієнти</h3><p>Профіль на Upwork, свій прайс, Demo Day перед замовниками і 3 місяці підтримки після курсу.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRAM -->
+<section id="program">
+  <div class="wrap">
+    <span class="kicker">Програма · 16 тижнів</span>
+    <h2>9 модулів. Кожен закінчується роботою в портфоліо</h2>
+    <p class="lead">Програму оновлюємо щомісяця, щоб ти працював у найновіших нейромережах.</p>
+    <div class="program">
+      <details class="mod" open><summary><span class="wk">Тиждень 1</span><span class="mt">Швидкий старт у професії</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Як заробляє AI-креатор: послуги, клієнти, ціни</li><li>Набір нейромереж і як вкластися в $30–60 на місяць</li><li>ChatGPT і Claude як твій креативний директор: ідеї, сценарії, промпти</li></ul><div class="res"><b>Результат:</b> власний AI-асистент для креативу</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 2–4</span><span class="mt">AI-фото і рекламні креативи</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Світло, композиція, колір: щоб AI-фото не виглядали «пластиковими»</li><li>Midjourney, Flux, Nano Banana, Ideogram, Krea; редагування й апскейл</li><li>Предметна зйомка, картки для маркетплейсів, fashion, банери</li></ul><div class="res"><b>У портфоліо:</b> предметна зйомка для бренду + серія креативів</div></div></details>
+      <details class="mod"><summary><span class="wk">Тиждень 5</span><span class="mt">Персонажі, маскоти, цифрові двійники</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Твій цифровий двійник і маскот бренду в будь-яких сценах</li><li>AI-інфлюенсер: образ, контент-план, монетизація</li><li>Авторські права і маркування AI-контенту</li></ul><div class="res"><b>У портфоліо:</b> маскот бренду в 10 сценах</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 6–8</span><span class="mt">AI-відео і монтаж</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Мова кіно: кадр, рух камери, ритм</li><li>Veo, Sora, Kling, Runway, Higgsfield: відео з тексту і з фото</li><li>Монтаж у CapCut і DaVinci, формати для Reels, TikTok, YouTube</li></ul><div class="res"><b>У портфоліо:</b> продуктовий ролик + 3 вертикальні відео</div></div></details>
+      <details class="mod"><summary><span class="wk">Тиждень 9</span><span class="mt">Голос, музика, AI-аватари</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>ElevenLabs: озвучка і клонування голосу кількома мовами</li><li>Музика в Suno, саунд-дизайн</li><li>Аватари, що говорять: HeyGen, lip-sync</li></ul><div class="res"><b>У портфоліо:</b> ролик з AI-ведучим двома мовами</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 10–11</span><span class="mt">Реклама, за яку платять: UGC і промо</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>AI-UGC: хуки і сценарії, 10 варіантів креативу для тестів</li><li>Промо для Meta й TikTok Ads, кліпи і мультфільми</li><li>Замовлення від реального бренду-партнера</li></ul><div class="res"><b>У портфоліо:</b> пакет UGC-креативів + ролик за реальним брифом</div></div></details>
+      <details class="mod"><summary><span class="wk">Тиждень 12</span><span class="mt">AI-агенти: 20 креативів за годину</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>AI-агент веде ланцюжок «бриф → сценарій → генерація» замість тебе</li><li>Нодові схеми у Figma Weave, Flora, Krea: десятки варіантів за один запуск</li></ul><div class="res"><b>Результат:</b> власна система масового виробництва креативів</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 13–14</span><span class="mt">Перші гроші: клієнти, ціни, договори</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Портфоліо, Behance і сайт-візитка за годину</li><li>Upwork, Fiverr, Freelancehunt, Instagram, холодні листи</li><li>Прайс, абонементи, як підняти чек зі $100 до $1000</li><li>ФОП, договір, оплата з-за кордону; англійська для брифів</li></ul><div class="res"><b>Результат:</b> перше оплачене замовлення</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 15–16</span><span class="mt">Спеціалізація і Demo Day</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Обираєш напрям: AI-реклама, AI-фільми, AI-персонажі або AI-автоматизація</li><li>Фінальний проєкт для реального замовника</li><li>Захист перед брендами, агенціями та рекрутерами</li></ul><div class="res"><b>Результат:</b> шоурил, кейс і знайомства з замовниками</div></div></details>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section class="soft">
+  <div class="wrap">
+    <span class="kicker">Чому не курс за $20</span>
+    <h2>Відео в записі дають інструменти. Ми даємо професію</h2>
+    <div class="compare">
+      <div class="col bad"><h3>Звичайний курс у записі</h3><ul>
+        <li><svg class="ico"><use href="#x"/></svg>Відео без зворотного зв'язку</li>
+        <li><svg class="ico"><use href="#x"/></svg>Домашні завдання ніхто не перевіряє</li>
+        <li><svg class="ico"><use href="#x"/></svg>Вигадані вправи замість замовлень</li>
+        <li><svg class="ico"><use href="#x"/></svg>Один урок про те, де шукати клієнтів</li>
+        <li><svg class="ico"><use href="#x"/></svg>Після курсу ти сам</li></ul></div>
+      <div class="col good"><h3>AI Creator</h3><ul>
+        <li><svg class="ico"><use href="#chk"/></svg>Живі заняття з ментором-практиком</li>
+        <li><svg class="ico"><use href="#chk"/></svg>Кожне ДЗ з розбором</li>
+        <li><svg class="ico"><use href="#chk"/></svg>Брифи від реальних брендів і Demo Day</li>
+        <li><svg class="ico"><use href="#chk"/></svg>2 тижні про продажі, ціни й англійську для клієнтів</li>
+        <li><svg class="ico"><use href="#chk"/></svg>3 місяці кар'єрної підтримки після курсу</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section>
+  <div class="wrap">
+    <span class="kicker">Відгуки</span>
+    <h2>Студенти, які вже заробляють на AI</h2>
+    <div class="reviews">
+      <div class="rv"><div class="vid">Відеовідгук</div><div class="who"><b>Ім'я студента</b><span class="earn">перше замовлення</span></div><p>Ким був до курсу, що зробив і скільки заробив на першому замовленні.</p></div>
+      <div class="rv"><div class="vid">Відеовідгук</div><div class="who"><b>Ім'я студента</b><span class="earn">клієнт з США</span></div><p>Ким був до курсу, що зробив і скільки заробив на першому замовленні.</p></div>
+      <div class="rv"><div class="vid">Відеовідгук</div><div class="who"><b>Бренд-партнер</b><span class="earn">замовник</span></div><p>Що замовили у студентів і який результат отримали.</p></div>
+    </div>
+    <span class="ph-note">Заглушка: замінити на реальні відгуки</span>
   </div>
 </section>
 
 <!-- PRICING -->
-<section id="pricing" class="light">
+<section id="pricing" class="pricing">
   <div class="wrap">
-    <div class="eyebrow">Вартість</div>
+    <span class="kicker">Вартість навчання</span>
     <h2>Обери свій формат</h2>
+    <p class="lead">Оплата щомісяця або розстрочка без переплат.</p>
+    <div class="deadline">Ціна раннього запису до <b data-cfg="earlyUntil">30 листопада</b></div>
     <div class="plans">
       <div class="plan">
-        <h3>Базовий</h3>
-        <div><div class="price">6 500 <small>грн/міс</small></div><div class="total">4 місяці · 26 000 грн</div></div>
-        <ul><li>Живі заняття в групі + записи</li><li>Домашні завдання з розбором у групі</li><li>Чат курсу</li><li>Усі 9 модулів</li></ul>
-        <a class="btn btn-ghost" href="#apply">Залишити заявку</a>
+        <div><h3>Старт</h3><p class="for">Для себе і свого бізнесу</p></div>
+        <div><div class="old">32 000 грн</div><div class="price">26 000 <small>грн</small></div><div class="per">або 6 500 грн × 4 місяці</div></div>
+        <ul><li><svg><use href="#chk"/></svg>Усі 9 модулів, живі заняття і записи</li><li><svg><use href="#chk"/></svg>Розбір ДЗ у групі</li><li><svg><use href="#chk"/></svg>Чат курсу</li><li class="off"><svg><use href="#x"/></svg>Реальні брифи і Demo Day</li><li class="off"><svg><use href="#x"/></svg>Кар'єрна підтримка</li></ul>
+        <a class="btn btn-line" href="#apply">Залишити заявку</a>
       </div>
       <div class="plan hot">
-        <span class="badge">Обирають найчастіше</span>
-        <h3>Професія</h3>
-        <div><div class="price">8 500 <small>грн/міс</small></div><div class="total">4 місяці · 34 000 грн</div></div>
-        <ul><li>Усе з Базового</li><li>Особисті розбори ментора</li><li>Реальні брифи від брендів і Demo Day</li><li>3 місяці кар'єрного центру</li><li>Документ про закінчення</li></ul>
-        <a class="btn btn-lime" href="#apply">Залишити заявку</a>
+        <span class="badge">Найпопулярніший</span>
+        <div><h3>Професія</h3><p class="for">Щоб заробляти на AI</p></div>
+        <div><div class="old">42 000 грн</div><div class="price">34 000 <small>грн</small></div><div class="per">або 8 500 грн × 4 місяці</div></div>
+        <ul><li><svg><use href="#chk"/></svg>Усе з тарифу «Старт»</li><li><svg><use href="#chk"/></svg>Особиста перевірка кожного ДЗ ментором</li><li><svg><use href="#chk"/></svg>Реальні брифи від брендів і Demo Day</li><li><svg><use href="#chk"/></svg>3 місяці кар'єрної підтримки</li><li><svg><use href="#chk"/></svg>Документ про закінчення</li></ul>
+        <a class="btn btn-main" href="#apply">Залишити заявку</a>
       </div>
       <div class="plan">
-        <h3>PRO</h3>
-        <div><div class="price">11 500 <small>грн/міс</small></div><div class="total">4 місяці · 46 000 грн</div></div>
-        <ul><li>Усе з «Професії»</li><li>4 консультації 1:1</li><li>Гарантоване замовлення від партнера</li><li>Пакет кредитів на нейромережі</li></ul>
-        <a class="btn btn-ghost" href="#apply">Залишити заявку</a>
+        <div><h3>PRO</h3><p class="for">З гарантованим замовленням</p></div>
+        <div><div class="old">56 000 грн</div><div class="price">46 000 <small>грн</small></div><div class="per">або 11 500 грн × 4 місяці</div></div>
+        <ul><li><svg><use href="#chk"/></svg>Усе з тарифу «Професія»</li><li><svg><use href="#chk"/></svg>4 консультації 1:1 з ментором</li><li><svg><use href="#chk"/></svg>Гарантоване оплачене замовлення від партнера</li><li><svg><use href="#chk"/></svg>Кредити на нейромережі на весь курс</li></ul>
+        <a class="btn btn-line" href="#apply">Залишити заявку</a>
       </div>
     </div>
-    <div class="pay-note"><span>Розстрочка без переплат</span><span>Знижка за повну оплату</span><span>Не підійде після першого заняття: повернемо гроші</span></div>
+    <div class="guarantee"><div class="shield"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div><p><b>Гарантія повернення коштів.</b> Пройди перші 2 тижні навчання. Якщо зрозумієш, що курс не для тебе, повернемо 100% оплати.</p></div>
   </div>
 </section>
 
-<!-- INTENSIVE -->
-<section id="intensive">
+<!-- GIFT -->
+<section>
   <div class="wrap">
-    <div class="intensive">
+    <div class="gift">
       <div>
-        <h2>Не впевнений? Спробуй безкоштовно</h2>
-        <p>3 вечори, і в тебе готовий перший рекламний AI-ролик. Онлайн, разом з ментором.</p>
+        <h2>Безкоштовний урок у подарунок</h2>
+        <p>«Перший рекламний AI-ролик за 30 хвилин». Покроково: ідея, кадри, відео, озвучка. Надішлемо одразу після заявки.</p>
       </div>
-      <div style="display:grid;gap:22px">
-        <ol><li>Ідея і сценарій з AI</li><li>Кадри для ролика</li><li>Відео, звук і монтаж</li></ol>
-        <a class="btn btn-ink" href="#apply" data-intent="intensive">Записатися на інтенсив</a>
-      </div>
+      <a class="btn" href="#apply" data-intent="gift">Отримати урок <svg><use href="#arr"/></svg></a>
     </div>
   </div>
 </section>
 
 <!-- FAQ -->
-<section id="faq" style="padding-top:0">
+<section id="faq" class="soft">
   <div class="wrap">
-    <div class="eyebrow">Часті питання</div>
-    <h2>Питання перед стартом</h2>
+    <span class="kicker">Питання</span>
+    <h2>Відповідаємо чесно</h2>
     <div class="faq">
-      <details><summary><span class="q">Я ніколи не працював з AI і не дизайнер. Впораюсь?</span><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="a">Так. Курс починається з нуля: перший тиждень про базу, а візуальну грамоту (світло, кадр, колір) проходимо до складних інструментів.</div></details>
-      <details><summary><span class="q">Скільки часу потрібно на тиждень?</span><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="a">Два живі заняття по 1,5 години плюс 5–7 годин практики. Пропустив заняття, дивишся запис і здаєш ДЗ.</div></details>
-      <details><summary><span class="q">Скільки коштують підписки на нейромережі?</span><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="a">Близько $30–60 на місяць. Покажемо безкоштовні тарифи і як економити кредити. У тарифі PRO пакет кредитів уже включено.</div></details>
-      <details><summary><span class="q">Яка техніка потрібна?</span><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="a">Ноутбук або комп'ютер зі стабільним інтернетом. Генерація відбувається в хмарі, потужна відеокарта не потрібна.</div></details>
-      <details><summary><span class="q">Ви гарантуєте роботу або дохід?</span><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="a">Дохід залежить від тебе, тому ми його не обіцяємо. Ми гарантуємо реальні брифи під час навчання, Demo Day і 3 місяці кар'єрного супроводу. У тарифі PRO є гарантоване замовлення від партнера.</div></details>
-      <details><summary><span class="q">Інструменти ж постійно змінюються. Курс не застаріє?</span><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="a">Програму оновлюємо щомісяця. А основа (кадр, світло, монтаж, реклама, продажі) не застаріває, тому ти легко переходиш на нові сервіси.</div></details>
-      <details><summary><span class="q">Можна оплатити частинами?</span><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="a">Так, щомісячна оплата або розстрочка. За повну оплату діє знижка.</div></details>
+      <details><summary>Я ніколи не працював з AI. Впораюсь?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Так. Ми починаємо з нуля, а основи візуалу (світло, кадр, колір) проходимо раніше за складні інструменти. Більшість студентів приходять без досвіду.</div></details>
+      <details><summary>Скільки часу потрібно на тиждень?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Два живі заняття по 1,5 години і 5–7 годин практики. Пропустив заняття, дивишся запис.</div></details>
+      <details><summary>Скільки коштують нейромережі?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Близько $30–60 на місяць. Покажемо безкоштовні тарифи і як економити кредити. У тарифі PRO кредити вже включені.</div></details>
+      <details><summary>Потрібен потужний комп'ютер?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Ні. Нейромережі працюють у хмарі, вистачить звичайного ноутбука та стабільного інтернету.</div></details>
+      <details><summary>Ви гарантуєте заробіток?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Дохід залежить від твоєї роботи, тому чесно: гарантувати суму не можемо. Ми гарантуємо реальні брифи, Demo Day і 3 місяці підтримки, а в тарифі PRO оплачене замовлення від партнера.</div></details>
+      <details><summary>Нейромережі постійно змінюються. Курс не застаріє?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Програму оновлюємо щомісяця. А навички кадру, монтажу, реклами і продажів не застарівають, тому ти легко переходиш на нові сервіси.</div></details>
+      <details><summary>Які сервіси використовуєте?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Лише міжнародні: Veo, Sora, Kling, Runway, Midjourney, ElevenLabs, HeyGen, ChatGPT, Claude та інші. Жодних російських сервісів.</div></details>
     </div>
   </div>
 </section>
 
-<!-- 7. FINAL CTA -->
-<section id="apply" style="padding-top:0">
+<!-- FORM -->
+<section id="apply">
   <div class="wrap final">
     <div>
-      <div class="eyebrow">Набір відкрито · група до 16 людей</div>
-      <h2>Почни професію, яка росте найшвидше</h2>
-      <p class="lead">Залиш заявку: надішлемо повну програму, розкажемо про ціни і допоможемо обрати тариф. Безкоштовно і без зобов'язань.</p>
+      <span class="kicker">Старт <span data-cfg="startDate">8 грудня</span></span>
+      <h2>Дізнайся, як AI може приносити дохід саме тобі</h2>
+      <p class="lead">Безкоштовна консультація 15 хвилин: розберемо твій досвід, підберемо тариф і надішлемо урок у подарунок.</p>
       <div class="contacts">
-        <a href="#" data-link="viber"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4z"/></svg></span>Написати у Viber</a>
-        <a href="#" data-link="instagram"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></span>Instagram</a>
-        <a href="tel:+380000000000"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>+380 00 000 00 00</a>
+        <div><span class="ci"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span><span data-cfg="phone">+380 00 000 00 00</span></div>
+        <div><span class="ci"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></span><span data-cfg="instagram">@ai.creator.ua</span></div>
       </div>
     </div>
     <div>
       <form id="lead" novalidate>
-        <label>Ім'я<input name="name" autocomplete="name" required placeholder="Як до тебе звертатися"></label>
-        <label>Телефон<input name="phone" type="tel" autocomplete="tel" required placeholder="+380"></label>
-        <label>Що цікавить
-          <select name="intent">
-            <option value="course">Курс AI Creator</option>
-            <option value="intensive">Безкоштовний інтенсив</option>
-            <option value="consult">Консультація: який тариф обрати</option>
-          </select>
-        </label>
-        <label>Де зручніше спілкуватися
-          <select name="messenger"><option>Viber</option><option>WhatsApp</option><option>Дзвінок</option><option>Instagram</option></select>
-        </label>
-        <button class="btn btn-lime" type="submit">Отримати програму і ціну</button>
-        <p class="consent">Натискаючи кнопку, ти погоджуєшся на обробку персональних даних.</p>
+        <h3>Залиш заявку</h3>
+        <label class="f" for="f-name">Ім'я<input id="f-name" name="name" type="text" autocomplete="name" placeholder="Як до тебе звертатися"></label>
+        <label class="f" for="f-phone">Телефон<input id="f-phone" name="phone" type="tel" autocomplete="tel" placeholder="+380"></label>
+        <label class="f" for="f-intent">Що цікавить
+          <select id="f-intent" name="intent"><option value="consult">Безкоштовна консультація</option><option value="gift">Безкоштовний урок</option><option value="price">Ціни і розстрочка</option></select></label>
+        <label class="f" for="f-msg">Де зручніше спілкуватися
+          <select id="f-msg" name="messenger"><option>Дзвінок</option><option>Viber</option><option>WhatsApp</option><option>Instagram</option></select></label>
+        <button class="btn btn-main" type="submit">Отримати консультацію <svg><use href="#arr"/></svg></button>
+        <p class="consent">Натискаючи кнопку, ти погоджуєшся з політикою конфіденційності.</p>
       </form>
-      <div class="thanks" id="thanks">Дякуємо! Менеджер напише тобі протягом робочого дня.</div>
+      <div class="thanks" id="thanks" hidden>Дякуємо! Менеджер зателефонує протягом 15 хвилин у робочий час. Урок у подарунок надішлемо в обраний месенджер.</div>
     </div>
   </div>
 </section>
@@ -666,43 +625,65 @@
   </div>
 </footer>
 
-<div class="mcta"><a class="btn btn-lime" href="#apply">Отримати програму і ціну</a></div>
+<div class="mcta"><a class="btn btn-main" href="#apply">Безкоштовна консультація</a></div>
 
 <script>
   // ====== Налаштування: міняти тут ======
   const CONFIG = {
-    formEndpoint: '',                 // URL для заявок (CRM / вебхук). Порожньо: лише показує «Дякуємо»
-    viber: 'viber://chat?number=%2B380000000000',
-    instagram: 'https://instagram.com/'
+    startDate: '8 грудня',
+    earlyUntil: '30 листопада',
+    phone: '+380 00 000 00 00',
+    instagram: '@ai.creator.ua',
+    usdToUah: 41.5,
+    formEndpoint: ''   // URL CRM / вебхука для заявок
   };
-  document.querySelector('[data-link="viber"]').href = CONFIG.viber;
-  document.querySelector('[data-link="instagram"]').href = CONFIG.instagram;
+  document.querySelectorAll('[data-cfg]').forEach(el => { const v = CONFIG[el.dataset.cfg]; if (v) el.textContent = v; });
 
-  // кнопка інтенсиву одразу обирає потрібний пункт у формі
-  document.querySelectorAll('[data-intent]').forEach(a => a.addEventListener('click', () => {
-    document.querySelector('select[name="intent"]').value = a.dataset.intent;
-  }));
+  // Відео: файли в папці videos/. Якщо файлу немає, лишається намальоване прев'ю.
+  document.querySelectorAll('video[data-src]').forEach(v => {
+    v.addEventListener('loadeddata', () => v.closest('.clip')?.classList.add('has-video'));
+    v.src = v.dataset.src;
+    if (v.autoplay) v.play().catch(() => {});
+  });
+  document.querySelectorAll('.clip').forEach(c => {
+    const v = c.querySelector('video');
+    c.addEventListener('click', () => { if (!v.readyState) return; v.paused ? (v.muted = false, v.play()) : v.pause(); });
+    c.addEventListener('mouseenter', () => { if (v.readyState) v.play().catch(()=>{}); });
+    c.addEventListener('mouseleave', () => { if (v.readyState && v.muted) v.pause(); });
+  });
 
+  // Калькулятор доходу
+  const cl = document.getElementById('clients'), cOut = document.getElementById('cOut');
+  const fmt = n => Math.round(n).toLocaleString('uk-UA').replace(/,/g, ' ');
+  function calc(){
+    const price = +document.querySelector('input[name=fmt]:checked').value, n = +cl.value;
+    cOut.textContent = n;
+    document.getElementById('usd').textContent = '$' + fmt(price * n);
+    document.getElementById('uah').textContent = '≈ ' + fmt(price * n * CONFIG.usdToUah / 1000) + ' тис. грн';
+  }
+  cl.addEventListener('input', calc);
+  document.querySelectorAll('input[name=fmt]').forEach(r => r.addEventListener('change', calc));
+  calc();
+
+  // Кнопка «урок у подарунок» обирає пункт у формі
+  document.querySelectorAll('[data-intent]').forEach(a => a.addEventListener('click', () => { document.getElementById('f-intent').value = a.dataset.intent; }));
+
+  // Форма
   const form = document.getElementById('lead');
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    const name = form.name.value.trim(), phone = form.phone.value.replace(/\D/g,'');
+    const name = form.name.value.trim(), phone = form.phone.value.replace(/\D/g, '');
     if (!name) { form.name.focus(); return; }
-    if (phone.length < 10) { form.phone.focus(); form.phone.setCustomValidity('Перевір номер'); form.phone.reportValidity(); return; }
-    form.phone.setCustomValidity('');
-    const data = Object.fromEntries(new FormData(form));
-    data.page = location.href;
-    if (CONFIG.formEndpoint) {
-      try { await fetch(CONFIG.formEndpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); } catch(_) {}
-    }
-    form.style.display = 'none';
-    document.getElementById('thanks').style.display = 'block';
+    if (phone.length < 10) { form.phone.setCustomValidity('Перевір номер телефону'); form.phone.reportValidity(); return; }
+    const data = Object.fromEntries(new FormData(form)); data.page = location.href;
+    if (CONFIG.formEndpoint) { try { await fetch(CONFIG.formEndpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); } catch (_) {} }
+    form.hidden = true; document.getElementById('thanks').hidden = false;
   });
-  // мобільна кнопка з'являється після першого екрана
-  const mcta=document.querySelector('.mcta');
-  addEventListener('scroll',()=>mcta.classList.toggle('show',scrollY>innerHeight*0.8),{passive:true});
-
   form.phone.addEventListener('input', () => form.phone.setCustomValidity(''));
+
+  // Мобільна кнопка після першого екрана
+  const m = document.querySelector('.mcta');
+  addEventListener('scroll', () => m.classList.toggle('show', scrollY > innerHeight * .8), {passive:true});
 </script>
 </body>
 </html>
