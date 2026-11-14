@@ -9,10 +9,11 @@ const fs = require('fs'), path = require('path'), { execFileSync } = require('ch
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, recordVideo: { dir: tmp, size: { width: 1280, height: 720 } } });
   const p = await ctx.newPage();
-  await p.goto('file://' + path.join(__dirname, 'studio.html'), { waitUntil: 'networkidle' });
+  await p.goto('file://' + path.join(__dirname, sc.page || 'studio.html'), { waitUntil: 'networkidle' });
   await p.evaluate(() => document.fonts.ready);
   const base = 'file://' + path.resolve(path.dirname(scFile), sc.assetsBase || '.') + '/';
-  const steps = JSON.parse(JSON.stringify(sc.steps).replace(/"@([^"|]+)(\|[^"]*)?"/g, (_, f, cap) => JSON.stringify(base + f + (cap || ''))));
+  const fix = v => typeof v === 'string' ? v.replace(/@([\w.-]+\.(?:jpg|jpeg|png|mp4))/g, (_, f) => base + f) : Array.isArray(v) ? v.map(fix) : v;
+  const steps = fix(sc.steps);
   await p.waitForTimeout(600);
   await p.evaluate(s => window.runScenario(s), steps);
   await p.waitForTimeout(sc.tail || 1500);

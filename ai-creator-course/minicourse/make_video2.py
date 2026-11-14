@@ -25,9 +25,9 @@ def seg_still(png, d, out):
          "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-tune", "stillimage", str(out)])
 
 
-def seg_demo(steps, d, out, key):
+def seg_demo(steps, d, out, key, page="studio.html"):
     sc = WORK / f"demo-{key}.json"
-    sc.write_text(json.dumps({"assetsBase": str(ASSETS), "steps": steps, "tail": 800}, ensure_ascii=False))
+    sc.write_text(json.dumps({"page": page, "assetsBase": str(ASSETS), "steps": steps, "tail": 800}, ensure_ascii=False))
     raw = WORK / f"demo-{key}-raw.mp4"
     if not raw.exists():
         subprocess.run(["node", str(HERE / "demo" / "record_demo.cjs"), str(sc), str(raw)], check=True, stdout=subprocess.DEVNULL)
@@ -37,6 +37,13 @@ def seg_demo(steps, d, out, key):
     else:
         vf = f"setpts=PTS*{d / D:.5f},trim=duration={d:.3f}"
     enc(["-i", str(raw), "-vf", f"{vf},fps={FPS},format=yuv420p", "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", str(out)])
+
+
+def seg_anim(html, d, times, out, key):
+    """Анімований слайд: пункти з'являються в такт озвучці."""
+    hf = WORK / f"anim-{key}.html"; hf.write_text(html)
+    if not out.exists():
+        subprocess.run(["node", str(HERE / "demo" / "record_slide.cjs"), str(hf), f"{d:.3f}", json.dumps(times), str(out)], check=True, stdout=subprocess.DEVNULL)
 
 
 def ring_png(w, h, bw, r, path):
@@ -81,11 +88,11 @@ def drawn_track(levels, avatar, out):
 def make(lesson, avatar):
     lid = lesson["id"]
     avatar_mp4 = HERE / "media" / "vivix" / f"{lid}-avatar.mp4"
-    real = avatar_mp4.exists()
+    real = avatar_mp4.exists() and not os.environ.get("NO_AVATAR")
     use_eleven = mv.eleven_ok()
     print(lid, "голос:", "ElevenLabs" if use_eleven else mv.VOICE, "| ведуча:", "Vivix A1" if real else "мальована")
     slides = lesson["slides"]
-    segs, cues, spans, t = [], [], [], 0.0
+    segs, cues, spans, starts, t = [], [], [], [], 0.0
     for i, s in enumerate(slides):
         h = hashlib.md5((s["narration"] + ("E" if use_eleven else "M")).encode()).hexdigest()[:10]
         mp3 = WORK / f"tts-{h}.mp3"
@@ -98,28 +105,32 @@ def make(lesson, avatar):
         tot = sum(len(x) for x in sent); st = t
         for x in sent:
             dd = (d - 0.5) * len(x) / tot; cues.append((st, st + dd, x)); st += dd
-        segs.append((wav, d)); spans.append((s["kind"] == "demo", t, t + d)); t += d
+        starts.append([round(c[0] - t, 2) for c in cues[len(cues) - len(sent):]]); segs.append((wav, d)); spans.append((s["kind"] in ("demo", "howto"), t, t + d)); t += d
     # аудіо
     lst = WORK / f"{lid}-a.txt"; lst.write_text("".join(f"file '{w}'\n" for w, _ in segs))
     full = WORK / f"{lid}-full2.wav"
     enc(["-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(full)])
     # базове відео
-    jobs = [(mv.slide_html(s, lesson, True), WORK / f"{lid}-v2s{i:02d}.png", (W, H), False) for i, s in enumerate(slides) if s["kind"] != "demo"]
-    mv.render_pngs(jobs)
     parts = []
     for i, s in enumerate(slides):
-        out = WORK / f"{lid}-part{i:02d}.mp4"; d = segs[i][1]
-        if s["kind"] == "demo":
-            seg_demo(s["steps"], d, out, f"{lid}-{i:02d}-{hashlib.md5(json.dumps(s['steps']).encode()).hexdigest()[:8]}")
+        d = segs[i][1]
+        if s["kind"] in ("demo", "howto"):
+            key = f"{lid}-{i:02d}-{hashlib.md5((json.dumps(s['steps']) + s['kind']).encode()).hexdigest()[:8]}"
+            out = WORK / f"part-{key}-{d:.2f}.mp4"
+            if not out.exists():
+                seg_demo(s["steps"], d, out, key, "howto.html" if s["kind"] == "howto" else "studio.html")
         else:
-            seg_still(WORK / f"{lid}-v2s{i:02d}.png", d, out)
+            html = mv.slide_html(s, lesson, True)
+            key = hashlib.md5((html + f"{d:.2f}" + json.dumps(starts[i])).encode()).hexdigest()[:12]
+            out = WORK / f"anim-{key}.mp4"
+            seg_anim(html, d, starts[i], out, key)
         parts.append(out)
     pl = WORK / f"{lid}-parts.txt"; pl.write_text("".join(f"file '{p}'\n" for p in parts))
     base = WORK / f"{lid}-base.mp4"
     enc(["-f", "concat", "-safe", "0", "-i", str(pl), "-c", "copy", str(base)])
     mp4 = OUT / f"{lid}.mp4"
     others_real = any((HERE / "media" / "vivix" / f"{l['id']}-avatar.mp4").exists() for l in LESSONS if l["id"] != lid)
-    if not real and others_real:
+    if os.environ.get("NO_AVATAR") or (not real and others_real):
         # у цьому уроці ще немає справжньої ведучої — не змішуємо з мальованою, лише слайди і демо
         print(lid, "ведуча: без аватара (чекаємо Vivix)")
         enc(["-i", str(base), "-i", str(full), "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "slow", "-crf", "27",
