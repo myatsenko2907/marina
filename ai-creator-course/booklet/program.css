@@ -149,8 +149,8 @@ h2{font-size:25pt;font-weight:800;margin:3mm 0 5mm}
 .prc small{font:800 9pt var(--text);letter-spacing:0}
 .per{font-size:8.5pt;color:var(--sub);margin-bottom:4mm}
 .tf ul{padding-left:4.5mm;display:grid;gap:1.5mm;font-size:9pt}
-.cta{margin-top:10mm;background:var(--grad);color:#fff;border-radius:7mm;padding:9mm}
-.cta h3{font-size:18pt}
+.cta{margin-top:5mm;background:var(--grad);color:#fff;border-radius:7mm;padding:6mm 7mm}
+.cta h3{font-size:15pt}
 .cta p{margin-top:2mm;font-size:11pt}
-.ct{display:flex;gap:4mm;margin-top:5mm;flex-wrap:wrap}
+.ct{display:flex;gap:4mm;margin-top:3.5mm;flex-wrap:wrap}
 .ct span{background:#fff;color:var(--ink);border-radius:20mm;padding:2.5mm 5mm;font-weight:800}

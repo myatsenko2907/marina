@@ -159,16 +159,16 @@ def build():
     for m in MODULES:
         starts.append(no); no += len(m["lessons"])
     pages = [[module_page(MODULES[i], starts[i]) for i in grp] for grp in LAYOUT]
+    pages[-1].append('''<div class="cta"><h3>Запишись на безкоштовну консультацію</h3>
+    <p>Розберемо твій досвід, підберемо формат навчання і надішлемо урок у подарунок.</p>
+    <div class="ct"><span>+380 00 000 00 00</span><span>@ai.creator.ua</span></div></div>
+    <p class="note">Програма оновлюється щомісяця відповідно до нових нейромереж. Ми не використовуємо російські сервіси.</p>''')
     total_lessons = no - 1
 
     toc = "".join(f'<li><span>{m["n"]}</span>{e(m["title"])}<em>{e(m["weeks"])}</em></li>' for m in MODULES)
     prog_pages = "".join(
         f'<div class="page"><div class="ph"><span>Програма курсу</span><span>AI Creator</span></div>{"".join(p)}<div class="pf">{i + 4}</div></div>'
         for i, p in enumerate(pages))
-    tariffs = "".join(
-        f'''<div class="tf{' hot' if t[0]=='Професія' else ''}">{'<span class="bd">Найпопулярніший</span>' if t[0]=='Професія' else ''}
-        <h4>{t[0]}</h4><p class="for">{t[1]}</p><div class="pr">{t[2]} <small>грн</small></div><p class="per">або {t[3]} грн × 4 місяці</p>
-        <ul>{"".join(f"<li>{e(x)}</li>" for x in t[4])}</ul></div>''' for t in TARIFFS)
 
     doc = f'''<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>AI Creator · Програма курсу</title>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -229,22 +229,9 @@ def build():
 
 {prog_pages}
 
-<div class="page">
-  <div class="ph"><span>Вартість</span><span>AI Creator</span></div>
-  <h2>Тарифи</h2>
-  <p class="lead">Оплата щомісяця або розстрочка без переплат.</p>
-  <div class="tfs">{tariffs}</div>
-  <div class="cta">
-    <h3>Запишись на безкоштовну консультацію</h3>
-    <p>Розберемо твій досвід, підберемо тариф і надішлемо урок у подарунок.</p>
-    <div class="ct"><span>+380 00 000 00 00</span><span>@ai.creator.ua</span></div>
-  </div>
-  <p class="note">Програма оновлюється щомісяця відповідно до нових нейромереж. Ми не використовуємо російські сервіси.</p>
-  <div class="pf">{len(pages) + 4}</div>
-</div>
 </body></html>'''
     (HERE / "booklet.html").write_text(doc)
-    print("pages:", len(pages) + 4, "lessons:", total_lessons, "works:", TOTAL_WORKS)
+    print("pages:", len(pages) + 3, "lessons:", total_lessons, "works:", TOTAL_WORKS)
 
 
 if __name__ == "__main__":

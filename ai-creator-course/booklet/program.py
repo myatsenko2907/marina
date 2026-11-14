@@ -4,7 +4,7 @@
 Заняття і домашні завдання беруться з build.py (MODULES), тут додаються навички та портфоліо.
 """
 import html, pathlib
-from build import MODULES, TARIFFS
+from build import MODULES
 
 HERE = pathlib.Path(__file__).parent
 e = html.escape
@@ -139,10 +139,6 @@ def build():
     fs = "".join(f'<div class="fs"><span class="fi">{i+1:02d}</span><h4>{e(t)}</h4><p>{e(d)}</p></div>' for i, (t, d) in enumerate(FINAL_SKILLS))
     tracks = "".join(f'<div class="tr"><b>{chr(65+i)}</b><div><h4>{e(t)}</h4><p>{e(d)}</p></div></div>' for i, (t, d) in enumerate(TRACKS))
     tools = "".join(f'<div class="tl"><b>{e(t)}</b><span>{e(d)}</span></div>' for t, d in TOOLS)
-    tariffs = "".join(
-        f'''<div class="tf{' hot' if t[0]=='Професія' else ''}">{'<span class="bd">Найпопулярніший</span>' if t[0]=='Професія' else ''}
-        <h4>{t[0]}</h4><p class="for">{t[1]}</p><div class="prc">{t[2]} <small>грн</small></div><p class="per">або {t[3]} грн × 4 місяці</p>
-        <ul>{"".join(f"<li>{e(x)}</li>" for x in t[4])}</ul></div>''' for t in TARIFFS)
     cover_imgs = "".join(f'<img src="{V}{k}.jpg" alt="">' for k in ["v-3d", "v-cinema", "v-anime"])
 
     doc = f'''<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>AI Creator · Детальна програма курсу</title>
@@ -228,23 +224,16 @@ def build():
   <h3 class="h3">Інструменти курсу</h3>
   <div class="tls">{tools}</div>
   <p class="note">Програма оновлюється щомісяця відповідно до нових нейромереж. Ми використовуємо лише міжнародні сервіси, жодних російських.</p>
-</div>
-
-<div class="page">
-  {head("Вартість", p + 3)}
-  <span class="tag">Вартість навчання</span>
-  <h2>Обери <span class="g">свій формат</span></h2>
-  <p class="lead">Оплата щомісяця або розстрочка без переплат.</p>
-  <div class="tfs">{tariffs}</div>
   <div class="cta">
     <h3>Запишись на безкоштовну консультацію</h3>
-    <p>Розберемо твій досвід, підберемо тариф і надішлемо урок у подарунок.</p>
+    <p>Розберемо твій досвід, підберемо формат навчання і надішлемо урок у подарунок.</p>
     <div class="ct"><span>+380 00 000 00 00</span><span>@ai.creator.ua</span></div>
   </div>
 </div>
+
 </body></html>'''
     (HERE / "program.html").write_text(doc)
-    print("pages:", p + 3, "lessons:", total_lessons, "works:", total_works)
+    print("pages:", p + 2, "lessons:", total_lessons, "works:", total_works)
 
 
 if __name__ == "__main__":
