@@ -1,0 +1,113 @@
+/* Буклет A4: світлий стиль сайту, кораловий акцент */
+:root{--bg:#fff;--soft:#F4F5F8;--ink:#15171C;--sub:#5A5F6B;--line:#E3E5EA;--accent:#FF4F1F;--accent-soft:#FFE7DE;
+  --paper:#F2EFE6;--lime:#D7FF3B;--ember:#FF5A36;--display:'Unbounded',sans-serif;--text:'Manrope',sans-serif}
+@page{size:A4;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#fff;color:var(--ink);font:500 10.5pt/1.5 var(--text);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:210mm;height:297mm;padding:13mm 16mm 16mm;position:relative;overflow:hidden;page-break-after:always;break-after:page}
+.page:last-child{page-break-after:auto}
+h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.02em;line-height:1.1}
+h2{font-size:26pt;margin:6mm 0 6mm}
+.h3{font-size:14pt;margin:8mm 0 4mm}
+.lead{color:var(--sub);font-size:11.5pt;margin-top:-3mm}
+.ph{display:flex;justify-content:space-between;font:800 7.5pt var(--text);letter-spacing:.14em;text-transform:uppercase;color:var(--sub);border-bottom:1px solid var(--line);padding-bottom:3mm}
+.ph span:last-child{color:var(--accent)}
+.pf{position:absolute;bottom:9mm;right:16mm;font:700 8pt var(--display);color:var(--sub)}
+.art{position:relative;overflow:hidden;border-radius:4mm;border:0}
+.art .lbl{display:none}
+
+/* обкладинка */
+.cover{display:flex;flex-direction:column;padding:18mm}
+.blob{position:absolute;border-radius:50%;filter:blur(30px);z-index:0}
+.b1{width:120mm;height:120mm;right:-30mm;top:-30mm;background:rgba(255,79,31,.28)}
+.b2{width:90mm;height:90mm;left:-25mm;top:70mm;background:rgba(215,255,59,.35)}
+.b3{width:110mm;height:110mm;right:-20mm;bottom:20mm;background:rgba(124,198,255,.35)}
+.cover>*{position:relative;z-index:1}
+.cover>.blob{position:absolute;z-index:0}
+.logo{display:flex;gap:3mm;align-items:center;font:800 13pt var(--display)}
+.logo i{width:9mm;height:9mm;border-radius:2.5mm;background:var(--accent);color:#fff;font-style:normal;font-size:9pt;display:grid;place-items:center}
+.ctitle{margin-top:18mm}
+.kick{display:inline-block;font:800 8pt var(--text);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:2mm 3.5mm;border-radius:20mm;margin-bottom:6mm}
+.cover h1{font-size:36pt;font-weight:800;line-height:1.04}
+.cover h1 mark{background:none;color:var(--accent)}
+.ctitle p{font-size:13pt;color:var(--sub);margin-top:6mm;max-width:150mm}
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:42mm;gap:3mm;margin-top:12mm}
+.cgrid .art{height:100%}
+.cstats{margin-top:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:3mm}
+.cstats div{background:var(--ink);color:#fff;border-radius:4mm;padding:5mm}
+.cstats div:nth-child(4){background:var(--accent)}
+.cstats b{display:block;font:800 22pt/1 var(--display)}
+.cstats span{font-size:9pt;color:#D7DAE0}
+.cstats div:nth-child(4) span{color:#fff}
+
+/* про професію */
+.def{background:var(--ink);color:#E6E8EC;border-radius:5mm;padding:7mm;font-size:11.5pt;line-height:1.6}
+.def b{color:var(--lime)}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin-top:5mm}
+.s{border-radius:5mm;padding:6mm}
+.s b{display:block;font:800 24pt/1 var(--display);margin-bottom:2mm}
+.s p{font-size:9.5pt;font-weight:700}
+.s small{font-size:7.5pt;opacity:.75}
+.s.o{background:var(--accent);color:#fff}.s.y{background:#FFC93C}.s.l{background:var(--lime)}
+.ladder{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
+.ladder div{border:1px solid var(--line);border-radius:5mm;padding:5mm}
+.ladder span{font:800 7.5pt var(--text);letter-spacing:.1em;text-transform:uppercase;background:var(--soft);padding:1.5mm 2.5mm;border-radius:2mm}
+.ladder b{display:block;font:800 15pt var(--display);color:var(--accent);margin:4mm 0 2mm}
+.ladder p{font-size:9pt;color:var(--sub)}
+.chips{display:flex;flex-wrap:wrap;gap:2mm}
+.chips span{background:var(--soft);border-radius:20mm;padding:2mm 4mm;font-weight:700;font-size:9.5pt}
+
+/* формат */
+.fmt{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+.fmt div{border-radius:5mm;padding:5mm}
+.fmt div:nth-child(1){background:#FFE7DE}.fmt div:nth-child(2){background:#DDF0FF}.fmt div:nth-child(3){background:#FFF3C9}.fmt div:nth-child(4){background:#EAF8C9}
+.fmt b{font:700 11pt var(--display)}
+.fmt p{font-size:9.5pt;color:#4A4F5A;margin-top:1.5mm}
+.toc{list-style:none;display:grid;gap:1mm}
+.toc li{display:grid;grid-template-columns:9mm 1fr auto;align-items:center;gap:3mm;padding:2mm 0;border-bottom:1px solid var(--line);font-weight:700;font-size:10.5pt}
+.toc span{width:8mm;height:8mm;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:800 8.5pt var(--display)}
+.toc em{font-style:normal;font-size:8.5pt;color:var(--sub);font-weight:700}
+.result{margin-top:6mm;background:var(--ink);color:#fff;border-radius:5mm;padding:6mm}
+.result b{font:700 12pt var(--display);color:var(--lime)}
+.result ul{margin-top:3mm;padding-left:5mm;display:grid;gap:1.5mm;font-size:10pt}
+
+/* модулі */
+.mod{margin-top:5mm;border-radius:5mm;border:1px solid var(--line);overflow:hidden;break-inside:avoid}
+.mhead{display:flex;gap:4mm;align-items:center;background:var(--cs);padding:4mm 6mm}
+.mnum{width:13mm;height:13mm;border-radius:3.5mm;background:var(--c);color:#fff;display:grid;place-items:center;font:800 16pt var(--display);flex:none}
+.mweeks{font:800 7.5pt var(--text);letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.mhead h3{font-size:15pt;margin-top:1mm}
+.goal{padding:3mm 6mm 0;font-weight:700;font-size:10pt}
+.lessons{padding:2mm 6mm}
+.ls{display:grid;grid-template-columns:10mm 1fr;gap:3mm;padding:1.8mm 0;border-bottom:1px dashed var(--line)}
+.ls:last-child{border-bottom:0}
+.no{font:800 10pt var(--display);color:var(--c)}
+.ls h4{font-size:10pt;margin-bottom:.8mm}
+.ls p{font-size:8.5pt;color:var(--sub);line-height:1.38}
+.mfoot{display:grid;grid-template-columns:1fr auto;gap:3mm;margin:0 6mm;padding:2.5mm 4mm;background:var(--soft);border-radius:3mm;align-items:center}
+.mfoot b{display:block;font:800 7.5pt var(--text);letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+.mfoot span{font-size:9.5pt;font-weight:600}
+.mfoot .w{text-align:right;border-left:1px solid var(--line);padding-left:4mm}
+.mfoot .w b{font:800 16pt var(--display);color:var(--c);letter-spacing:0;text-transform:none}
+.mfoot .w span{font-size:8pt;color:var(--sub)}
+.tools{padding:2.5mm 6mm 3.5mm;font-size:8.5pt;color:var(--sub)}
+.tools b{color:var(--ink)}
+
+/* тарифи */
+.tfs{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin-top:8mm}
+.tf{border:1px solid var(--line);border-radius:5mm;padding:6mm 5mm;position:relative}
+.tf.hot{background:var(--ink);color:#fff;border-color:var(--ink)}
+.bd{position:absolute;top:-3mm;left:5mm;background:var(--accent);color:#fff;font:800 7pt var(--text);letter-spacing:.06em;text-transform:uppercase;padding:1.5mm 2.5mm;border-radius:20mm}
+.tf h4{font-size:14pt}
+.for{font-size:8.5pt;color:var(--sub)}
+.tf.hot .for,.tf.hot .per{color:#B9BDC6}
+.pr{font:800 20pt var(--display);margin-top:5mm}
+.pr small{font:700 9pt var(--text)}
+.per{font-size:8.5pt;color:var(--sub);margin-bottom:4mm}
+.tf ul{padding-left:4.5mm;display:grid;gap:1.5mm;font-size:9pt}
+.cta{margin-top:10mm;background:var(--accent);color:#fff;border-radius:6mm;padding:9mm}
+.cta h3{font-size:18pt}
+.cta p{margin-top:2mm;font-size:11pt}
+.ct{display:flex;gap:4mm;margin-top:5mm;flex-wrap:wrap}
+.ct span{background:#fff;color:var(--ink);border-radius:3mm;padding:2.5mm 4mm;font-weight:800}
+.note{margin-top:6mm;font-size:8.5pt;color:var(--sub)}

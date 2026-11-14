@@ -1,0 +1,64 @@
+  /* ====== Намальовані «роботи» (замінити на реальні роботи студентів) ====== */
+  .art{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--line);isolation:isolate}
+  .art .lbl{position:absolute;left:10px;bottom:10px;z-index:3;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(15,15,17,.78);color:var(--paper);padding:5px 8px;border-radius:6px}
+  /* відеоредактор */
+  .a-video{background:#141416;display:grid;grid-template-rows:1fr auto}
+  .a-video .scene{position:relative;margin:10px 10px 0;border-radius:8px;overflow:hidden;background:
+     radial-gradient(60% 50% at 70% 38%,#FFD89A 0,#FF9B5A 22%,transparent 60%),
+     linear-gradient(180deg,#2B3550 0%,#B0596A 52%,#F0A06A 70%,#3A2A2E 71%,#1B1416 100%)}
+  .a-video .scene::before{content:"";position:absolute;left:-10%;right:-10%;bottom:0;height:34%;background:
+     radial-gradient(40% 90% at 20% 100%,#101015 0 60%,transparent 61%),
+     radial-gradient(50% 80% at 80% 100%,#16121A 0 60%,transparent 61%)}
+  .a-video .scene::after{content:"";position:absolute;left:42%;bottom:22%;width:9%;height:34%;border-radius:40% 40% 8px 8px;background:linear-gradient(180deg,#0E0E12,#211A20)}
+  .a-video .rec{position:absolute;top:10px;left:10px;z-index:2;display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;color:#fff}
+  .a-video .rec::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ember)}
+  .a-video .tc{position:absolute;top:10px;right:10px;z-index:2;font:600 11px/1 ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.45);padding:4px 6px;border-radius:4px}
+  .a-video .play{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:var(--lime);display:grid;place-items:center;z-index:2}
+  .a-video .play svg{width:20px;height:20px;margin-left:3px}
+  .a-video .tl{padding:10px;display:grid;gap:5px}
+  .a-video .tr{display:flex;gap:4px;height:12px}
+  .a-video .tr i{display:block;border-radius:3px;background:#2D3A1A}
+  .a-video .tr.v i{background:linear-gradient(90deg,#3B4A1E,#5C7224)}
+  .a-video .tr.a i{background:#2A2440;height:8px;align-self:center}
+  .a-video .tr.s i{background:#3A2320;height:6px;align-self:center}
+  /* предметка */
+  .a-product{background:radial-gradient(70% 60% at 50% 30%,#F6E7D2 0,#D9B48C 45%,#7A5236 100%)}
+  .a-product::before{content:"";position:absolute;left:50%;bottom:16%;width:30%;height:52%;transform:translateX(-50%);border-radius:18px 18px 12px 12px;background:linear-gradient(90deg,#2C1E16 0,#5A3B28 30%,#8A5E3E 48%,#3A281C 70%,#22170F 100%);box-shadow:0 18px 30px -10px rgba(60,30,10,.55)}
+  .a-product::after{content:"";position:absolute;left:50%;bottom:66%;width:14%;height:12%;transform:translateX(-50%);border-radius:6px 6px 2px 2px;background:linear-gradient(90deg,#B89A6A,#F2E2BC 45%,#9C7F52)}
+  .a-product .shadow{position:absolute;left:28%;right:28%;bottom:12%;height:6%;border-radius:50%;background:rgba(60,30,10,.35);filter:blur(6px)}
+  .a-product .tag{position:absolute;left:50%;bottom:30%;transform:translateX(-50%);z-index:2;font:700 9px/1 var(--display);letter-spacing:.2em;color:#F2E2BC}
+  /* UGC */
+  .a-ugc{background:linear-gradient(180deg,#3B2A33 0,#1A1418 100%)}
+  .a-ugc .bars{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:4px;z-index:2}
+  .a-ugc .bars i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}
+  .a-ugc .bars i:first-child{background:#fff}
+  .a-ugc .face{position:absolute;left:50%;top:22%;width:34%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(60% 60% at 40% 35%,#F2C6A8,#B97C5E)}
+  .a-ugc .hair{position:absolute;left:50%;top:17%;width:46%;aspect-ratio:1.1;transform:translateX(-50%);border-radius:50% 50% 40% 40%;background:#2A1A14;z-index:-1}
+  .a-ugc .body{position:absolute;left:50%;top:52%;width:70%;height:60%;transform:translateX(-50%);border-radius:45% 45% 0 0;background:linear-gradient(180deg,#E7D9C4,#BFAE96)}
+  .a-ugc .cap{position:absolute;left:10px;right:10px;top:58%;z-index:2;text-align:center;font:700 12px/1.25 var(--text);color:#0F0F11}
+  .a-ugc .cap b{background:#fff;padding:3px 6px;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  /* маскот */
+  .a-mascot{background:radial-gradient(80% 70% at 50% 40%,#2E3A12,#151A0A)}
+  .a-mascot .m{position:absolute;left:50%;top:50%;height:58%;aspect-ratio:1;transform:translate(-50%,-55%);border-radius:46% 46% 42% 42%;background:radial-gradient(70% 70% at 35% 30%,#ECFF8A,var(--lime) 55%,#9DBF1E)}
+  .a-mascot .m::before,.a-mascot .m::after{content:"";position:absolute;top:36%;width:16%;aspect-ratio:1;border-radius:50%;background:#0F0F11;box-shadow:inset -2px -2px 0 2px #0F0F11, inset 3px 3px 0 0 #fff}
+  .a-mascot .m::before{left:28%}.a-mascot .m::after{right:28%}
+  .a-mascot .smile{position:absolute;left:50%;top:62%;width:22%;height:10%;transform:translateX(-50%);border:3px solid #0F0F11;border-top:0;border-radius:0 0 40px 40px;z-index:2}
+  /* fashion */
+  .a-fashion{background:linear-gradient(180deg,#C9B7D9 0,#8E7BA8 60%,#4B3E5E 100%)}
+  .a-fashion .arch{position:absolute;left:18%;right:18%;top:14%;bottom:0;border-radius:999px 999px 0 0;background:linear-gradient(180deg,#F3E6D8,#E2CDB8)}
+  .a-fashion .fig{position:absolute;left:50%;bottom:0;width:26%;height:70%;transform:translateX(-50%);border-radius:40% 40% 6px 6px;background:linear-gradient(180deg,#1E1A22,#3B2F44)}
+  .a-fashion .fig::before{content:"";position:absolute;left:50%;top:-22%;width:62%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:#D9A98A}
+  /* кліп */
+  .a-clip{background:#0B0B12}
+  .a-clip::before{content:"";position:absolute;inset:-20%;background:repeating-radial-gradient(circle at 50% 60%,transparent 0 14px,rgba(255,90,54,.55) 15px 17px,transparent 18px 30px);animation:pulse 6s linear infinite}
+  .a-clip::after{content:"";position:absolute;left:50%;top:58%;width:22%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#FFE1C2,#FF5A36 70%)}
+  @keyframes pulse{to{transform:scale(1.25)}}
+  /* AI-інфлюенсер */
+  .a-infl{background:radial-gradient(60% 50% at 50% 30%,#3A4C5E,#121821)}
+  .a-infl .ring{position:absolute;left:50%;top:14%;width:64%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;border:6px solid rgba(242,239,230,.85);box-shadow:0 0 30px rgba(242,239,230,.35)}
+  .a-infl .face{position:absolute;left:50%;top:22%;width:36%;aspect-ratio:.85;transform:translateX(-50%);border-radius:48%;background:radial-gradient(60% 60% at 40% 35%,#F4D2BC,#C28E72)}
+  .a-infl .hair{position:absolute;left:50%;top:18%;width:48%;height:40%;transform:translateX(-50%);border-radius:50% 50% 30% 30%;background:linear-gradient(180deg,#E9D3A6,#B9965E);z-index:-1}
+  .a-infl .body{position:absolute;left:50%;top:56%;width:72%;height:60%;transform:translateX(-50%);border-radius:45% 45% 0 0;background:linear-gradient(180deg,#1F2A36,#0F151C)}
+  .a-infl .ui{position:absolute;right:10px;top:10px;z-index:2;font:700 10px/1 var(--text);color:#fff;background:rgba(0,0,0,.45);padding:5px 7px;border-radius:999px}
+  @media (prefers-reduced-motion:reduce){.a-clip::before{animation:none}}
+

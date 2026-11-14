@@ -1,0 +1,374 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>AI Creator · Програма курсу</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>/* Буклет A4: світлий стиль сайту, кораловий акцент */
+:root{--bg:#fff;--soft:#F4F5F8;--ink:#15171C;--sub:#5A5F6B;--line:#E3E5EA;--accent:#FF4F1F;--accent-soft:#FFE7DE;
+  --paper:#F2EFE6;--lime:#D7FF3B;--ember:#FF5A36;--display:'Unbounded',sans-serif;--text:'Manrope',sans-serif}
+@page{size:A4;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#fff;color:var(--ink);font:500 10.5pt/1.5 var(--text);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:210mm;height:297mm;padding:13mm 16mm 16mm;position:relative;overflow:hidden;page-break-after:always;break-after:page}
+.page:last-child{page-break-after:auto}
+h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.02em;line-height:1.1}
+h2{font-size:26pt;margin:6mm 0 6mm}
+.h3{font-size:14pt;margin:8mm 0 4mm}
+.lead{color:var(--sub);font-size:11.5pt;margin-top:-3mm}
+.ph{display:flex;justify-content:space-between;font:800 7.5pt var(--text);letter-spacing:.14em;text-transform:uppercase;color:var(--sub);border-bottom:1px solid var(--line);padding-bottom:3mm}
+.ph span:last-child{color:var(--accent)}
+.pf{position:absolute;bottom:9mm;right:16mm;font:700 8pt var(--display);color:var(--sub)}
+.art{position:relative;overflow:hidden;border-radius:4mm;border:0}
+.art .lbl{display:none}
+
+/* обкладинка */
+.cover{display:flex;flex-direction:column;padding:18mm}
+.blob{position:absolute;border-radius:50%;filter:blur(30px);z-index:0}
+.b1{width:120mm;height:120mm;right:-30mm;top:-30mm;background:rgba(255,79,31,.28)}
+.b2{width:90mm;height:90mm;left:-25mm;top:70mm;background:rgba(215,255,59,.35)}
+.b3{width:110mm;height:110mm;right:-20mm;bottom:20mm;background:rgba(124,198,255,.35)}
+.cover>*{position:relative;z-index:1}
+.cover>.blob{position:absolute;z-index:0}
+.logo{display:flex;gap:3mm;align-items:center;font:800 13pt var(--display)}
+.logo i{width:9mm;height:9mm;border-radius:2.5mm;background:var(--accent);color:#fff;font-style:normal;font-size:9pt;display:grid;place-items:center}
+.ctitle{margin-top:18mm}
+.kick{display:inline-block;font:800 8pt var(--text);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:2mm 3.5mm;border-radius:20mm;margin-bottom:6mm}
+.cover h1{font-size:36pt;font-weight:800;line-height:1.04}
+.cover h1 mark{background:none;color:var(--accent)}
+.ctitle p{font-size:13pt;color:var(--sub);margin-top:6mm;max-width:150mm}
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:42mm;gap:3mm;margin-top:12mm}
+.cgrid .art{height:100%}
+.cstats{margin-top:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:3mm}
+.cstats div{background:var(--ink);color:#fff;border-radius:4mm;padding:5mm}
+.cstats div:nth-child(4){background:var(--accent)}
+.cstats b{display:block;font:800 22pt/1 var(--display)}
+.cstats span{font-size:9pt;color:#D7DAE0}
+.cstats div:nth-child(4) span{color:#fff}
+
+/* про професію */
+.def{background:var(--ink);color:#E6E8EC;border-radius:5mm;padding:7mm;font-size:11.5pt;line-height:1.6}
+.def b{color:var(--lime)}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin-top:5mm}
+.s{border-radius:5mm;padding:6mm}
+.s b{display:block;font:800 24pt/1 var(--display);margin-bottom:2mm}
+.s p{font-size:9.5pt;font-weight:700}
+.s small{font-size:7.5pt;opacity:.75}
+.s.o{background:var(--accent);color:#fff}.s.y{background:#FFC93C}.s.l{background:var(--lime)}
+.ladder{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
+.ladder div{border:1px solid var(--line);border-radius:5mm;padding:5mm}
+.ladder span{font:800 7.5pt var(--text);letter-spacing:.1em;text-transform:uppercase;background:var(--soft);padding:1.5mm 2.5mm;border-radius:2mm}
+.ladder b{display:block;font:800 15pt var(--display);color:var(--accent);margin:4mm 0 2mm}
+.ladder p{font-size:9pt;color:var(--sub)}
+.chips{display:flex;flex-wrap:wrap;gap:2mm}
+.chips span{background:var(--soft);border-radius:20mm;padding:2mm 4mm;font-weight:700;font-size:9.5pt}
+
+/* формат */
+.fmt{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+.fmt div{border-radius:5mm;padding:5mm}
+.fmt div:nth-child(1){background:#FFE7DE}.fmt div:nth-child(2){background:#DDF0FF}.fmt div:nth-child(3){background:#FFF3C9}.fmt div:nth-child(4){background:#EAF8C9}
+.fmt b{font:700 11pt var(--display)}
+.fmt p{font-size:9.5pt;color:#4A4F5A;margin-top:1.5mm}
+.toc{list-style:none;display:grid;gap:1mm}
+.toc li{display:grid;grid-template-columns:9mm 1fr auto;align-items:center;gap:3mm;padding:2mm 0;border-bottom:1px solid var(--line);font-weight:700;font-size:10.5pt}
+.toc span{width:8mm;height:8mm;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:800 8.5pt var(--display)}
+.toc em{font-style:normal;font-size:8.5pt;color:var(--sub);font-weight:700}
+.result{margin-top:6mm;background:var(--ink);color:#fff;border-radius:5mm;padding:6mm}
+.result b{font:700 12pt var(--display);color:var(--lime)}
+.result ul{margin-top:3mm;padding-left:5mm;display:grid;gap:1.5mm;font-size:10pt}
+
+/* модулі */
+.mod{margin-top:5mm;border-radius:5mm;border:1px solid var(--line);overflow:hidden;break-inside:avoid}
+.mhead{display:flex;gap:4mm;align-items:center;background:var(--cs);padding:4mm 6mm}
+.mnum{width:13mm;height:13mm;border-radius:3.5mm;background:var(--c);color:#fff;display:grid;place-items:center;font:800 16pt var(--display);flex:none}
+.mweeks{font:800 7.5pt var(--text);letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.mhead h3{font-size:15pt;margin-top:1mm}
+.goal{padding:3mm 6mm 0;font-weight:700;font-size:10pt}
+.lessons{padding:2mm 6mm}
+.ls{display:grid;grid-template-columns:10mm 1fr;gap:3mm;padding:1.8mm 0;border-bottom:1px dashed var(--line)}
+.ls:last-child{border-bottom:0}
+.no{font:800 10pt var(--display);color:var(--c)}
+.ls h4{font-size:10pt;margin-bottom:.8mm}
+.ls p{font-size:8.5pt;color:var(--sub);line-height:1.38}
+.mfoot{display:grid;grid-template-columns:1fr auto;gap:3mm;margin:0 6mm;padding:2.5mm 4mm;background:var(--soft);border-radius:3mm;align-items:center}
+.mfoot b{display:block;font:800 7.5pt var(--text);letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+.mfoot span{font-size:9.5pt;font-weight:600}
+.mfoot .w{text-align:right;border-left:1px solid var(--line);padding-left:4mm}
+.mfoot .w b{font:800 16pt var(--display);color:var(--c);letter-spacing:0;text-transform:none}
+.mfoot .w span{font-size:8pt;color:var(--sub)}
+.tools{padding:2.5mm 6mm 3.5mm;font-size:8.5pt;color:var(--sub)}
+.tools b{color:var(--ink)}
+
+/* тарифи */
+.tfs{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin-top:8mm}
+.tf{border:1px solid var(--line);border-radius:5mm;padding:6mm 5mm;position:relative}
+.tf.hot{background:var(--ink);color:#fff;border-color:var(--ink)}
+.bd{position:absolute;top:-3mm;left:5mm;background:var(--accent);color:#fff;font:800 7pt var(--text);letter-spacing:.06em;text-transform:uppercase;padding:1.5mm 2.5mm;border-radius:20mm}
+.tf h4{font-size:14pt}
+.for{font-size:8.5pt;color:var(--sub)}
+.tf.hot .for,.tf.hot .per{color:#B9BDC6}
+.pr{font:800 20pt var(--display);margin-top:5mm}
+.pr small{font:700 9pt var(--text)}
+.per{font-size:8.5pt;color:var(--sub);margin-bottom:4mm}
+.tf ul{padding-left:4.5mm;display:grid;gap:1.5mm;font-size:9pt}
+.cta{margin-top:10mm;background:var(--accent);color:#fff;border-radius:6mm;padding:9mm}
+.cta h3{font-size:18pt}
+.cta p{margin-top:2mm;font-size:11pt}
+.ct{display:flex;gap:4mm;margin-top:5mm;flex-wrap:wrap}
+.ct span{background:#fff;color:var(--ink);border-radius:3mm;padding:2.5mm 4mm;font-weight:800}
+.note{margin-top:6mm;font-size:8.5pt;color:var(--sub)}
+
+  /* ====== Намальовані «роботи» (замінити на реальні роботи студентів) ====== */
+  .art{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--line);isolation:isolate}
+  .art .lbl{position:absolute;left:10px;bottom:10px;z-index:3;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(15,15,17,.78);color:var(--paper);padding:5px 8px;border-radius:6px}
+  /* відеоредактор */
+  .a-video{background:#141416;display:grid;grid-template-rows:1fr auto}
+  .a-video .scene{position:relative;margin:10px 10px 0;border-radius:8px;overflow:hidden;background:
+     radial-gradient(60% 50% at 70% 38%,#FFD89A 0,#FF9B5A 22%,transparent 60%),
+     linear-gradient(180deg,#2B3550 0%,#B0596A 52%,#F0A06A 70%,#3A2A2E 71%,#1B1416 100%)}
+  .a-video .scene::before{content:"";position:absolute;left:-10%;right:-10%;bottom:0;height:34%;background:
+     radial-gradient(40% 90% at 20% 100%,#101015 0 60%,transparent 61%),
+     radial-gradient(50% 80% at 80% 100%,#16121A 0 60%,transparent 61%)}
+  .a-video .scene::after{content:"";position:absolute;left:42%;bottom:22%;width:9%;height:34%;border-radius:40% 40% 8px 8px;background:linear-gradient(180deg,#0E0E12,#211A20)}
+  .a-video .rec{position:absolute;top:10px;left:10px;z-index:2;display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;color:#fff}
+  .a-video .rec::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ember)}
+  .a-video .tc{position:absolute;top:10px;right:10px;z-index:2;font:600 11px/1 ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.45);padding:4px 6px;border-radius:4px}
+  .a-video .play{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:var(--lime);display:grid;place-items:center;z-index:2}
+  .a-video .play svg{width:20px;height:20px;margin-left:3px}
+  .a-video .tl{padding:10px;display:grid;gap:5px}
+  .a-video .tr{display:flex;gap:4px;height:12px}
+  .a-video .tr i{display:block;border-radius:3px;background:#2D3A1A}
+  .a-video .tr.v i{background:linear-gradient(90deg,#3B4A1E,#5C7224)}
+  .a-video .tr.a i{background:#2A2440;height:8px;align-self:center}
+  .a-video .tr.s i{background:#3A2320;height:6px;align-self:center}
+  /* предметка */
+  .a-product{background:radial-gradient(70% 60% at 50% 30%,#F6E7D2 0,#D9B48C 45%,#7A5236 100%)}
+  .a-product::before{content:"";position:absolute;left:50%;bottom:16%;width:30%;height:52%;transform:translateX(-50%);border-radius:18px 18px 12px 12px;background:linear-gradient(90deg,#2C1E16 0,#5A3B28 30%,#8A5E3E 48%,#3A281C 70%,#22170F 100%);box-shadow:0 18px 30px -10px rgba(60,30,10,.55)}
+  .a-product::after{content:"";position:absolute;left:50%;bottom:66%;width:14%;height:12%;transform:translateX(-50%);border-radius:6px 6px 2px 2px;background:linear-gradient(90deg,#B89A6A,#F2E2BC 45%,#9C7F52)}
+  .a-product .shadow{position:absolute;left:28%;right:28%;bottom:12%;height:6%;border-radius:50%;background:rgba(60,30,10,.35);filter:blur(6px)}
+  .a-product .tag{position:absolute;left:50%;bottom:30%;transform:translateX(-50%);z-index:2;font:700 9px/1 var(--display);letter-spacing:.2em;color:#F2E2BC}
+  /* UGC */
+  .a-ugc{background:linear-gradient(180deg,#3B2A33 0,#1A1418 100%)}
+  .a-ugc .bars{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:4px;z-index:2}
+  .a-ugc .bars i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}
+  .a-ugc .bars i:first-child{background:#fff}
+  .a-ugc .face{position:absolute;left:50%;top:22%;width:34%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(60% 60% at 40% 35%,#F2C6A8,#B97C5E)}
+  .a-ugc .hair{position:absolute;left:50%;top:17%;width:46%;aspect-ratio:1.1;transform:translateX(-50%);border-radius:50% 50% 40% 40%;background:#2A1A14;z-index:-1}
+  .a-ugc .body{position:absolute;left:50%;top:52%;width:70%;height:60%;transform:translateX(-50%);border-radius:45% 45% 0 0;background:linear-gradient(180deg,#E7D9C4,#BFAE96)}
+  .a-ugc .cap{position:absolute;left:10px;right:10px;top:58%;z-index:2;text-align:center;font:700 12px/1.25 var(--text);color:#0F0F11}
+  .a-ugc .cap b{background:#fff;padding:3px 6px;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  /* маскот */
+  .a-mascot{background:radial-gradient(80% 70% at 50% 40%,#2E3A12,#151A0A)}
+  .a-mascot .m{position:absolute;left:50%;top:50%;height:58%;aspect-ratio:1;transform:translate(-50%,-55%);border-radius:46% 46% 42% 42%;background:radial-gradient(70% 70% at 35% 30%,#ECFF8A,var(--lime) 55%,#9DBF1E)}
+  .a-mascot .m::before,.a-mascot .m::after{content:"";position:absolute;top:36%;width:16%;aspect-ratio:1;border-radius:50%;background:#0F0F11;box-shadow:inset -2px -2px 0 2px #0F0F11, inset 3px 3px 0 0 #fff}
+  .a-mascot .m::before{left:28%}.a-mascot .m::after{right:28%}
+  .a-mascot .smile{position:absolute;left:50%;top:62%;width:22%;height:10%;transform:translateX(-50%);border:3px solid #0F0F11;border-top:0;border-radius:0 0 40px 40px;z-index:2}
+  /* fashion */
+  .a-fashion{background:linear-gradient(180deg,#C9B7D9 0,#8E7BA8 60%,#4B3E5E 100%)}
+  .a-fashion .arch{position:absolute;left:18%;right:18%;top:14%;bottom:0;border-radius:999px 999px 0 0;background:linear-gradient(180deg,#F3E6D8,#E2CDB8)}
+  .a-fashion .fig{position:absolute;left:50%;bottom:0;width:26%;height:70%;transform:translateX(-50%);border-radius:40% 40% 6px 6px;background:linear-gradient(180deg,#1E1A22,#3B2F44)}
+  .a-fashion .fig::before{content:"";position:absolute;left:50%;top:-22%;width:62%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:#D9A98A}
+  /* кліп */
+  .a-clip{background:#0B0B12}
+  .a-clip::before{content:"";position:absolute;inset:-20%;background:repeating-radial-gradient(circle at 50% 60%,transparent 0 14px,rgba(255,90,54,.55) 15px 17px,transparent 18px 30px);animation:pulse 6s linear infinite}
+  .a-clip::after{content:"";position:absolute;left:50%;top:58%;width:22%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#FFE1C2,#FF5A36 70%)}
+  @keyframes pulse{to{transform:scale(1.25)}}
+  /* AI-інфлюенсер */
+  .a-infl{background:radial-gradient(60% 50% at 50% 30%,#3A4C5E,#121821)}
+  .a-infl .ring{position:absolute;left:50%;top:14%;width:64%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;border:6px solid rgba(242,239,230,.85);box-shadow:0 0 30px rgba(242,239,230,.35)}
+  .a-infl .face{position:absolute;left:50%;top:22%;width:36%;aspect-ratio:.85;transform:translateX(-50%);border-radius:48%;background:radial-gradient(60% 60% at 40% 35%,#F4D2BC,#C28E72)}
+  .a-infl .hair{position:absolute;left:50%;top:18%;width:48%;height:40%;transform:translateX(-50%);border-radius:50% 50% 30% 30%;background:linear-gradient(180deg,#E9D3A6,#B9965E);z-index:-1}
+  .a-infl .body{position:absolute;left:50%;top:56%;width:72%;height:60%;transform:translateX(-50%);border-radius:45% 45% 0 0;background:linear-gradient(180deg,#1F2A36,#0F151C)}
+  .a-infl .ui{position:absolute;right:10px;top:10px;z-index:2;font:700 10px/1 var(--text);color:#fff;background:rgba(0,0,0,.45);padding:5px 7px;border-radius:999px}
+  @media (prefers-reduced-motion:reduce){.a-clip::before{animation:none}}
+
+</style></head><body>
+
+<div class="page cover">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="logo"><i>AI</i>AI Creator</div>
+  <div class="ctitle">
+    <span class="kick">Нова професія 2026</span>
+    <h1>Детальна програма курсу <mark>AI Creator</mark></h1>
+    <p>Навчись створювати рекламні відео, фото та AI-аватарів для брендів і заробляти на цьому.</p>
+  </div>
+  <div class="cgrid"><div class="art a-product"><div class="shadow"></div><span class="tag">SÉRUM</span></div><div class="art a-ugc"><div class="hair"></div><div class="face"></div><div class="body"></div></div><div class="art a-mascot"><div class="m"></div><div class="smile"></div></div><div class="art a-fashion"><div class="arch"></div><div class="fig"></div></div><div class="art a-infl"><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div></div><div class="art a-clip"></div></div>
+  <div class="cstats">
+    <div><b>4</b><span>місяці</span></div><div><b>32</b><span>живих заняття</span></div>
+    <div><b>9</b><span>модулів</span></div><div><b>72+</b><span>робіт у портфоліо</span></div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="ph"><span>Про професію</span><span>AI Creator</span></div>
+  <h2>Хто такий AI Creator</h2>
+  <div class="def"><p><b>AI Creator</b> — режисер, оператор і дизайнер в одній людині. Він отримує бриф від бренду, пише сценарій з ChatGPT або Claude, генерує кадри в Midjourney і Nano Banana, оживлює їх у Veo чи Kling, додає голос в ElevenLabs і монтує готовий ролик. Те, що раніше робила команда з 10 людей, тепер робить одна людина за день.</p></div>
+  <div class="stats3">
+    <div class="s o"><b>+329%</b><p>зріс попит на AI-відео на Upwork за рік</p><small>Upwork, In-Demand Skills 2026</small></div>
+    <div class="s y"><b>+84%</b><p>зросла медіанна зарплата AI creator в Україні</p><small>Work.ua, 2026</small></div>
+    <div class="s l"><b>5–10×</b><p>швидше і дешевше за класичну зйомку</p><small>оцінка за ринковими кейсами</small></div>
+  </div>
+  <h3 class="h3">Скільки заробляє AI Creator</h3>
+  <div class="ladder">
+    <div><span>Старт</span><b>30–45 тис. грн</b><p>Медіана в Україні, перші клієнти і абонементи</p></div>
+    <div><span>Досвід</span><b>$1500–3000</b><p>Іноземні бренди, $150–1200 за рекламний ролик</p></div>
+    <div><span>Своя студія</span><b>від $5000</b><p>Команда і пакети креативів на абонементі</p></div>
+  </div>
+  <h3 class="h3">Де працює</h3>
+  <div class="chips"><span>Рекламні агенції</span><span>Бренди та e-commerce</span><span>SMM-агенції</span><span>Фриланс: Upwork, Fiverr</span><span>Своя AI-студія</span></div>
+  <div class="pf">2</div>
+</div>
+
+<div class="page">
+  <div class="ph"><span>Формат навчання</span><span>AI Creator</span></div>
+  <h2>Як проходить навчання</h2>
+  <div class="fmt">
+    <div><b>2 заняття на тиждень</b><p>Живі онлайн-заняття по 1,5 години з ментором-практиком. Записи залишаються в тебе.</p></div>
+    <div><b>Ментор-практик</b><p>Вчать фахівці, які щомісяця виконують комерційні AI-замовлення.</p></div>
+    <div><b>Практика щотижня</b><p>5–7 годин на домашні завдання. Кожне ДЗ перевіряє і розбирає ментор.</p></div>
+    <div><b>Реальні брифи</b><p>Замовлення від брендів-партнерів і Demo Day перед замовниками.</p></div>
+  </div>
+  <h3 class="h3">Зміст програми</h3>
+  <ol class="toc"><li><span>0</span>Швидкий старт у професії<em>Тиждень 1</em></li><li><span>1</span>AI-фото і рекламні креативи<em>Тижні 2–4</em></li><li><span>2</span>Персонажі, маскоти, цифрові двійники<em>Тиждень 5</em></li><li><span>3</span>AI-відео і монтаж<em>Тижні 6–8</em></li><li><span>4</span>Голос, музика, AI-аватари<em>Тиждень 9</em></li><li><span>5</span>Реклама, за яку платять: UGC і промо<em>Тижні 10–11</em></li><li><span>6</span>AI-агенти і масове виробництво<em>Тиждень 12</em></li><li><span>7</span>Перші гроші: клієнти, ціни, договори<em>Тижні 13–14</em></li><li><span>8</span>Спеціалізація, фінальний проєкт, Demo Day<em>Тижні 15–16</em></li></ol>
+  <div class="result">
+    <b>Після курсу в тебе є</b>
+    <ul><li>Портфоліо з 72+ робіт і шоурил</li><li>Профіль на Upwork, прайс і шаблони договорів</li><li>Перші клієнти і відгуки</li><li>Документ про закінчення і 3 місяці кар'єрної підтримки</li></ul>
+  </div>
+  <div class="pf">3</div>
+</div>
+
+<div class="page"><div class="ph"><span>Програма курсу</span><span>AI Creator</span></div>
+<section class="mod" style="--c:#FF4F1F;--cs:#FFE7DE">
+  <div class="mhead">
+    <div class="mnum">0</div>
+    <div><div class="mweeks">Модуль 0 · Тиждень 1 · 2 занять</div><h3>Швидкий старт у професії</h3></div>
+  </div>
+  <p class="goal">Розумієш, як заробляє AI Creator, і налаштовуєш свій робочий набір нейромереж.</p>
+  <div class="lessons"><div class="ls"><span class="no">01</span><div><h4>Професія AI Creator</h4><p>Ринок AI-контенту в Україні та світі. Ролі: AI-креатор, AI-відеомейкер, AI-арт-директор, AI-UGC-продюсер. Хто замовляє і скільки платить. Набір сервісів і як вкластися в $30–60 на місяць.</p></div></div><div class="ls"><span class="no">02</span><div><h4>LLM як креативний директор</h4><p>Промпт-інжиніринг: роль, контекст, формат, приклади. Ідеї, сценарії та промпти для інших нейромереж. Власний AI-асистент (Projects / Custom GPT) під креативні задачі.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Налаштувати AI-асистента і згенерувати 10 рекламних ідей для реального бренду.</span></div>
+    <div class="w"><b>+2</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> ChatGPT, Claude, Gemini</p>
+</section>
+<section class="mod" style="--c:#C88A00;--cs:#FFF3C9">
+  <div class="mhead">
+    <div class="mnum">1</div>
+    <div><div class="mweeks">Модуль 1 · Тижні 2–4 · 6 занять</div><h3>AI-фото і рекламні креативи</h3></div>
+  </div>
+  <p class="goal">Створюєш комерційні фото рівня студійної зйомки: предметка, fashion, банери.</p>
+  <div class="lessons"><div class="ls"><span class="no">03</span><div><h4>Основи візуалу</h4><p>Композиція, світло, колір, оптика і ракурси. Чому AI-фото виглядають «пластиковими» і як цього уникнути. Мудборд і референси.</p></div></div><div class="ls"><span class="no">04</span><div><h4>Midjourney від А до Я</h4><p>Структура промпту, параметри, стилі та стиль-коди, робота з референсами, варіації та апскейл.</p></div></div><div class="ls"><span class="no">05</span><div><h4>Flux, Imagen, Ideogram, Krea</h4><p>Сильні сторони кожної моделі. Текст і логотипи на зображеннях. Швидкий вибір інструмента під задачу.</p></div></div><div class="ls"><span class="no">06</span><div><h4>Редагування і апскейл</h4><p>Nano Banana і Flux Kontext: заміна фону, об&#x27;єктів, одягу. Inpainting і outpainting. Апскейл у Topaz і Magnific для друку.</p></div></div><div class="ls"><span class="no">07</span><div><h4>Предметна зйомка і маркетплейси</h4><p>Товар у будь-якій сцені без студії. Серія карток для маркетплейсу в одному стилі. Ретуш і підготовка до публікації.</p></div></div><div class="ls"><span class="no">08</span><div><h4>Fashion і рекламні банери</h4><p>Лукбук з моделлю, банери для соцмереж і реклами, адаптація під формати. Робота з брендбуком клієнта.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Щотижня: серія з 5–7 комерційних фото за брифом. Розбір ментором кожної серії.</span></div>
+    <div class="w"><b>+20</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> Midjourney, Flux, Imagen, Ideogram, Krea, Nano Banana, Flux Kontext, Topaz, Magnific, Canva</p>
+</section><div class="pf">4</div></div><div class="page"><div class="ph"><span>Програма курсу</span><span>AI Creator</span></div>
+<section class="mod" style="--c:#1F7AD6;--cs:#DDF0FF">
+  <div class="mhead">
+    <div class="mnum">2</div>
+    <div><div class="mweeks">Модуль 2 · Тиждень 5 · 2 занять</div><h3>Персонажі, маскоти, цифрові двійники</h3></div>
+  </div>
+  <p class="goal">Створюєш персонажа, який виглядає однаково в будь-якій сцені.</p>
+  <div class="lessons"><div class="ls"><span class="no">09</span><div><h4>Консистентні персонажі</h4><p>Цифровий двійник людини: тренування LoRA на фото. Character reference. Один герой у десятках сцен.</p></div></div><div class="ls"><span class="no">10</span><div><h4>Маскот бренду і AI-інфлюенсер</h4><p>Концепт, візуальна біблія, контент-план. Права і етика: згода на зовнішність, діпфейки, маркування AI-контенту.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Маскот бренду в 10 різних сценах + профіль AI-інфлюенсера.</span></div>
+    <div class="w"><b>+10</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> LoRA-тренування, Higgsfield, Nano Banana, Midjourney (character reference)</p>
+</section>
+<section class="mod" style="--c:#4F8A00;--cs:#EAF8C9">
+  <div class="mhead">
+    <div class="mnum">3</div>
+    <div><div class="mweeks">Модуль 3 · Тижні 6–8 · 6 занять</div><h3>AI-відео і монтаж</h3></div>
+  </div>
+  <p class="goal">Робиш продуктові та рекламні ролики з кадрів, згенерованих AI, і монтуєш їх під будь-яку платформу.</p>
+  <div class="lessons"><div class="ls"><span class="no">11</span><div><h4>Мова кіно</h4><p>Кадр, план, ракурс, рух камери, ритм. Сторіборд у нейромережах перед генерацією відео.</p></div></div><div class="ls"><span class="no">12</span><div><h4>Veo і Sora</h4><p>Text-to-video: як описувати рух, світло і камеру. Звук у Veo. Типові помилки і як їх виправляти.</p></div></div><div class="ls"><span class="no">13</span><div><h4>Kling, Runway, Seedance</h4><p>Image-to-video, перший і останній кадр, контроль руху, подовження сцени.</p></div></div><div class="ls"><span class="no">14</span><div><h4>Higgsfield і консистентність</h4><p>Кінематографічні рухи камери. Один герой у всьому ролику. Склейка сцен без «стрибків».</p></div></div><div class="ls"><span class="no">15</span><div><h4>Монтаж</h4><p>CapCut і DaVinci Resolve: ритм, переходи, кольорокорекція, робота зі звуком.</p></div></div><div class="ls"><span class="no">16</span><div><h4>Формати для платформ</h4><p>Reels, TikTok, YouTube Shorts і горизонтальне відео. Субтитри, обкладинки, експорт без втрати якості.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Продуктовий ролик 30 с + 3 вертикальні відео + щотижневі відеоетюди.</span></div>
+    <div class="w"><b>+12</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> Veo, Sora, Kling, Runway, Seedance, Higgsfield, CapCut, DaVinci Resolve</p>
+</section><div class="pf">5</div></div><div class="page"><div class="ph"><span>Програма курсу</span><span>AI Creator</span></div>
+<section class="mod" style="--c:#8A3FD1;--cs:#EFE3FB">
+  <div class="mhead">
+    <div class="mnum">4</div>
+    <div><div class="mweeks">Модуль 4 · Тиждень 9 · 2 занять</div><h3>Голос, музика, AI-аватари</h3></div>
+  </div>
+  <p class="goal">Додаєш до роликів озвучку, музику і ведучих, що говорять.</p>
+  <div class="lessons"><div class="ls"><span class="no">17</span><div><h4>Голос і музика</h4><p>ElevenLabs: озвучка, клонування голосу, кілька мов. Музика і джингли в Suno, саунд-дизайн.</p></div></div><div class="ls"><span class="no">18</span><div><h4>AI-аватари</h4><p>Аватари, що говорять: HeyGen і Synthesia. Lip-sync для згенерованих персонажів. Експертні ролики без зйомки.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Ролик з AI-ведучим українською та англійською.</span></div>
+    <div class="w"><b>+4</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> ElevenLabs, Suno, Udio, HeyGen, Synthesia</p>
+</section>
+<section class="mod" style="--c:#FF4F1F;--cs:#FFE7DE">
+  <div class="mhead">
+    <div class="mnum">5</div>
+    <div><div class="mweeks">Модуль 5 · Тижні 10–11 · 4 занять</div><h3>Реклама, за яку платять: UGC і промо</h3></div>
+  </div>
+  <p class="goal">Створюєш рекламні креативи, які бізнес запускає в Meta і TikTok Ads.</p>
+  <div class="lessons"><div class="ls"><span class="no">19</span><div><h4>AI-UGC реклама</h4><p>Відгуки «від покупця» з AI-персонажами. Структура «проблема → рішення → заклик». Хуки на перші 3 секунди.</p></div></div><div class="ls"><span class="no">20</span><div><h4>Performance-креативи</h4><p>10 варіантів креативу для A/B-тестів. Метрики: CTR, hook rate, утримання. Як говорити з таргетологом.</p></div></div><div class="ls"><span class="no">21</span><div><h4>Рекламний ролик бренду</h4><p>Від брифу до здачі: сценарій, кадри, відео, звук, правки. Таймінг і кошторис.</p></div></div><div class="ls"><span class="no">22</span><div><h4>Мультфільми і кліпи</h4><p>Анімаційні ролики з маскотом, музичні кліпи, дитячий контент. Робота з реальним брифом від бренду-партнера.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Пакет UGC-креативів + рекламний ролик за реальним брифом партнера.</span></div>
+    <div class="w"><b>+12</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> Higgsfield, HeyGen, Veo, Kling, ElevenLabs, CapCut</p>
+</section><div class="pf">6</div></div><div class="page"><div class="ph"><span>Програма курсу</span><span>AI Creator</span></div>
+<section class="mod" style="--c:#1F7AD6;--cs:#DDF0FF">
+  <div class="mhead">
+    <div class="mnum">6</div>
+    <div><div class="mweeks">Модуль 6 · Тиждень 12 · 2 занять</div><h3>AI-агенти і масове виробництво</h3></div>
+  </div>
+  <p class="goal">Будуєш систему, яка робить десятки креативів за годину.</p>
+  <div class="lessons"><div class="ls"><span class="no">23</span><div><h4>AI-агент як продюсер</h4><p>Claude і ChatGPT ведуть ланцюжок «бриф → сценарії → промпти → генерація». Підключення Google Drive, Figma, Canva.</p></div></div><div class="ls"><span class="no">24</span><div><h4>Нодові креативні схеми</h4><p>Figma Weave, Flora, Krea Nodes: одна схема дає 50 варіантів. Заміна товару, фону, мови в один клік. Запуск за розкладом.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Система «бриф клієнта → 20 креативів за годину» для одного бізнесу.</span></div>
+    <div class="w"><b>+5</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> Claude, ChatGPT-агенти, Figma Weave, Flora, Krea Nodes, n8n</p>
+</section>
+<section class="mod" style="--c:#C88A00;--cs:#FFF3C9">
+  <div class="mhead">
+    <div class="mnum">7</div>
+    <div><div class="mweeks">Модуль 7 · Тижні 13–14 · 4 занять</div><h3>Перші гроші: клієнти, ціни, договори</h3></div>
+  </div>
+  <p class="goal">Пакуєш себе як фахівця, знаходиш клієнтів і отримуєш перше замовлення.</p>
+  <div class="lessons"><div class="ls"><span class="no">25</span><div><h4>Ніша і упаковка</h4><p>Вибір ніші, офер, портфоліо на Behance, шоурил, сайт-візитка у Framer за годину.</p></div></div><div class="ls"><span class="no">26</span><div><h4>Пошук клієнтів</h4><p>Upwork, Fiverr, Contra, Freelancehunt, LinkedIn, Instagram. Відгуки на вакансії і холодні листи, які читають.</p></div></div><div class="ls"><span class="no">27</span><div><h4>Ціни і переговори</h4><p>Ціна за одиницю, пакет, абонемент. Як підняти чек зі $100 до $1000. Правки, дедлайни, повторні замовлення.</p></div></div><div class="ls"><span class="no">28</span><div><h4>Юридичне і англійська</h4><p>ФОП, договір, права на AI-контент, оплата з-за кордону (Payoneer, Wise). Шаблони листів і дзвінка з клієнтом англійською.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Профіль на Upwork, прайс, 10 відгуків на вакансії, перше замовлення.</span></div>
+    <div class="w"><b>+2</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> Behance, Framer, Upwork, Fiverr, Contra, Freelancehunt, LinkedIn</p>
+</section><div class="pf">7</div></div><div class="page"><div class="ph"><span>Програма курсу</span><span>AI Creator</span></div>
+<section class="mod" style="--c:#4F8A00;--cs:#EAF8C9">
+  <div class="mhead">
+    <div class="mnum">8</div>
+    <div><div class="mweeks">Модуль 8 · Тижні 15–16 · 4 занять</div><h3>Спеціалізація, фінальний проєкт, Demo Day</h3></div>
+  </div>
+  <p class="goal">Робиш фінальний проєкт для реального замовника і показуєш його брендам та агенціям.</p>
+  <div class="lessons"><div class="ls"><span class="no">29</span><div><h4>Вибір треку і старт проєкту</h4><p>Треки: AI-реклама і UGC, AI-фільммейкінг, AI-персонажі та інфлюенсери, AI-автоматизація контенту. Бриф від замовника.</p></div></div><div class="ls"><span class="no">30</span><div><h4>Робота з ментором</h4><p>Розбір чернеток, сценарію і кадрів. Робота з правками як у реальному продакшні.</p></div></div><div class="ls"><span class="no">31</span><div><h4>Шоурил і кейс</h4><p>Фінальний монтаж, шоурил 30–60 с, опис кейсу для портфоліо.</p></div></div><div class="ls"><span class="no">32</span><div><h4>Demo Day</h4><p>Захист перед брендами, агенціями та рекрутерами. Зворотний зв&#x27;язок і знайомства з замовниками.</p></div></div></div>
+  <div class="mfoot">
+    <div><b>Домашнє завдання</b><span>Фінальний проєкт, шоурил і кейс у портфоліо.</span></div>
+    <div class="w"><b>+5</b><span>робіт у портфоліо</span></div>
+  </div>
+  <p class="tools"><b>Інструменти:</b> Увесь набір курсу</p>
+</section><div class="pf">8</div></div>
+
+<div class="page">
+  <div class="ph"><span>Вартість</span><span>AI Creator</span></div>
+  <h2>Тарифи</h2>
+  <p class="lead">Оплата щомісяця або розстрочка без переплат.</p>
+  <div class="tfs"><div class="tf">
+        <h4>Старт</h4><p class="for">Для себе і свого бізнесу</p><div class="pr">31 200 <small>грн</small></div><p class="per">або 7 800 грн × 4 місяці</p>
+        <ul><li>Усі 9 модулів, живі заняття і записи</li><li>Розбір ДЗ у групі</li><li>Чат курсу</li></ul></div><div class="tf hot"><span class="bd">Найпопулярніший</span>
+        <h4>Професія</h4><p class="for">Щоб заробляти на AI</p><div class="pr">40 800 <small>грн</small></div><p class="per">або 10 200 грн × 4 місяці</p>
+        <ul><li>Усе з тарифу «Старт»</li><li>Особиста перевірка кожного ДЗ</li><li>Реальні брифи і Demo Day</li><li>3 місяці кар&#x27;єрної підтримки</li><li>Документ про закінчення</li></ul></div><div class="tf">
+        <h4>PRO</h4><p class="for">Максимум уваги ментора</p><div class="pr">55 200 <small>грн</small></div><p class="per">або 13 800 грн × 4 місяці</p>
+        <ul><li>Усе з тарифу «Професія»</li><li>4 консультації 1:1 з ментором</li><li>Розбір портфоліо і профілю на Upwork</li><li>Особиста стратегія пошуку клієнтів</li><li>Пріоритетні відповіді в чаті</li></ul></div></div>
+  <div class="cta">
+    <h3>Запишись на безкоштовну консультацію</h3>
+    <p>Розберемо твій досвід, підберемо тариф і надішлемо урок у подарунок.</p>
+    <div class="ct"><span>+380 00 000 00 00</span><span>@ai.creator.ua</span></div>
+  </div>
+  <p class="note">Програма оновлюється щомісяця відповідно до нових нейромереж. Ми не використовуємо російські сервіси.</p>
+  <div class="pf">9</div>
+</div>
+</body></html>

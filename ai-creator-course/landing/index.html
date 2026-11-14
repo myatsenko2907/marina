@@ -4,468 +4,302 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AI Creator</title>
-<meta name="description" content="Курс AI Creator: навчись створювати рекламні AI-відео та фото для брендів і заробляти на цьому. 4 місяці, живі заняття, реальні замовлення.">
+<meta name="description" content="AI Creator — нова професія: створюй рекламні AI-відео, фото та аватарів для брендів. Курс 4 місяці, живі заняття, 70+ робіт у портфоліо.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* Макет: світлий продаючий лендинг, один яскравий акцент (корал), темний блок лише для тарифів */
+  /* Макет: світлий, відео-першим; фірмовий теплий градієнт (корал → рожевий → бурштин), велика типографіка */
   :root{
     color-scheme:light;
-    --bg:#FFFFFF;
-    --soft:#F4F5F8;        /* світло-сірі секції */
-    --ink:#15171C;         /* текст */
-    --sub:#5A5F6B;         /* другорядний текст */
-    --line:#E3E5EA;
-    --accent:#FF4F1F;      /* головний колір кнопок і акцентів */
-    --accent-soft:#FFE7DE;
-    --ok:#18A058;
-    /* для намальованих прев'ю робіт */
-    --paper:#F2EFE6; --lime:#D7FF3B; --ember:#FF5A36;
+    --bg:#FBFAF8;
+    --card:#FFFFFF;
+    --ink:#121317;
+    --sub:#5E6270;
+    --line:#E8E6E1;
+    --hot:#FF4A1C;
+    --pink:#FF2D78;
+    --amber:#FFB01F;
+    --ok:#12A150;
+    --grad:linear-gradient(100deg,var(--hot) 0%,var(--pink) 55%,var(--amber) 110%);
     --display:'Unbounded',system-ui,sans-serif;
     --text:'Manrope',system-ui,sans-serif;
-    --r:20px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   [hidden]{display:none!important}
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--ink);font:500 17px/1.55 var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
   a{color:inherit}
-  .wrap{width:100%;max-width:1180px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
-  section{padding-block:80px}
-  .soft{background:var(--soft)}
-  h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.08;letter-spacing:-.02em;text-wrap:balance}
-  h2{font-size:clamp(28px,4.6vw,48px);margin-bottom:16px}
-  h3{font-size:19px;line-height:1.25}
-  .center{text-align:center}
-  .center .lead{margin-inline:auto}
-  .kicker{display:inline-block;font:800 12px/1 var(--text);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:8px 12px;border-radius:999px;margin-bottom:18px}
-  .lead{font-size:18px;color:var(--sub);max-width:660px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:58px;padding:0 30px;border-radius:14px;font:800 16px/1.1 var(--text);text-decoration:none;border:2px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s;text-align:center}
+  img,video{max-width:100%;display:block}
+  .wrap{width:100%;max-width:1220px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+  section{padding-block:88px;position:relative}
+  h1,h2,h3,h4{font-family:var(--display);line-height:1.04;letter-spacing:-.03em;text-wrap:balance}
+  h2{font-size:clamp(32px,5.4vw,64px);font-weight:800;margin-bottom:18px}
+  h3{font-size:20px;font-weight:700;line-height:1.2;letter-spacing:-.01em}
+  .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:19px;color:var(--sub);max-width:640px}
+  .tag{display:inline-flex;align-items:center;gap:8px;font:800 12px/1 var(--text);letter-spacing:.12em;text-transform:uppercase;padding:9px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);margin-bottom:20px}
+  .tag::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--grad)}
+  .btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:60px;padding:0 30px;border-radius:999px;font:800 16px/1.1 var(--text);text-decoration:none;border:0;cursor:pointer;transition:transform .2s,box-shadow .2s;text-align:center}
   .btn:hover{transform:translateY(-2px)}
-  .btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-  .btn-main{background:var(--accent);color:#fff;box-shadow:0 10px 24px -8px rgba(255,79,31,.6)}
-  .btn-line{border-color:var(--line);background:#fff;color:var(--ink)}
-  .btn-line:hover{border-color:var(--ink)}
+  .btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.vcard:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  .btn-hot{background:var(--grad);background-size:140% 100%;color:#fff;box-shadow:0 14px 34px -12px rgba(255,45,120,.65)}
+  .btn-hot:hover{background-position:100% 0;box-shadow:0 18px 40px -12px rgba(255,45,120,.8)}
+  .btn-ghost{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+  .btn-ghost:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
   .btn svg{width:18px;height:18px;flex:none}
   .ico{width:22px;height:22px;flex:none}
 
-  /* top bar */
-  .topbar{background:var(--ink);color:#fff;font-size:14px;font-weight:600}
-  .topbar .wrap{display:flex;justify-content:center;align-items:center;gap:10px;min-height:42px;flex-wrap:wrap;text-align:center;padding-block:6px}
-  .topbar b{color:var(--lime)}
-  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:#fff}
-  .nav{display:flex;align-items:center;justify-content:space-between;height:66px;gap:16px}
-  .logo{font:800 17px/1 var(--display);text-decoration:none;display:flex;align-items:center;gap:8px}
-  .logo i{width:26px;height:26px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-style:normal;font-size:13px}
-  .nav ul{display:none;list-style:none;gap:28px;font-weight:700;font-size:15px}
-  .nav ul a{text-decoration:none;color:var(--sub)}
+  .topbar{background:var(--grad);color:#fff;font:700 14px/1.3 var(--text)}
+  .topbar .wrap{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;padding-block:10px}
+  .topbar b{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:rgba(251,250,248,.8);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);border-bottom:1px solid rgba(18,19,23,.06)}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:var(--bg)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:70px;gap:16px}
+  .logo{display:flex;align-items:center;gap:10px;font:800 18px/1 var(--display);text-decoration:none;letter-spacing:-.02em}
+  .logo i{width:32px;height:32px;border-radius:10px;background:var(--grad);display:grid;place-items:center;color:#fff;font:900 12px var(--display);font-style:normal}
+  .nav ul{display:none;list-style:none;gap:30px;font-weight:700;font-size:15px}
+  .nav ul a{text-decoration:none;color:var(--sub);transition:color .2s}
   .nav ul a:hover{color:var(--ink)}
-  .nav .btn{min-height:44px;padding:0 18px;font-size:14px;border-radius:12px}
+  .nav .btn{min-height:46px;padding:0 20px;font-size:14px}
 
   /* hero */
-  .hero{padding-block:48px 64px}
-  .hero-grid{display:grid;gap:40px;align-items:center}
-  .hero h1{font-size:clamp(34px,6.4vw,68px);font-weight:800;margin-bottom:20px}
-  .hero h1 mark{background:none;color:var(--accent)}
-  .checks{list-style:none;display:grid;gap:12px;margin:0 0 30px}
-  .checks li{display:flex;gap:12px;align-items:flex-start;font-weight:600}
-  .checks li svg{color:var(--ok);margin-top:2px}
-  .cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-  .promise{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--sub);margin-top:16px}
-  .promise .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(24,160,88,.18)}
-  .hero-media{position:relative}
-  .showreel{position:relative;border-radius:24px;overflow:hidden;aspect-ratio:4/3;max-width:100%;box-shadow:0 30px 60px -30px rgba(21,23,28,.45)}
-  .showreel .art,.showreel video{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0}
-  .floating{position:absolute;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 16px 30px -12px rgba(21,23,28,.3);display:flex;gap:10px;align-items:center;font-size:13px;font-weight:700;line-height:1.25}
-  .floating b{display:block;font:800 18px/1 var(--display);color:var(--accent)}
-  .fl-1{left:-8px;bottom:-18px}
-  .fl-2{right:-8px;top:18px}
+  .hero{padding-block:56px 40px;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;z-index:-1;background:
+    radial-gradient(40% 50% at 85% 20%,rgba(255,45,120,.18),transparent 70%),
+    radial-gradient(40% 45% at 70% 85%,rgba(255,176,31,.20),transparent 70%),
+    radial-gradient(30% 40% at 0% 0%,rgba(255,74,28,.10),transparent 70%)}
+  .hero::after{content:"";position:absolute;inset:0;z-index:-1;background-image:linear-gradient(rgba(18,19,23,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(18,19,23,.05) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(70% 60% at 50% 30%,#000,transparent);mask-image:radial-gradient(70% 60% at 50% 30%,#000,transparent)}
+  .hero-grid{display:grid;gap:48px;align-items:center}
+  .hero-grid>*{min-width:0}
+  .hero h1{font-size:clamp(44px,7.4vw,96px);font-weight:900;letter-spacing:-.045em;line-height:.98;margin-bottom:24px}
+  .hero h1 small{display:block;font:800 clamp(16px,2vw,22px)/1.2 var(--text);letter-spacing:0;color:var(--sub);margin-top:16px}
+  .hero .sub{font-size:19px;color:var(--sub);max-width:560px;margin-bottom:28px}
+  .hero .sub b{color:var(--ink)}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px}
+  .mini{display:flex;flex-wrap:wrap;gap:26px;margin-top:32px}
+  .mini div{display:flex;flex-direction:column}
+  .mini b{font:800 26px/1 var(--display);letter-spacing:-.03em}
+  .mini span{font-size:13px;color:var(--sub);font-weight:600;margin-top:6px}
+  .phones{position:relative;height:clamp(440px,52vw,620px);max-width:560px;margin-inline:auto;width:100%}
+  .phone{position:absolute;width:44%;aspect-ratio:9/16;border-radius:30px;overflow:hidden;background:#111;box-shadow:0 30px 70px -25px rgba(18,19,23,.55),0 0 0 6px #fff;transition:transform .4s}
+  .phone video{width:100%;height:100%;object-fit:cover}
+  .p1{left:0;top:12%;transform:rotate(-8deg)}
+  .p2{left:27%;top:0;z-index:2;width:46%}
+  .p3{right:0;top:14%;transform:rotate(8deg)}
+  .phones:hover .p1{transform:rotate(-11deg) translateX(-10px)}
+  .phones:hover .p3{transform:rotate(11deg) translateX(10px)}
+  .glass{position:absolute;z-index:5;background:rgba(255,255,255,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.9);border-radius:18px;padding:12px 14px;box-shadow:0 18px 40px -18px rgba(18,19,23,.4);display:flex;gap:10px;align-items:center;font:800 13px/1.25 var(--text)}
+  .glass small{display:block;font-weight:600;color:var(--sub);font-size:11.5px}
+  .glass .sq{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;flex:none;background:var(--grad)}
+  .g1{left:-6px;bottom:10%;animation:bob 5s ease-in-out infinite}
+  .g2{right:-6px;top:4%;animation:bob 6s ease-in-out infinite reverse}
+  @keyframes bob{50%{transform:translateY(-10px)}}
+  .sticker{position:absolute;right:4%;bottom:-1%;z-index:6;width:112px;height:112px;border-radius:50%;background:var(--ink);display:grid;place-items:center}
+  .sticker svg{position:absolute;inset:0;width:100%;height:100%;animation:spin 14s linear infinite}
+  .sticker b{font:900 24px var(--display);background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* tools strip */
-  .strip{border-block:1px solid var(--line);padding-block:22px;overflow:hidden}
-  .strip-in{display:flex;gap:36px;white-space:nowrap;font:700 18px/1 var(--display);color:#9AA0AC;animation:marq 40s linear infinite;width:max-content}
-  .strip-in span{display:flex;align-items:center;gap:36px}
-  .strip-in span::after{content:"✦";color:var(--accent);font-size:12px}
+  .reel{padding-block:30px 10px;overflow:hidden}
+  .reel-track{display:flex;gap:14px;width:max-content;animation:marq 60s linear infinite}
+  .reel:hover .reel-track{animation-play-state:paused}
+  .reel-track video{width:160px;aspect-ratio:9/16;object-fit:cover;border-radius:20px;background:#ddd}
   @keyframes marq{to{transform:translateX(-50%)}}
+  .tools-line{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 26px;margin-top:26px;font:700 15px var(--display);color:#9A9DA6;letter-spacing:-.01em}
 
-  /* gallery */
-  .gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:40px}
-  .clip{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:9/16;max-width:100%;cursor:pointer;background:#111;border:0;padding:0;text-align:left;font:inherit;color:#fff}
-  .clip .art,.clip video{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0;object-fit:cover}
-  .clip video{opacity:0;transition:opacity .3s}
-  .clip.has-video video{opacity:1}
-  .clip .meta{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:44px 14px 14px;background:linear-gradient(transparent,rgba(0,0,0,.72))}
-  .clip .meta b{display:block;font:700 15px/1.2 var(--display)}
-  .clip .meta small{font-size:12px;opacity:.85}
-  .clip .pl{position:absolute;top:12px;right:12px;z-index:4;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center}
-  .clip .pl svg{width:14px;height:14px;margin-left:2px;color:var(--ink)}
-  .clip .art .lbl{display:none}
+  .prof-head{display:grid;gap:24px;align-items:end}
+  .roles{display:grid;gap:14px;margin-top:44px}
+  .role{position:relative;background:var(--card);border-radius:26px;padding:26px;overflow:hidden;border:1px solid var(--line);transition:transform .25s,box-shadow .25s}
+  .role:hover{transform:translateY(-4px);box-shadow:0 24px 50px -30px rgba(18,19,23,.4)}
+  .role .num{font:900 64px/1 var(--display);letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1.5px #E1DED7;position:absolute;right:18px;top:12px}
+  .role .ic{width:54px;height:54px;border-radius:17px;background:var(--grad);color:#fff;display:grid;place-items:center;margin-bottom:18px;box-shadow:0 10px 24px -10px rgba(255,45,120,.6)}
+  .role p{color:var(--sub);font-size:15px;margin-top:8px}
+  .stats{display:grid;gap:14px;margin-top:14px}
+  .stat{border-radius:26px;padding:28px;background:var(--card);border:1px solid var(--line)}
+  .stat b{display:block;font:900 clamp(48px,6.4vw,84px)/.95 var(--display);letter-spacing:-.05em}
+  .stat p{font-weight:700;margin-top:12px}
+  .stat small{color:var(--sub);font-size:13px}
+  .stat.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .stat.dark small{color:#A3A6B0}
+  .stat.dark b{color:var(--amber)}
+  .who-line{margin-top:14px;border-radius:26px;padding:22px 26px;background:var(--card);border:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .who-line b{font:700 16px var(--display);margin-right:8px}
+  .who-line span{padding:9px 14px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-weight:700;font-size:14px}
 
-  /* money calc */
-  .calc{display:grid;gap:24px;margin-top:40px}
-  .calc-box{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px;display:grid;gap:22px}
-  .field{display:grid;gap:10px}
-  .field-head{display:flex;justify-content:space-between;font-weight:700}
-  .field-head output{color:var(--accent);font-family:var(--display)}
-  input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+  .gal{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:44px}
+  .vcard{position:relative;border-radius:24px;overflow:hidden;aspect-ratio:9/16;max-width:100%;background:#111;cursor:pointer;border:0;padding:0;color:#fff;text-align:left;font:inherit;isolation:isolate}
+  .vcard video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s}
+  .vcard:hover video{transform:scale(1.05)}
+  .vcard::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:3px;background:var(--grad);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .3s;z-index:3;pointer-events:none}
+  .vcard:hover::after,.vcard.playing::after{opacity:1}
+  .vcard .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:60px 14px 14px;background:linear-gradient(transparent,rgba(0,0,0,.78))}
+  .vcard .cap b{display:block;font:700 15px/1.2 var(--display)}
+  .vcard .cap small{font-size:12px;opacity:.85}
+  .vcard .snd{position:absolute;top:12px;right:12px;z-index:2;height:34px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.92);color:var(--ink);display:flex;align-items:center;gap:6px;font:800 12px var(--text)}
+  .vcard.playing .snd{background:var(--grad);color:#fff}
+  .vcard .snd svg{width:14px;height:14px}
+  .credit{margin-top:18px;font-size:13px;color:var(--sub);text-align:center}
+
+  .calc{display:grid;gap:14px;margin-top:44px}
+  .calc-box{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:28px;display:grid;gap:24px}
+  .fh{display:flex;justify-content:space-between;font-weight:800}
+  .fh output{font:800 22px var(--display)}
+  input[type=range]{width:100%;accent-color:var(--pink);height:30px}
   .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .seg label{position:relative}
   .seg input{position:absolute;opacity:0}
-  .seg span{display:block;text-align:center;padding:12px 6px;border:1.5px solid var(--line);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;line-height:1.25}
-  .seg span small{display:block;font-weight:600;color:var(--sub);font-size:12px}
-  .seg input:checked+span{border-color:var(--accent);background:var(--accent-soft)}
+  .seg span{display:block;text-align:center;padding:14px 6px;border-radius:16px;background:var(--bg);border:2px solid var(--line);font-weight:800;font-size:14px;cursor:pointer;line-height:1.25}
+  .seg span small{display:block;font-weight:600;color:var(--sub);font-size:12px;margin-top:2px}
+  .seg input:checked+span{background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box;border-color:transparent}
   .seg input:focus-visible+span{outline:3px solid var(--ink);outline-offset:2px}
-  .result{background:var(--ink);color:#fff;border-radius:var(--r);padding:28px;display:flex;flex-direction:column;justify-content:center;gap:10px}
-  .result .big{font:800 clamp(38px,6vw,60px)/1 var(--display);color:var(--lime);font-variant-numeric:tabular-nums}
-  .result p{color:#C9CCD3;font-size:15px}
-  .result .uah{font:700 20px var(--display)}
+  .res{border-radius:28px;padding:30px;background:var(--grad);color:#fff;display:flex;flex-direction:column;justify-content:center;gap:10px;position:relative;overflow:hidden}
+  .res::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.18)}
+  .res .big{font:900 clamp(48px,7vw,84px)/.95 var(--display);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+  .res .uah{font:800 22px var(--display)}
+  .res p{font-size:15px;opacity:.95}
 
-  /* cards */
-  .grid-4{display:grid;gap:14px;margin-top:40px}
-  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:10px}
-  .soft .card{border-color:transparent}
-  .card .ic{width:48px;height:48px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:6px}
-  .card p{color:var(--sub);font-size:15px}
+  .steps{display:grid;gap:14px;margin-top:44px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:26px}
+  .step .n{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--ink);color:#fff;font:800 17px var(--display);margin-bottom:18px}
+  .step:nth-child(4) .n{background:var(--grad)}
+  .step p{color:var(--sub);font-size:15px;margin-top:8px}
 
-  /* steps */
-  .steps{display:grid;gap:14px;margin-top:40px}
-  .step{display:grid;grid-template-columns:52px 1fr;gap:16px;align-items:start;background:#fff;border-radius:var(--r);padding:24px}
-  .step .num{width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:800 18px var(--display)}
-  .step p{color:var(--sub);font-size:15px;margin-top:6px}
-
-  /* program */
-  .program{margin-top:40px;display:grid;gap:10px}
-  details.mod{background:#fff;border:1px solid var(--line);border-radius:16px}
-  details.mod[open]{border-color:var(--ink)}
-  details.mod summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:20px}
+  .program{margin-top:44px;display:grid;gap:10px}
+  details.mod{background:var(--card);border:1.5px solid var(--line);border-radius:22px;transition:box-shadow .25s}
+  details.mod[open]{box-shadow:0 24px 50px -32px rgba(18,19,23,.45);background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box;border-color:transparent}
+  details.mod summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:20px 22px}
   details.mod summary::-webkit-details-marker{display:none}
-  .wk{font:800 12px/1.2 var(--text);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:8px 10px;border-radius:10px;text-align:center;min-width:76px}
-  .mt{font:700 clamp(16px,2.2vw,20px)/1.25 var(--display)}
-  .tg{width:34px;height:34px;border-radius:50%;background:var(--soft);display:grid;place-items:center;transition:transform .2s}
-  details[open] .tg{transform:rotate(45deg);background:var(--ink);color:#fff}
-  .tg svg{width:14px;height:14px}
-  .mb{padding:0 20px 22px;display:grid;gap:14px}
-  .mb ul{list-style:none;display:grid;gap:8px}
+  .wk{font:800 12px/1.2 var(--text);letter-spacing:.06em;text-transform:uppercase;background:var(--bg);border:1px solid var(--line);padding:9px 10px;border-radius:12px;min-width:84px;text-align:center}
+  .mt{font:700 clamp(16px,2.2vw,21px)/1.2 var(--display);letter-spacing:-.02em}
+  .tg{width:38px;height:38px;border-radius:50%;background:var(--bg);display:grid;place-items:center;transition:transform .25s,background .25s}
+  details[open] .tg{transform:rotate(45deg);background:var(--grad);color:#fff}
+  .tg svg{width:15px;height:15px}
+  .mb{padding:0 22px 22px;display:grid;gap:14px}
+  .mb ul{list-style:none;display:grid;gap:9px}
   .mb li{padding-left:24px;position:relative;color:var(--sub)}
-  .mb li::before{content:"";position:absolute;left:2px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
-  .res{background:var(--soft);border-radius:12px;padding:12px 14px;font-size:15px;font-weight:600}
-  .res b{color:var(--accent)}
+  .mb li::before{content:"";position:absolute;left:2px;top:10px;width:9px;height:9px;border-radius:50%;background:var(--grad)}
+  .rz{background:var(--bg);border-radius:14px;padding:12px 16px;font-size:15px;font-weight:700}
+  .rz b{color:var(--pink)}
+  .booklet-cta{margin-top:20px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;color:var(--sub);font-weight:600}
 
-  /* compare */
-  .compare{margin-top:40px;display:grid;gap:14px}
-  .col{border-radius:var(--r);padding:28px;display:grid;gap:14px;align-content:start}
-  .col.bad{background:var(--soft)}
-  .col.good{background:#fff;border:2px solid var(--accent);box-shadow:0 20px 40px -24px rgba(255,79,31,.45)}
-  .col h3{font-size:22px}
-  .col ul{list-style:none;display:grid;gap:12px}
-  .col li{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:15px}
+  .bento{display:grid;gap:14px;margin-top:44px}
+  .bx{border-radius:28px;padding:28px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+  .bx p{color:var(--sub);font-size:15px}
+  .bx.port{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .bx.port p{color:#B4B7C0;max-width:440px}
+  .bx .big{font:900 clamp(70px,10vw,130px)/.85 var(--display);letter-spacing:-.06em}
+  .mos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:auto;padding-top:16px}
+  .mos img{width:100%;aspect-ratio:9/14;object-fit:cover;border-radius:12px}
+  .bx .ic{width:50px;height:50px;border-radius:16px;background:var(--bg);display:grid;place-items:center;margin-bottom:6px}
+  .bx.hot{background:var(--grad);color:#fff;border-color:transparent}
+  .bx.hot p{color:rgba(255,255,255,.92)}
+  .bx.hot .ic{background:rgba(255,255,255,.2)}
+
+  .cmp{display:grid;gap:14px;margin-top:44px}
+  .col{border-radius:28px;padding:30px;display:grid;gap:16px;align-content:start}
+  .col.bad{background:#EFEDE8}
+  .col.good{background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box;border:2px solid transparent;box-shadow:0 30px 60px -36px rgba(255,45,120,.55)}
+  .col h3{font-size:24px}
+  .col ul{list-style:none;display:grid;gap:13px}
+  .col li{display:flex;gap:12px;align-items:flex-start;font-weight:700;font-size:15px}
   .col.bad li{color:var(--sub)}
-  .col.bad svg{color:#B4B8C2}
+  .col.bad svg{color:#B2B0AA}
   .col.good svg{color:var(--ok)}
 
-  /* reviews */
-  .reviews{display:grid;gap:14px;margin-top:40px}
-  .rv{background:#fff;border-radius:var(--r);padding:24px;display:grid;gap:14px;align-content:start}
-  .rv .vid{aspect-ratio:16/10;border-radius:14px;background:linear-gradient(135deg,#E9EBF0,#D9DCE3);display:grid;place-items:center;color:var(--sub);font-size:13px;font-weight:700;max-width:100%}
+  .revs{display:grid;gap:14px;margin-top:44px}
+  .rv{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:22px;display:grid;gap:14px;align-content:start}
+  .rv .ph{aspect-ratio:16/10;border-radius:16px;background:repeating-linear-gradient(135deg,#F1EFEA 0 12px,#ECE9E3 12px 24px);display:grid;place-items:center;color:var(--sub);font-size:13px;font-weight:800}
   .rv .who{display:flex;justify-content:space-between;gap:10px;align-items:center}
-  .rv .who b{font-family:var(--display);font-size:15px}
-  .rv .earn{font:800 13px var(--text);color:var(--ok);background:#E3F5EB;padding:6px 10px;border-radius:999px;white-space:nowrap}
+  .rv .who b{font:700 15px var(--display)}
+  .rv .pill{font:800 12px var(--text);color:var(--ok);background:#E2F5EA;padding:6px 10px;border-radius:999px;white-space:nowrap}
   .rv p{color:var(--sub);font-size:15px}
-  .ph-note{display:inline-block;margin-top:14px;font-size:13px;font-weight:700;color:#fff;background:var(--accent);padding:5px 10px;border-radius:8px}
+  .phnote{display:inline-block;margin-top:16px;font-size:13px;font-weight:800;color:#fff;background:var(--hot);padding:6px 12px;border-radius:999px}
 
-  /* pricing */
-  .pricing{background:var(--ink);color:#fff}
-  .pricing .lead{color:#B9BDC6}
-  .pricing .kicker{background:rgba(255,79,31,.16)}
-  .deadline{display:inline-flex;gap:10px;align-items:center;background:rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;font-weight:700;font-size:15px;margin-top:8px}
-  .deadline b{color:var(--lime)}
-  .plans{display:grid;gap:14px;margin-top:40px}
-  .plan{background:#1E2027;border-radius:var(--r);padding:28px;display:flex;flex-direction:column;gap:18px;position:relative;border:1px solid #2C2F38}
-  .plan.hot{background:#fff;color:var(--ink);border-color:#fff}
-  .badge{position:absolute;top:-13px;left:28px;background:var(--accent);color:#fff;font:800 12px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border-radius:999px}
-  .plan h3{font-size:22px}
-  .plan .for{font-size:14px;color:#9EA3AE;margin-top:-10px}
-  .plan.hot .for{color:var(--sub)}
-  .old{font-size:15px;color:#9EA3AE;text-decoration:line-through}
-  .price{font:800 40px/1 var(--display);font-variant-numeric:tabular-nums}
-  .price small{font:700 15px var(--text);color:#9EA3AE}
-  .plan.hot .price small{color:var(--sub)}
-  .per{font-size:14px;color:#9EA3AE;margin-top:6px}
-  .plan.hot .per{color:var(--sub)}
-  .plan ul{list-style:none;display:grid;gap:10px;font-size:15px;flex:1}
-  .plan li{display:flex;gap:10px;align-items:flex-start}
-  .plan li svg{color:var(--lime);margin-top:2px;width:18px;height:18px;flex:none}
-  .plan.hot li svg{color:var(--ok)}
-  .plan li.off{opacity:.45}
+  .plans{display:grid;gap:18px;margin-top:44px;align-items:stretch}
+  .plan{background:var(--card);border:1px solid var(--line);border-radius:30px;padding:30px;display:flex;flex-direction:column;gap:20px;position:relative}
+  .plan.hot{background:var(--ink);color:#fff;border:2px solid transparent;background:linear-gradient(var(--ink),var(--ink)) padding-box,var(--grad) border-box;box-shadow:0 40px 80px -40px rgba(255,45,120,.6)}
+  .badge{position:absolute;top:-14px;left:30px;background:var(--grad);color:#fff;font:800 12px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;padding:9px 14px;border-radius:999px}
+  .plan h3{font-size:24px}
+  .plan .for{font-size:14px;color:var(--sub);margin-top:-12px}
+  .plan.hot .for,.plan.hot .per,.plan.hot .old{color:#A3A6B0}
+  .old{font-size:15px;color:var(--sub);text-decoration:line-through}
+  .price{font:900 46px/1 var(--display);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .price small{font:800 16px var(--text);letter-spacing:0}
+  .per{font-size:14px;color:var(--sub);margin-top:8px}
+  .plan ul{list-style:none;display:grid;gap:11px;font-size:15px;flex:1}
+  .plan li{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+  .plan li svg{width:18px;height:18px;margin-top:2px;flex:none;color:var(--ok)}
+  .plan.hot li svg{color:var(--amber)}
+  .plan li.off{opacity:.4}
   .plan .btn{width:100%}
-  .plan:not(.hot) .btn-line{background:transparent;color:#fff;border-color:#3A3D47}
-  .guarantee{margin-top:28px;display:flex;gap:16px;align-items:center;background:rgba(255,255,255,.06);border-radius:var(--r);padding:20px 22px}
-  .guarantee .shield{width:52px;height:52px;border-radius:14px;background:var(--lime);color:var(--ink);display:grid;place-items:center;flex:none}
-  .guarantee p{color:#C9CCD3;font-size:15px}
-  .guarantee b{color:#fff}
+  .help{margin-top:22px;border-radius:24px;padding:22px 24px;background:var(--card);border:1px solid var(--line);display:flex;gap:16px;align-items:center}
+  .help .ic{width:50px;height:50px;border-radius:16px;background:var(--grad);color:#fff;display:grid;place-items:center;flex:none}
+  .help p{color:var(--sub);font-size:15px}
+  .help b{color:var(--ink)}
 
-  /* gift */
-  .gift{background:var(--accent);color:#fff;border-radius:28px;padding:36px 24px;display:grid;gap:22px;align-items:center}
-  .gift h2{margin-bottom:8px}
-  .gift p{font-size:17px;opacity:.95}
-  .gift .btn{background:#fff;color:var(--ink)}
+  .gift{border-radius:34px;padding:40px 26px;background:var(--ink);color:#fff;display:grid;gap:26px;align-items:center;position:relative;overflow:hidden}
+  .gift::before{content:"";position:absolute;right:-120px;top:-120px;width:380px;height:380px;border-radius:50%;background:var(--grad);filter:blur(10px);opacity:.85}
+  .gift>*{position:relative}
+  .gift h2{font-size:clamp(28px,4.4vw,52px)}
+  .gift p{font-size:18px;color:#C9CBD2;max-width:520px}
+  .gift video{width:100%;max-width:260px;aspect-ratio:9/16;object-fit:cover;border-radius:22px;justify-self:center;box-shadow:0 0 0 6px rgba(255,255,255,.08)}
+  .gift .tag{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff}
 
-  /* faq */
-  .faq{margin-top:40px;display:grid;gap:10px;max-width:860px}
-  .faq details{background:#fff;border-radius:16px}
-  .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:20px 22px;font-weight:800;font-size:17px}
+  .faq{margin-top:44px;display:grid;gap:10px;max-width:900px}
+  .faq details{background:var(--card);border:1px solid var(--line);border-radius:20px}
+  .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;padding:22px 24px;font-weight:800;font-size:17px}
   .faq summary::-webkit-details-marker{display:none}
-  .faq .a{padding:0 22px 20px;color:var(--sub)}
+  .faq summary svg{transition:transform .25s}
+  .faq details[open] summary svg{transform:rotate(45deg)}
+  .faq .a{padding:0 24px 22px;color:var(--sub)}
 
-  /* form */
-  .final{display:grid;gap:36px;align-items:start}
-  form{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;display:grid;gap:14px;box-shadow:0 30px 60px -40px rgba(21,23,28,.4)}
-  form h3{font-size:22px}
-  label.f{display:grid;gap:8px;font-size:14px;font-weight:700}
-  input[type=text],input[type=tel],select{width:100%;min-height:54px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font:600 16px var(--text);padding:0 14px}
+  .final{display:grid;gap:40px;align-items:start}
+  form{background:var(--card);border-radius:30px;padding:26px;display:grid;gap:14px;box-shadow:0 40px 80px -50px rgba(18,19,23,.5);border:1px solid var(--line)}
+  form h3{font-size:24px}
+  label.f{display:grid;gap:8px;font-size:14px;font-weight:800}
+  input[type=text],input[type=tel],select{width:100%;min-height:56px;border-radius:16px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:700 16px var(--text);padding:0 16px}
   .consent{font-size:12px;color:var(--sub)}
-  .thanks{padding:24px;border-radius:16px;background:#E3F5EB;color:#0F5F33;font-weight:700}
-  .contacts{display:grid;gap:12px;margin-top:22px}
-  .contacts div{display:flex;gap:12px;align-items:center;font-weight:700}
-  .contacts .ci{width:44px;height:44px;border-radius:12px;background:var(--soft);display:grid;place-items:center}
+  .thanks{padding:26px;border-radius:24px;background:#E2F5EA;color:#0B5A2E;font-weight:800}
+  .contacts{display:grid;gap:12px;margin-top:26px}
+  .contacts div{display:flex;gap:12px;align-items:center;font-weight:800}
+  .contacts .ci{width:46px;height:46px;border-radius:14px;background:#fff;border:1px solid var(--line);display:grid;place-items:center}
 
-  footer{border-top:1px solid var(--line);padding-block:36px 110px;font-size:14px;color:var(--sub)}
+  footer{padding-block:36px 110px;font-size:14px;color:var(--sub);border-top:1px solid var(--line)}
   footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
 
-  .mcta{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;display:flex;transform:translateY(160%);transition:transform .25s}
+  .mcta{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:45;display:flex;transform:translateY(160%);transition:transform .3s}
   .mcta.show{transform:none}
   .mcta .btn{flex:1}
 
-  /* ====== Намальовані «роботи» (замінити на реальні роботи студентів) ====== */
-  .art{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--line);isolation:isolate}
-  .art .lbl{position:absolute;left:10px;bottom:10px;z-index:3;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(15,15,17,.78);color:var(--paper);padding:5px 8px;border-radius:6px}
-  /* відеоредактор */
-  .a-video{background:#141416;display:grid;grid-template-rows:1fr auto}
-  .a-video .scene{position:relative;margin:10px 10px 0;border-radius:8px;overflow:hidden;background:
-     radial-gradient(60% 50% at 70% 38%,#FFD89A 0,#FF9B5A 22%,transparent 60%),
-     linear-gradient(180deg,#2B3550 0%,#B0596A 52%,#F0A06A 70%,#3A2A2E 71%,#1B1416 100%)}
-  .a-video .scene::before{content:"";position:absolute;left:-10%;right:-10%;bottom:0;height:34%;background:
-     radial-gradient(40% 90% at 20% 100%,#101015 0 60%,transparent 61%),
-     radial-gradient(50% 80% at 80% 100%,#16121A 0 60%,transparent 61%)}
-  .a-video .scene::after{content:"";position:absolute;left:42%;bottom:22%;width:9%;height:34%;border-radius:40% 40% 8px 8px;background:linear-gradient(180deg,#0E0E12,#211A20)}
-  .a-video .rec{position:absolute;top:10px;left:10px;z-index:2;display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;color:#fff}
-  .a-video .rec::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ember)}
-  .a-video .tc{position:absolute;top:10px;right:10px;z-index:2;font:600 11px/1 ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.45);padding:4px 6px;border-radius:4px}
-  .a-video .play{position:absolute;inset:0;margin:auto;width:56px;height:56px;border-radius:50%;background:var(--lime);display:grid;place-items:center;z-index:2}
-  .a-video .play svg{width:20px;height:20px;margin-left:3px}
-  .a-video .tl{padding:10px;display:grid;gap:5px}
-  .a-video .tr{display:flex;gap:4px;height:12px}
-  .a-video .tr i{display:block;border-radius:3px;background:#2D3A1A}
-  .a-video .tr.v i{background:linear-gradient(90deg,#3B4A1E,#5C7224)}
-  .a-video .tr.a i{background:#2A2440;height:8px;align-self:center}
-  .a-video .tr.s i{background:#3A2320;height:6px;align-self:center}
-  /* предметка */
-  .a-product{background:radial-gradient(70% 60% at 50% 30%,#F6E7D2 0,#D9B48C 45%,#7A5236 100%)}
-  .a-product::before{content:"";position:absolute;left:50%;bottom:16%;width:30%;height:52%;transform:translateX(-50%);border-radius:18px 18px 12px 12px;background:linear-gradient(90deg,#2C1E16 0,#5A3B28 30%,#8A5E3E 48%,#3A281C 70%,#22170F 100%);box-shadow:0 18px 30px -10px rgba(60,30,10,.55)}
-  .a-product::after{content:"";position:absolute;left:50%;bottom:66%;width:14%;height:12%;transform:translateX(-50%);border-radius:6px 6px 2px 2px;background:linear-gradient(90deg,#B89A6A,#F2E2BC 45%,#9C7F52)}
-  .a-product .shadow{position:absolute;left:28%;right:28%;bottom:12%;height:6%;border-radius:50%;background:rgba(60,30,10,.35);filter:blur(6px)}
-  .a-product .tag{position:absolute;left:50%;bottom:30%;transform:translateX(-50%);z-index:2;font:700 9px/1 var(--display);letter-spacing:.2em;color:#F2E2BC}
-  /* UGC */
-  .a-ugc{background:linear-gradient(180deg,#3B2A33 0,#1A1418 100%)}
-  .a-ugc .bars{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:4px;z-index:2}
-  .a-ugc .bars i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}
-  .a-ugc .bars i:first-child{background:#fff}
-  .a-ugc .face{position:absolute;left:50%;top:22%;width:34%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(60% 60% at 40% 35%,#F2C6A8,#B97C5E)}
-  .a-ugc .hair{position:absolute;left:50%;top:17%;width:46%;aspect-ratio:1.1;transform:translateX(-50%);border-radius:50% 50% 40% 40%;background:#2A1A14;z-index:-1}
-  .a-ugc .body{position:absolute;left:50%;top:52%;width:70%;height:60%;transform:translateX(-50%);border-radius:45% 45% 0 0;background:linear-gradient(180deg,#E7D9C4,#BFAE96)}
-  .a-ugc .cap{position:absolute;left:10px;right:10px;top:58%;z-index:2;text-align:center;font:700 12px/1.25 var(--text);color:#0F0F11}
-  .a-ugc .cap b{background:#fff;padding:3px 6px;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
-  /* маскот */
-  .a-mascot{background:radial-gradient(80% 70% at 50% 40%,#2E3A12,#151A0A)}
-  .a-mascot .m{position:absolute;left:50%;top:50%;height:58%;aspect-ratio:1;transform:translate(-50%,-55%);border-radius:46% 46% 42% 42%;background:radial-gradient(70% 70% at 35% 30%,#ECFF8A,var(--lime) 55%,#9DBF1E)}
-  .a-mascot .m::before,.a-mascot .m::after{content:"";position:absolute;top:36%;width:16%;aspect-ratio:1;border-radius:50%;background:#0F0F11;box-shadow:inset -2px -2px 0 2px #0F0F11, inset 3px 3px 0 0 #fff}
-  .a-mascot .m::before{left:28%}.a-mascot .m::after{right:28%}
-  .a-mascot .smile{position:absolute;left:50%;top:62%;width:22%;height:10%;transform:translateX(-50%);border:3px solid #0F0F11;border-top:0;border-radius:0 0 40px 40px;z-index:2}
-  /* fashion */
-  .a-fashion{background:linear-gradient(180deg,#C9B7D9 0,#8E7BA8 60%,#4B3E5E 100%)}
-  .a-fashion .arch{position:absolute;left:18%;right:18%;top:14%;bottom:0;border-radius:999px 999px 0 0;background:linear-gradient(180deg,#F3E6D8,#E2CDB8)}
-  .a-fashion .fig{position:absolute;left:50%;bottom:0;width:26%;height:70%;transform:translateX(-50%);border-radius:40% 40% 6px 6px;background:linear-gradient(180deg,#1E1A22,#3B2F44)}
-  .a-fashion .fig::before{content:"";position:absolute;left:50%;top:-22%;width:62%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:#D9A98A}
-  /* кліп */
-  .a-clip{background:#0B0B12}
-  .a-clip::before{content:"";position:absolute;inset:-20%;background:repeating-radial-gradient(circle at 50% 60%,transparent 0 14px,rgba(255,90,54,.55) 15px 17px,transparent 18px 30px);animation:pulse 6s linear infinite}
-  .a-clip::after{content:"";position:absolute;left:50%;top:58%;width:22%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#FFE1C2,#FF5A36 70%)}
-  @keyframes pulse{to{transform:scale(1.25)}}
-  /* AI-інфлюенсер */
-  .a-infl{background:radial-gradient(60% 50% at 50% 30%,#3A4C5E,#121821)}
-  .a-infl .ring{position:absolute;left:50%;top:14%;width:64%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;border:6px solid rgba(242,239,230,.85);box-shadow:0 0 30px rgba(242,239,230,.35)}
-  .a-infl .face{position:absolute;left:50%;top:22%;width:36%;aspect-ratio:.85;transform:translateX(-50%);border-radius:48%;background:radial-gradient(60% 60% at 40% 35%,#F4D2BC,#C28E72)}
-  .a-infl .hair{position:absolute;left:50%;top:18%;width:48%;height:40%;transform:translateX(-50%);border-radius:50% 50% 30% 30%;background:linear-gradient(180deg,#E9D3A6,#B9965E);z-index:-1}
-  .a-infl .body{position:absolute;left:50%;top:56%;width:72%;height:60%;transform:translateX(-50%);border-radius:45% 45% 0 0;background:linear-gradient(180deg,#1F2A36,#0F151C)}
-  .a-infl .ui{position:absolute;right:10px;top:10px;z-index:2;font:700 10px/1 var(--text);color:#fff;background:rgba(0,0,0,.45);padding:5px 7px;border-radius:999px}
-  @media (prefers-reduced-motion:reduce){.a-clip::before{animation:none}}
-
-
-
-
-  /* ===== v4: насичений дизайн ===== */
-  .hero{position:relative;overflow:hidden}
-  .hero::before{content:"";position:absolute;inset:-20% -10% auto -10%;height:120%;z-index:-1;background:
-    radial-gradient(38% 42% at 82% 28%,rgba(255,79,31,.22),transparent 70%),
-    radial-gradient(30% 36% at 62% 78%,rgba(255,201,60,.28),transparent 70%),
-    radial-gradient(34% 40% at 98% 70%,rgba(124,198,255,.30),transparent 70%),
-    radial-gradient(30% 30% at 8% 8%,rgba(215,255,59,.25),transparent 70%)}
-  .hero .sub{font-size:18px;color:var(--sub);max-width:600px;margin:-6px 0 22px}
-  .hero .sub b{color:var(--ink)}
-  .proof{display:flex;align-items:center;gap:14px;margin-top:22px;flex-wrap:wrap}
-  .avs{display:flex}
-  .avs i{width:38px;height:38px;border-radius:50%;border:3px solid #fff;margin-left:-10px;display:grid;place-items:center;font:800 13px var(--text);font-style:normal;color:#fff}
-  .avs i:first-child{margin-left:0}
-  .proof p{font-size:14px;color:var(--sub);line-height:1.35}
-  .proof b{color:var(--ink)}
-  /* AI-студія */
-  .studio{position:relative;background:#fff;border-radius:24px;box-shadow:0 40px 80px -40px rgba(21,23,28,.45),0 0 0 1px rgba(21,23,28,.06);overflow:hidden}
-  .st-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--sub)}
-  .st-bar i{width:10px;height:10px;border-radius:50%;background:#E3E5EA}
-  .st-bar i:nth-child(1){background:#FF6159}.st-bar i:nth-child(2){background:#FFBD2E}.st-bar i:nth-child(3){background:#28C941}
-  .st-bar span{margin-left:auto;font-size:12px;color:var(--accent);background:var(--accent-soft);padding:4px 8px;border-radius:6px}
-  .prompt{margin:14px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:14px;font-weight:600}
-  .prompt .typed{flex:1;min-width:0;white-space:nowrap;overflow:hidden;border-right:2px solid var(--accent);animation:type 7s steps(48) infinite,caret .8s step-end infinite;width:0;max-width:100%}
-  @keyframes type{0%{width:0}55%,100%{width:100%}}
-  @keyframes caret{50%{border-color:transparent}}
-  .prompt .go{flex:none;width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center}
-  .prompt .go svg{width:16px;height:16px}
-  .gen{margin:0 14px;display:flex;gap:10px;align-items:center;font-size:12px;font-weight:700;color:var(--sub)}
-  .gen .barw{flex:1;height:6px;border-radius:6px;background:var(--soft);overflow:hidden}
-  .gen .barw i{display:block;height:100%;width:30%;background:linear-gradient(90deg,var(--accent),#FFB03A);border-radius:6px;animation:load 7s ease-in-out infinite}
-  @keyframes load{0%{width:4%}60%,100%{width:100%}}
-  .tiles{display:grid;grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:120px 120px;gap:8px;padding:14px}
-  .tiles .art{border-radius:12px}
-  .tiles .t1{grid-row:span 2}
-  .chip-f{position:absolute;z-index:3;background:#fff;border-radius:14px;padding:10px 12px;box-shadow:0 16px 30px -12px rgba(21,23,28,.3);font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center;line-height:1.2}
-  .chip-f small{display:block;font-weight:600;color:var(--sub);font-size:11px}
-  .chip-f .sq{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;font-size:12px}
-  .cf1{left:-14px;bottom:28px;animation:bob 5s ease-in-out infinite}
-  .cf2{right:-12px;top:70px;animation:bob 6s ease-in-out infinite reverse}
-  @keyframes bob{50%{transform:translateY(-8px)}}
-  .hero-media{padding:0 6px}
-
-  /* професія */
-  .prof{display:grid;gap:28px;margin-top:36px}
-  .def{background:var(--ink);color:#fff;border-radius:28px;padding:30px;position:relative;overflow:hidden}
-  .def::after{content:"";position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,79,31,.55),transparent 70%)}
-  .def h3{font-size:clamp(22px,3vw,30px);margin-bottom:14px}
-  .def h3 mark{background:none;color:var(--lime)}
-  .def p{color:#C9CCD3;max-width:560px;position:relative;z-index:1}
-  .where{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;position:relative;z-index:1}
-  .where span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700}
-  .does{display:grid;gap:12px}
-  .do{border-radius:20px;padding:22px;display:grid;grid-template-columns:52px 1fr;gap:14px;align-items:start}
-  .do .ic2{width:52px;height:52px;border-radius:16px;background:#fff;display:grid;place-items:center}
-  .do p{font-size:14px;color:#4A4F5A;margin-top:4px}
-  .c1{background:#FFE7DE}.c1 .ic2{color:#FF4F1F}
-  .c2{background:#FFF3C9}.c2 .ic2{color:#C88A00}
-  .c3{background:#DDF0FF}.c3 .ic2{color:#1F7AD6}
-  .c4{background:#EAF8C9}.c4 .ic2{color:#4F8A00}
-  .bigstats{display:grid;gap:12px;margin-top:28px}
-  .bs{border-radius:22px;padding:24px;display:grid;gap:6px}
-  .bs b{font:800 clamp(36px,5vw,54px)/1 var(--display)}
-  .bs p{font-size:14px;font-weight:600}
-  .bs small{font-size:12px;opacity:.7}
-  .bs.o{background:var(--accent);color:#fff}
-  .bs.y{background:#FFC93C;color:var(--ink)}
-  .bs.l{background:var(--lime);color:var(--ink)}
-  .ladder{margin-top:28px;display:grid;gap:12px}
-  .rung{display:grid;grid-template-columns:1fr;gap:14px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px}
-  .rung .lv{font:800 12px var(--text);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-radius:8px;background:var(--soft)}
-  .rung .sum{font:800 20px var(--display);color:var(--accent)}
-  .rung .lv{justify-self:start}
-  .rung p{font-size:14px;color:var(--sub)}
-  .rung h4{font:700 16px var(--display)}
-
-  /* bento */
-  .bento{display:grid;gap:12px;margin-top:40px}
-  .bx{border-radius:24px;padding:26px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;min-height:180px}
-  .bx h3{font-size:22px}
-  .bx p{font-size:15px;color:var(--sub);max-width:420px}
-  .bx .n{font:800 clamp(54px,8vw,92px)/.9 var(--display);color:var(--accent)}
-  .bx.port{background:var(--ink);color:#fff}
-  .bx.port p{color:#C9CCD3}
-  .mosaic{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:auto;padding-top:14px}
-  .mosaic .art{aspect-ratio:1;border-radius:10px;max-width:100%}
-  .bx.s1{background:#FFF3C9}.bx.s2{background:#DDF0FF}.bx.s3{background:#EAF8C9}.bx.s4{background:#FFE7DE}.bx.s5{background:var(--soft)}
-  .bx .ic3{width:46px;height:46px;border-radius:14px;background:#fff;display:grid;place-items:center}
-
-  /* картки «для кого» кольорові */
-  .grid-4 .card:nth-child(1){background:#FFE7DE;border-color:transparent}
-  .grid-4 .card:nth-child(2){background:#DDF0FF;border-color:transparent}
-  .grid-4 .card:nth-child(3){background:#FFF3C9;border-color:transparent}
-  .grid-4 .card:nth-child(4){background:#EAF8C9;border-color:transparent}
-  .grid-4 .card .ic{background:#fff}
-  .grid-4 .card p{color:#4A4F5A}
-
-  /* живі прев'ю */
-  .a-product::before{animation:float 4s ease-in-out infinite}
-  .a-product::after{animation:float 4s ease-in-out infinite}
-  .a-product .drop{position:absolute;left:50%;top:-6%;width:4%;aspect-ratio:.7;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#F6C76A;transform:translateX(-50%);animation:drop 2.8s ease-in infinite;z-index:2}
-  @keyframes drop{0%{top:-6%;opacity:0}15%{opacity:1}70%{top:30%;opacity:1}75%,100%{top:30%;opacity:0}}
-  @keyframes float{50%{translate:0 -4px}}
-  .a-ugc .face,.a-ugc .hair{animation:talk 1.6s ease-in-out infinite}
-  @keyframes talk{50%{translate:0 -3px}}
-  .a-ugc .cap b{animation:capin 3s steps(1) infinite}
-  @keyframes capin{0%{opacity:0}20%,100%{opacity:1}}
-  .a-mascot .m,.a-mascot .smile{animation:bounce 1.8s cubic-bezier(.3,.6,.4,1) infinite}
-  @keyframes bounce{50%{translate:0 -10%}}
-  .a-fashion .fig{animation:sway 5s ease-in-out infinite;transform-origin:50% 100%}
-  @keyframes sway{50%{rotate:3deg}}
-  .a-infl .ring{animation:glow 2.4s ease-in-out infinite}
-  @keyframes glow{50%{box-shadow:0 0 50px rgba(242,239,230,.6)}}
-  .a-video .scene{animation:sun 9s ease-in-out infinite alternate;background-size:100% 100%,100% 100%}
-  @keyframes sun{to{background-position:0 -8px,0 0;filter:saturate(1.25)}}
-
   @media (min-width:720px){
-    .does{grid-template-columns:1fr 1fr}
-    .bigstats{grid-template-columns:repeat(3,1fr)}
+    .gal{grid-template-columns:repeat(4,1fr)}
+    .roles{grid-template-columns:repeat(2,1fr)}
+    .stats{grid-template-columns:repeat(3,1fr)}
+    .calc{grid-template-columns:1.25fr 1fr}
+    .steps{grid-template-columns:repeat(2,1fr)}
     .bento{grid-template-columns:repeat(3,1fr)}
     .bx.port{grid-column:span 2;grid-row:span 2}
-    .ladder{grid-template-columns:repeat(3,1fr)}
-    .rung{grid-template-columns:1fr;align-items:start}
-  }
-  @media (min-width:980px){
-    .prof{grid-template-columns:1fr 1.1fr;align-items:stretch}
-    .tiles{grid-template-rows:140px 140px}
-  }
-
-  .hero-grid>*{min-width:0}
-  .tiles>div{position:relative;min-width:0}
-  .tiles .art{position:absolute;inset:0}
-  .hero h1{font-size:clamp(32px,5vw,60px)}
-  .cf2{top:auto;bottom:-16px;right:-10px}
-  .cf1{bottom:auto;top:-20px;left:-14px}
-  @media (max-width:420px){.cf2{display:none}.tiles{grid-template-rows:96px 96px}}
-
-  @media (min-width:720px){
-    .gallery{grid-template-columns:repeat(3,1fr)}
-    .grid-4{grid-template-columns:repeat(2,1fr)}
-    .steps{grid-template-columns:repeat(2,1fr)}
-    .calc{grid-template-columns:1.2fr 1fr}
-    .compare{grid-template-columns:1fr 1fr}
-    .reviews{grid-template-columns:repeat(3,1fr)}
+    .cmp{grid-template-columns:1fr 1fr}
+    .revs{grid-template-columns:repeat(3,1fr)}
     .plans{grid-template-columns:repeat(3,1fr)}
-    .gift{grid-template-columns:1.4fr 1fr;padding:48px}
+    .gift{grid-template-columns:1.5fr 1fr;padding:56px}
     .final{grid-template-columns:1fr 1fr}
-    form{padding:32px}
+    form{padding:34px}
+    .reel-track video{width:190px}
   }
-  @media (min-width:980px){
-    section{padding-block:110px}
+  @media (min-width:1000px){
+    section{padding-block:120px}
     .nav ul{display:flex}
-    .hero{padding-block:72px 96px}
-    .hero-grid{grid-template-columns:1.05fr 1fr}
-    .grid-4{grid-template-columns:repeat(4,1fr)}
+    .hero{padding-block:70px 60px}
+    .hero-grid{grid-template-columns:1.1fr 1fr}
+    .prof-head{grid-template-columns:1.2fr 1fr}
+    .roles{grid-template-columns:repeat(4,1fr)}
     .steps{grid-template-columns:repeat(4,1fr)}
-    .step{grid-template-columns:1fr}
-    .gallery{grid-template-columns:repeat(6,1fr)}
     .mcta{display:none}
     footer{padding-bottom:36px}
   }
-  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+  @media (max-width:420px){.sticker{width:88px;height:88px}.sticker b{font-size:18px}.g2{display:none}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -474,324 +308,277 @@
   <symbol id="x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="arr" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4.5v15l13-7.5z"/></symbol>
+  <symbol id="snd" viewBox="0 0 24 24"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></symbol>
 </svg>
 
-<div class="topbar"><div class="wrap">Старт потоку <b data-cfg="startDate">8 грудня</b> · ціна раннього запису діє до <b data-cfg="earlyUntil">30 листопада</b></div></div>
+<div class="topbar"><div class="wrap">Старт потоку <b data-cfg="startDate">8 грудня</b> · ціна раннього запису до <b data-cfg="earlyUntil">30 листопада</b></div></div>
 
 <header>
   <div class="wrap nav">
     <a class="logo" href="#top"><i>AI</i>AI Creator</a>
     <ul>
+      <li><a href="#profession">Професія</a></li>
       <li><a href="#works">Роботи</a></li>
       <li><a href="#money">Заробіток</a></li>
       <li><a href="#program">Програма</a></li>
       <li><a href="#pricing">Ціни</a></li>
-      <li><a href="#faq">Питання</a></li>
     </ul>
-    <a class="btn btn-main" href="#apply">Консультація</a>
+    <a class="btn btn-hot" href="#apply">Консультація</a>
   </div>
 </header>
 
 <main id="top">
 
-<!-- HERO -->
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="kicker">Нова професія 2026</span>
-      <h1>Стань <mark>AI Creator</mark> і заробляй на професії майбутнього</h1>
-      <p class="sub"><b>AI Creator</b> створює рекламні відео, фото та AI-аватарів для брендів за допомогою нейромереж: без камери, студії й акторів. Бізнес уже платить за це, а фахівців на ринку ще мало.</p>
-      <ul class="checks">
-        <li><svg class="ico"><use href="#chk"/></svg>З нуля до професії за 4 місяці: живі заняття з ментором-практиком</li>
-        <li><svg class="ico"><use href="#chk"/></svg>Портфоліо з 70+ робіт: генеруєш контент щотижня</li>
-        <li><svg class="ico"><use href="#chk"/></svg>Реальні замовлення від брендів ще під час навчання</li>
-      </ul>
+      <span class="tag">Нова професія 2026</span>
+      <h1>Стань <span class="g">AI&nbsp;Creator</span><small>Найшвидша нова професія у світі контенту</small></h1>
+      <p class="sub"><b>AI Creator</b> створює рекламні відео, фото та AI-аватарів для брендів у нейромережах. Без камери, студії й акторів. Бізнес уже платить за це, а фахівців ще мало.</p>
       <div class="cta-row">
-        <a class="btn btn-main" href="#apply">Отримати безкоштовну консультацію <svg><use href="#arr"/></svg></a>
-        <a class="btn btn-line" href="#profession">Що це за професія</a>
+        <a class="btn btn-hot" href="#apply">Отримати консультацію <svg><use href="#arr"/></svg></a>
+        <a class="btn btn-ghost" href="#works">Дивитися роботи</a>
       </div>
-      <div class="proof">
-        <div class="avs"><i style="background:#FF4F1F">О</i><i style="background:#1F7AD6">А</i><i style="background:#C88A00">М</i><i style="background:#4F8A00">Д</i></div>
-        <p><b>Група до 16 людей</b><br>Передзвонимо протягом 15 хвилин</p>
+      <div class="mini">
+        <div><b>4 міс</b><span>від нуля до професії</span></div>
+        <div><b>70+</b><span>робіт у портфоліо</span></div>
+        <div><b>+329%</b><span>попит на AI-відео</span></div>
       </div>
     </div>
-    <div class="hero-media">
-      <div class="studio" aria-label="Як працює AI Creator: промпт і результат">
-        <div class="st-bar"><i></i><i></i><i></i>AI Studio<span>Veo · Kling · Nano Banana</span></div>
-        <div class="prompt"><span class="typed">Рекламний ролик сироватки, золоте світло, макро, повільна крапля</span><span class="go"><svg><use href="#arr"/></svg></span></div>
-        <div class="gen">Генерація<span class="barw"><i></i></span>4 варіанти</div>
-        <div class="tiles">
-          <div class="t1"><div class="art a-product"><span class="drop"></span><div class="shadow"></div><span class="tag">SÉRUM</span></div></div>
-          <div><div class="art a-ugc"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><p class="cap"><b>3 тижні шукала цей крем</b></p></div></div>
-          <div><div class="art a-mascot"><div class="m"></div><div class="smile"></div></div></div>
-          <div><div class="art a-fashion"><div class="arch"></div><div class="fig"></div></div></div>
-          <div><div class="art a-infl"><span class="ui">● LIVE</span><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div></div></div>
-        </div>
+    <div class="phones" aria-label="Приклади AI-відео">
+      <div class="phone p1"><video data-src="videos/v-3d.mp4" poster="videos/v-3d.jpg" muted loop playsinline></video></div>
+      <div class="phone p2"><video data-src="videos/v-cinema.mp4" poster="videos/v-cinema.jpg" muted loop playsinline></video></div>
+      <div class="phone p3"><video data-src="videos/v-anime.mp4" poster="videos/v-anime.jpg" muted loop playsinline></video></div>
+      <div class="glass g1"><span class="sq"><svg class="ico" style="width:16px;height:16px"><use href="#chk"/></svg></span><div>Ролик за 2 години<small>замість 2 тижнів зйомок</small></div></div>
+      <div class="glass g2"><span class="sq">$</span><div>$150–1200<small>за рекламний AI-ролик</small></div></div>
+      <div class="sticker" aria-hidden="true">
+        <svg viewBox="0 0 110 110"><defs><path id="circ" d="M55,55 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0"/></defs><text font-family="Manrope, sans-serif" font-weight="800" font-size="10.5" letter-spacing="2.4" fill="#fff"><textPath href="#circ">НОВА ПРОФЕСІЯ · AI CREATOR · 2026 ·</textPath></text></svg>
+        <b>AI</b>
       </div>
-      <div class="chip-f cf1"><span class="sq" style="background:var(--ok)"><svg class="ico" style="width:16px;height:16px"><use href="#chk"/></svg></span><div>Ролик готовий за 2 год<small>замість 2 тижнів зйомок</small></div></div>
-      <div class="chip-f cf2"><span class="sq" style="background:var(--accent)">$</span><div>$150–1200<small>за рекламний AI-ролик</small></div></div>
     </div>
   </div>
 </section>
 
-<div class="strip" aria-label="Нейромережі курсу">
-  <div class="strip-in"><span>Veo</span><span>Sora</span><span>Kling</span><span>Runway</span><span>Midjourney</span><span>Nano Banana</span><span>Flux</span><span>Higgsfield</span><span>ElevenLabs</span><span>HeyGen</span><span>Suno</span><span>ChatGPT</span><span>Claude</span><span>Veo</span><span>Sora</span><span>Kling</span><span>Runway</span><span>Midjourney</span><span>Nano Banana</span><span>Flux</span><span>Higgsfield</span><span>ElevenLabs</span><span>HeyGen</span><span>Suno</span><span>ChatGPT</span><span>Claude</span></div>
+<div class="reel" aria-label="Стрічка AI-відео">
+  <div class="reel-track" id="reel"></div>
+  <div class="wrap tools-line"><span>Veo</span><span>Sora</span><span>Kling</span><span>Runway</span><span>Midjourney</span><span>Nano Banana</span><span>Higgsfield</span><span>ElevenLabs</span><span>HeyGen</span><span>Suno</span><span>ChatGPT</span><span>Claude</span></div>
 </div>
 
-<!-- PROFESSION -->
 <section id="profession">
   <div class="wrap">
-    <span class="kicker">Професія AI Creator</span>
-    <h2>Хто такий AI Creator і чому на нього такий попит</h2>
-    <p class="lead">Ще 2 роки тому такої професії не було. Сьогодні бренди замовляють AI-рекламу щотижня, бо це у 5–10 разів швидше і дешевше за класичну зйомку.</p>
-    <div class="prof">
-      <div class="def">
-        <h3>AI Creator: <mark>режисер, оператор і дизайнер</mark> в одній людині</h3>
-        <p>Ти отримуєш бриф від бренду, пишеш сценарій з ChatGPT або Claude, генеруєш кадри в Midjourney і Nano Banana, оживлюєш їх у Veo чи Kling, додаєш голос в ElevenLabs і монтуєш готовий ролик. Те, що раніше робила команда з 10 людей, тепер робиш ти за день.</p>
-        <div class="where"><span>Рекламні агенції</span><span>Бренди та e-commerce</span><span>SMM-агенції</span><span>Фриланс: Upwork, Fiverr</span><span>Своя AI-студія</span></div>
-      </div>
-      <div class="does">
-        <div class="do c1"><div class="ic2"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg></div><div><h3>Рекламні відео</h3><p>Продуктові ролики, промо для Meta й TikTok Ads, кліпи</p></div></div>
-        <div class="do c2"><div class="ic2"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></div><div><h3>AI-фото</h3><p>Предметна зйомка, fashion, картки для маркетплейсів без студії</p></div></div>
-        <div class="do c3"><div class="ic2"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></div><div><h3>AI-аватари та UGC</h3><p>Віртуальні ведучі, відгуки «від покупця», AI-інфлюенсери</p></div></div>
-        <div class="do c4"><div class="ic2"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div><div><h3>Персонажі брендів</h3><p>Маскоти, мультфільми, цифрові двійники людей</p></div></div>
-      </div>
+    <div class="prof-head">
+      <div><span class="tag">Професія AI Creator</span><h2>Режисер, оператор і дизайнер <span class="g">в одній людині</span></h2></div>
+      <p class="lead">Ти отримуєш бриф від бренду, пишеш сценарій з ChatGPT або Claude, генеруєш кадри, оживлюєш їх у Veo чи Kling, додаєш голос і монтуєш ролик. Те, що робила команда з 10 людей, тепер робиш ти за день.</p>
     </div>
-    <div class="bigstats">
-      <div class="bs o"><b>+329%</b><p>зріс попит на AI-відео на Upwork за рік</p><small>Upwork, In-Demand Skills 2026</small></div>
-      <div class="bs y"><b>+84%</b><p>зросла медіанна зарплата AI creator в Україні</p><small>Work.ua, 2026</small></div>
-      <div class="bs l"><b>5–10×</b><p>швидше і дешевше за класичну зйомку реклами</p><small>оцінка за ринковими кейсами</small></div>
+    <div class="roles">
+      <div class="role"><span class="num">01</span><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg></div><h3>Рекламні відео</h3><p>Продуктові ролики, промо для Meta й TikTok Ads, кліпи</p></div>
+      <div class="role"><span class="num">02</span><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></div><h3>AI-фото</h3><p>Предметна зйомка, fashion, картки для маркетплейсів без студії</p></div>
+      <div class="role"><span class="num">03</span><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></div><h3>AI-аватари та UGC</h3><p>Віртуальні ведучі, відгуки «від покупця», AI-інфлюенсери</p></div>
+      <div class="role"><span class="num">04</span><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div><h3>Мультфільми й персонажі</h3><p>Маскоти брендів, анімація, серіали, цифрові двійники</p></div>
     </div>
-    <div class="ladder">
-      <div class="rung"><span class="lv">Старт</span><div><h4>Перші клієнти</h4><p>Фриланс і перші абонементи після курсу</p></div><span class="sum">30–45 тис. грн</span></div>
-      <div class="rung"><span class="lv">Досвід</span><div><h4>Іноземні бренди</h4><p>Upwork, ролики для e-commerce, $150–1200 за ролик</p></div><span class="sum">$1500–3000</span></div>
-      <div class="rung"><span class="lv">Своя студія</span><div><h4>AI-продакшн</h4><p>Команда, пакети креативів для брендів на абонементі</p></div><span class="sum">від $5000</span></div>
+    <div class="stats">
+      <div class="stat"><b class="g">+329%</b><p>зріс попит на AI-відео на Upwork за рік</p><small>Upwork, In-Demand Skills 2026</small></div>
+      <div class="stat dark"><b>+84%</b><p>зросла медіанна зарплата AI creator в Україні</p><small>Work.ua, 2026</small></div>
+      <div class="stat"><b class="g">5–10×</b><p>швидше і дешевше за класичну зйомку</p><small>оцінка за ринковими кейсами</small></div>
     </div>
+    <div class="who-line"><b>Де працює:</b><span>Рекламні агенції</span><span>Бренди та e-commerce</span><span>SMM-агенції</span><span>Upwork і Fiverr</span><span>Своя AI-студія</span></div>
   </div>
 </section>
 
-<!-- WORKS -->
-<section id="works" class="soft">
-  <div class="wrap center">
-    <span class="kicker">Що ти будеш створювати</span>
-    <h2>Контент, за який бізнес платить уже зараз</h2>
-    <p class="lead">Усі ролики нижче створені повністю в нейромережах: без камери, акторів і студії. Натисни, щоб переглянути.</p>
-  </div>
+<section id="works" style="padding-top:0">
   <div class="wrap">
-    <div class="gallery">
-      <button class="clip" type="button"><div class="art a-product"><span class="drop"></span><div class="shadow"></div><span class="tag">SÉRUM</span></div><video data-src="videos/01-cosmetics.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Реклама косметики</b><small>Veo · 15 с</small></span></button>
-      <button class="clip" type="button"><div class="art a-ugc"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><p class="cap"><b>3 тижні шукала цей крем</b></p></div><video data-src="videos/02-ugc.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>UGC-відгук для Reels</b><small>Higgsfield · 20 с</small></span></button>
-      <button class="clip" type="button"><div class="art a-infl"><span class="ui">● LIVE</span><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div></div><video data-src="videos/03-avatar.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>AI-аватар експерта</b><small>HeyGen · ElevenLabs</small></span></button>
-      <button class="clip" type="button"><div class="art a-mascot"><div class="m"></div><div class="smile"></div></div><video data-src="videos/04-cartoon.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Мультфільм з маскотом</b><small>Kling · Suno</small></span></button>
-      <button class="clip" type="button"><div class="art a-fashion"><div class="arch"></div><div class="fig"></div></div><video data-src="videos/05-fashion.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Fashion-кампанія</b><small>Nano Banana · Kling</small></span></button>
-      <button class="clip" type="button"><div class="art a-clip"></div><video data-src="videos/06-music.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Музичний кліп</b><small>Sora · Suno</small></span></button>
+    <span class="tag">Що можна створити</span>
+    <h2>Усе це зроблено <span class="g">нейромережами</span></h2>
+    <p class="lead">3D-мультфільм, аніме, пластилін, кіно, AI-ведуча. Без камери, акторів і студії. Натисни на ролик, щоб увімкнути звук.</p>
+    <div class="gal">
+      <button class="vcard" type="button"><video data-src="videos/v-avatar.mp4" poster="videos/v-avatar.jpg" muted loop playsinline></video><span class="snd"><svg><use href="#snd"/></svg>Звук</span><span class="cap"><b>AI-ведуча</b><small>реалістичний аватар</small></span></button>
+      <button class="vcard" type="button"><video data-src="videos/v-3d.mp4" poster="videos/v-3d.jpg" muted loop playsinline></video><span class="snd"><svg><use href="#snd"/></svg>Звук</span><span class="cap"><b>3D-мультфільм</b><small>анімація в стилі студій</small></span></button>
+      <button class="vcard" type="button"><video data-src="videos/v-clay.mp4" poster="videos/v-clay.jpg" muted loop playsinline></video><span class="snd"><svg><use href="#snd"/></svg>Звук</span><span class="cap"><b>Пластилінова анімація</b><small>stop-motion без студії</small></span></button>
+      <button class="vcard" type="button"><video data-src="videos/v-anime.mp4" poster="videos/v-anime.jpg" muted loop playsinline></video><span class="snd"><svg><use href="#snd"/></svg>Звук</span><span class="cap"><b>Аніме</b><small>2D-анімація</small></span></button>
+      <button class="vcard" type="button"><video data-src="videos/v-street.mp4" poster="videos/v-street.jpg" muted loop playsinline></video><span class="snd"><svg><use href="#snd"/></svg>Звук</span><span class="cap"><b>Кінореалізм</b><small>кінематографічна зйомка</small></span></button>
+      <button class="vcard" type="button"><video data-src="videos/v-folk.mp4" poster="videos/v-folk.jpg" muted loop playsinline></video><span class="snd"><svg><use href="#snd"/></svg>Звук</span><span class="cap"><b>Український мультфільм</b><small>ілюстративний стиль</small></span></button>
+      <button class="vcard" type="button"><video data-src="videos/v-scifi.mp4" poster="videos/v-scifi.jpg" muted loop playsinline></video><span class="snd"><svg><use href="#snd"/></svg>Звук</span><span class="cap"><b>Sci-fi</b><small>неон і VR-світ</small></span></button>
+      <button class="vcard" type="button"><video data-src="videos/v-vhs.mp4" poster="videos/v-vhs.jpg" muted loop playsinline></video><span class="snd"><svg><use href="#snd"/></svg>Звук</span><span class="cap"><b>VHS-стиль</b><small>знайдене відео</small></span></button>
     </div>
+    <p class="credit">Ролики створені в нейромережах: відеоряд, персонажі, голоси й музика.</p>
   </div>
 </section>
 
-<!-- MONEY -->
-<section id="money" class="soft">
+<section id="money" style="padding-top:0">
   <div class="wrap">
-    <span class="kicker">Скільки можна заробляти</span>
-    <h2>Порахуй свій дохід</h2>
+    <span class="tag">Скільки можна заробляти</span>
+    <h2>Порахуй <span class="g">свій дохід</span></h2>
     <p class="lead">AI-креатор зазвичай працює з кількома брендами на абонементі. Обери кількість клієнтів і формат роботи.</p>
     <div class="calc">
       <div class="calc-box">
-        <div class="field">
-          <div class="field-head"><span>Клієнтів на місяць</span><output id="cOut">4</output></div>
-          <input id="clients" type="range" min="1" max="10" value="4" aria-label="Кількість клієнтів">
-        </div>
-        <div class="field">
-          <div class="field-head"><span>Що робиш для клієнта</span></div>
+        <div><div class="fh"><span>Клієнтів на місяць</span><output id="cOut">4</output></div><input id="clients" type="range" min="1" max="10" value="4" aria-label="Кількість клієнтів"></div>
+        <div><div class="fh" style="margin-bottom:12px"><span>Що робиш для клієнта</span></div>
           <div class="seg" role="radiogroup" aria-label="Формат роботи">
             <label><input type="radio" name="fmt" value="250"><span>Фото<small>$250 / міс</small></span></label>
             <label><input type="radio" name="fmt" value="500" checked><span>Відео + фото<small>$500 / міс</small></span></label>
             <label><input type="radio" name="fmt" value="900"><span>Реклама під ключ<small>$900 / міс</small></span></label>
-          </div>
-        </div>
+          </div></div>
         <p style="font-size:13px;color:var(--sub)">Ціни абонементу орієнтовні, на основі ринкових ставок AI-відео у 2026 році. Дохід залежить від портфоліо, ніші та кількості клієнтів.</p>
       </div>
-      <div class="result" aria-live="polite">
-        <p>Твій можливий дохід на місяць</p>
+      <div class="res" aria-live="polite">
+        <p>Можливий дохід на місяць</p>
         <div class="big" id="usd">$2 000</div>
-        <div class="uah" id="uah">≈ 83 000 грн</div>
-        <p>Медіана зарплати AI creator в Україні на Work.ua: 30–45 тис. грн. На фрилансі з іноземними клієнтами дохід вищий.</p>
+        <div class="uah" id="uah">≈ 83 тис. грн</div>
+        <p>Медіана зарплати AI creator в Україні на Work.ua: 30–45 тис. грн. З іноземними клієнтами дохід вищий.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- WHO -->
-<section>
+<section style="padding-top:0">
   <div class="wrap">
-    <span class="kicker">Для кого курс</span>
-    <h2>Досвід в AI чи дизайні не потрібен</h2>
-    <div class="grid-4">
-      <div class="card"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg></div><h3>Дизайнерам і SMM</h3><p>Додай AI-продакшн до своїх послуг і підніми середній чек у 2–3 рази.</p></div>
-      <div class="card"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M14 6l6 6-6 6"/></svg></div><h3>Тим, хто змінює професію</h3><p>Нова професія без коду і без вищої освіти. Від нуля до першого замовлення за 4 місяці.</p></div>
-      <div class="card"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div><h3>Мамам у декреті та на віддаленці</h3><p>Працюй з дому у зручному графіку з клієнтами з будь-якої країни.</p></div>
-      <div class="card"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V9l9-6 9 6v12H3zM9 21v-6h6v6"/></svg></div><h3>Підприємцям і блогерам</h3><p>Роби рекламу і контент для свого бізнесу сам, без агенції і зйомок.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW -->
-<section class="soft">
-  <div class="wrap">
-    <span class="kicker">Як проходить навчання</span>
-    <h2>Від першого промпту до першого клієнта</h2>
+    <span class="tag">Як проходить навчання</span>
+    <h2>Від першого промпту <span class="g">до першого клієнта</span></h2>
     <div class="steps">
-      <div class="step"><div class="num">1</div><div><h3>Живі заняття</h3><p>2 рази на тиждень онлайн з ментором-практиком. Група до 16 людей, усі записи залишаються в тебе.</p></div></div>
-      <div class="step"><div class="num">2</div><div><h3>Практика щотижня</h3><p>Кожне домашнє завдання ментор перевіряє і розбирає. Без перевірки не буде прогресу.</p></div></div>
-      <div class="step"><div class="num">3</div><div><h3>Реальні брифи</h3><p>Робиш замовлення для справжніх брендів-партнерів і щотижня поповнюєш портфоліо. До кінця курсу 70+ робіт.</p></div></div>
-      <div class="step"><div class="num">4</div><div><h3>Перші клієнти</h3><p>Профіль на Upwork, свій прайс, Demo Day перед замовниками і 3 місяці підтримки після курсу.</p></div></div>
+      <div class="step"><span class="n">1</span><h3>Живі заняття</h3><p>2 рази на тиждень онлайн з ментором-практиком. Усі записи залишаються в тебе.</p></div>
+      <div class="step"><span class="n">2</span><h3>Генеруєш щотижня</h3><p>Кожне домашнє завдання дає нові роботи в портфоліо. Ментор перевіряє і розбирає.</p></div>
+      <div class="step"><span class="n">3</span><h3>Реальні брифи</h3><p>Робиш замовлення для справжніх брендів-партнерів. До кінця курсу 70+ робіт.</p></div>
+      <div class="step"><span class="n">4</span><h3>Перші клієнти</h3><p>Профіль на Upwork, свій прайс, Demo Day перед замовниками і 3 місяці підтримки.</p></div>
     </div>
   </div>
 </section>
 
-<!-- PROGRAM -->
-<section id="program">
+<section id="program" style="padding-top:0">
   <div class="wrap">
-    <span class="kicker">Програма · 16 тижнів</span>
-    <h2>9 модулів і 70+ робіт у портфоліо</h2>
+    <span class="tag">Програма · 16 тижнів · 32 заняття</span>
+    <h2>9 модулів і <span class="g">70+ робіт</span> у портфоліо</h2>
     <p class="lead">Програму оновлюємо щомісяця, щоб ти працював у найновіших нейромережах.</p>
     <div class="program">
-      <details class="mod" open><summary><span class="wk">Тиждень 1</span><span class="mt">Швидкий старт у професії</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Як заробляє AI-креатор: послуги, клієнти, ціни</li><li>Набір нейромереж і як вкластися в $30–60 на місяць</li><li>ChatGPT і Claude як твій креативний директор: ідеї, сценарії, промпти</li></ul><div class="res"><b>Результат:</b> власний AI-асистент для креативу</div></div></details>
-      <details class="mod"><summary><span class="wk">Тижні 2–4</span><span class="mt">AI-фото і рекламні креативи</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Світло, композиція, колір: щоб AI-фото не виглядали «пластиковими»</li><li>Midjourney, Flux, Nano Banana, Ideogram, Krea; редагування й апскейл</li><li>Предметна зйомка, картки для маркетплейсів, fashion, банери</li></ul><div class="res"><b>У портфоліо:</b> предметна зйомка для бренду + серія креативів</div></div></details>
-      <details class="mod"><summary><span class="wk">Тиждень 5</span><span class="mt">Персонажі, маскоти, цифрові двійники</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Твій цифровий двійник і маскот бренду в будь-яких сценах</li><li>AI-інфлюенсер: образ, контент-план, монетизація</li><li>Авторські права і маркування AI-контенту</li></ul><div class="res"><b>У портфоліо:</b> маскот бренду в 10 сценах</div></div></details>
-      <details class="mod"><summary><span class="wk">Тижні 6–8</span><span class="mt">AI-відео і монтаж</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Мова кіно: кадр, рух камери, ритм</li><li>Veo, Sora, Kling, Runway, Higgsfield: відео з тексту і з фото</li><li>Монтаж у CapCut і DaVinci, формати для Reels, TikTok, YouTube</li></ul><div class="res"><b>У портфоліо:</b> продуктовий ролик + 3 вертикальні відео</div></div></details>
-      <details class="mod"><summary><span class="wk">Тиждень 9</span><span class="mt">Голос, музика, AI-аватари</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>ElevenLabs: озвучка і клонування голосу кількома мовами</li><li>Музика в Suno, саунд-дизайн</li><li>Аватари, що говорять: HeyGen, lip-sync</li></ul><div class="res"><b>У портфоліо:</b> ролик з AI-ведучим двома мовами</div></div></details>
-      <details class="mod"><summary><span class="wk">Тижні 10–11</span><span class="mt">Реклама, за яку платять: UGC і промо</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>AI-UGC: хуки і сценарії, 10 варіантів креативу для тестів</li><li>Промо для Meta й TikTok Ads, кліпи і мультфільми</li><li>Замовлення від реального бренду-партнера</li></ul><div class="res"><b>У портфоліо:</b> пакет UGC-креативів + ролик за реальним брифом</div></div></details>
-      <details class="mod"><summary><span class="wk">Тиждень 12</span><span class="mt">AI-агенти: 20 креативів за годину</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>AI-агент веде ланцюжок «бриф → сценарій → генерація» замість тебе</li><li>Нодові схеми у Figma Weave, Flora, Krea: десятки варіантів за один запуск</li></ul><div class="res"><b>Результат:</b> власна система масового виробництва креативів</div></div></details>
-      <details class="mod"><summary><span class="wk">Тижні 13–14</span><span class="mt">Перші гроші: клієнти, ціни, договори</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Портфоліо, Behance і сайт-візитка за годину</li><li>Upwork, Fiverr, Freelancehunt, Instagram, холодні листи</li><li>Прайс, абонементи, як підняти чек зі $100 до $1000</li><li>ФОП, договір, оплата з-за кордону; англійська для брифів</li></ul><div class="res"><b>Результат:</b> перше оплачене замовлення</div></div></details>
-      <details class="mod"><summary><span class="wk">Тижні 15–16</span><span class="mt">Спеціалізація і Demo Day</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Обираєш напрям: AI-реклама, AI-фільми, AI-персонажі або AI-автоматизація</li><li>Фінальний проєкт для реального замовника</li><li>Захист перед брендами, агенціями та рекрутерами</li></ul><div class="res"><b>Результат:</b> шоурил, кейс і знайомства з замовниками</div></div></details>
+      <details class="mod" open><summary><span class="wk">Тиждень 1</span><span class="mt">Швидкий старт у професії</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Як заробляє AI-креатор: послуги, клієнти, ціни</li><li>Набір нейромереж і як вкластися в $30–60 на місяць</li><li>ChatGPT і Claude як креативний директор: ідеї, сценарії, промпти</li></ul><div class="rz"><b>Результат:</b> власний AI-асистент для креативу</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 2–4</span><span class="mt">AI-фото і рекламні креативи</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Світло, композиція, колір: щоб AI-фото не виглядали «пластиковими»</li><li>Midjourney, Flux, Nano Banana, Ideogram, Krea; редагування й апскейл</li><li>Предметна зйомка, картки для маркетплейсів, fashion, банери</li></ul><div class="rz"><b>+20 робіт:</b> предметна зйомка, креативи, лукбук</div></div></details>
+      <details class="mod"><summary><span class="wk">Тиждень 5</span><span class="mt">Персонажі, маскоти, цифрові двійники</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Цифровий двійник і маскот бренду в будь-яких сценах</li><li>AI-інфлюенсер: образ, контент-план, монетизація</li><li>Авторські права і маркування AI-контенту</li></ul><div class="rz"><b>+10 робіт:</b> маскот бренду в 10 сценах</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 6–8</span><span class="mt">AI-відео і монтаж</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Мова кіно: кадр, рух камери, ритм</li><li>Veo, Sora, Kling, Runway, Higgsfield: відео з тексту і з фото</li><li>Монтаж у CapCut і DaVinci, формати для Reels, TikTok, YouTube</li></ul><div class="rz"><b>+12 робіт:</b> продуктовий ролик, вертикальні відео</div></div></details>
+      <details class="mod"><summary><span class="wk">Тиждень 9</span><span class="mt">Голос, музика, AI-аватари</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>ElevenLabs: озвучка і клонування голосу кількома мовами</li><li>Музика в Suno, саунд-дизайн</li><li>Аватари, що говорять: HeyGen, lip-sync</li></ul><div class="rz"><b>+4 роботи:</b> ролик з AI-ведучим двома мовами</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 10–11</span><span class="mt">Реклама, за яку платять: UGC і промо</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>AI-UGC: хуки і сценарії, 10 варіантів креативу для тестів</li><li>Промо для Meta й TikTok Ads, кліпи і мультфільми</li><li>Замовлення від реального бренду-партнера</li></ul><div class="rz"><b>+12 робіт:</b> UGC-креативи і ролик за реальним брифом</div></div></details>
+      <details class="mod"><summary><span class="wk">Тиждень 12</span><span class="mt">AI-агенти: 20 креативів за годину</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>AI-агент веде ланцюжок «бриф → сценарій → генерація»</li><li>Нодові схеми у Figma Weave, Flora, Krea: десятки варіантів за один запуск</li></ul><div class="rz"><b>+5 робіт:</b> система масового виробництва креативів</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 13–14</span><span class="mt">Перші гроші: клієнти, ціни, договори</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Портфоліо, Behance і сайт-візитка за годину</li><li>Upwork, Fiverr, Freelancehunt, Instagram, холодні листи</li><li>Прайс, абонементи, як підняти чек зі $100 до $1000</li><li>ФОП, договір, оплата з-за кордону; англійська для брифів</li></ul><div class="rz"><b>Результат:</b> перше оплачене замовлення</div></div></details>
+      <details class="mod"><summary><span class="wk">Тижні 15–16</span><span class="mt">Спеціалізація і Demo Day</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Напрям: AI-реклама, AI-фільми, AI-персонажі або AI-автоматизація</li><li>Фінальний проєкт для реального замовника</li><li>Захист перед брендами, агенціями та рекрутерами</li></ul><div class="rz"><b>+5 робіт:</b> фінальний проєкт, шоурил і кейс</div></div></details>
     </div>
+    <div class="booklet-cta"><a class="btn btn-ghost" href="#apply" data-intent="program">Отримати детальну програму в PDF <svg><use href="#arr"/></svg></a><span>32 заняття, домашні завдання і результати кожного модуля</span></div>
   </div>
 </section>
 
-<!-- BENTO -->
-<section>
+<section style="padding-top:0">
   <div class="wrap">
-    <span class="kicker">Що ти отримаєш</span>
-    <h2>Виходиш з курсу з професією, а не з сертифікатом</h2>
+    <span class="tag">Що ти отримаєш</span>
+    <h2>Виходиш з курсу <span class="g">з професією</span></h2>
     <div class="bento">
-      <div class="bx port"><span class="n">70+</span><h3>робіт у портфоліо</h3><p>Ти генеруєш контент щотижня: фото, ролики, креативи, персонажі. До кінця курсу збираєш портфоліо з 70+ робіт і шоурил.</p>
-        <div class="mosaic"><div class="art a-product"><span class="drop"></span><div class="shadow"></div><span class="tag">SÉRUM</span></div><div class="art a-ugc"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><p class="cap"><b>3 тижні шукала цей крем</b></p></div><div class="art a-mascot"><div class="m"></div><div class="smile"></div></div><div class="art a-fashion"><div class="arch"></div><div class="fig"></div></div><div class="art a-infl"><span class="ui">● LIVE</span><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div></div><div class="art a-clip"></div><div class="art a-video"><div class="scene"><span class="rec">REC</span><span class="tc">00:00:12:08</span></div><div class="tl"><div class="tr v"><i style="width:30%"></i><i style="width:22%"></i><i style="width:40%"></i></div><div class="tr a"><i style="width:70%"></i><i style="width:24%"></i></div></div></div><div class="art a-product"><span class="drop"></span><div class="shadow"></div><span class="tag">SÉRUM</span></div></div></div>
-      <div class="bx s1"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12H3zM8 7V5h8v2"/></svg></div><h3>Реальні брифи</h3><p>Замовлення від брендів-партнерів і Demo Day перед замовниками.</p></div>
-      <div class="bx s2"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></div><h3>Ментор-практик</h3><p>Перевіряє кожне ДЗ і показує, як працює комерційний AI-продакшн.</p></div>
-      <div class="bx s3"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/></svg></div><h3>Перші клієнти</h3><p>Профіль на Upwork, прайс, шаблони договорів і листів англійською.</p></div>
-      <div class="bx s4"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 20c.8-3 3-4.5 6-4.5S13.2 17 14 20M10 20c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg></div><h3>Спільнота</h3><p>Чат випускників, обмін замовленнями і нові нейромережі щомісяця.</p></div>
-      <div class="bx s5"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M9 13l2 2 4-4"/></svg></div><h3>Документ і підтримка</h3><p>Документ про закінчення і 3 місяці кар'єрної підтримки.</p></div>
+      <div class="bx port"><span class="big g">70+</span><h3 style="font-size:26px">робіт у портфоліо</h3><p>Ти генеруєш контент щотижня: фото, ролики, креативи, персонажі. До кінця курсу збираєш 70+ робіт і шоурил.</p>
+        <div class="mos"><img src="videos/v-avatar.jpg" alt="" loading="lazy"><img src="videos/v-3d.jpg" alt="" loading="lazy"><img src="videos/v-clay.jpg" alt="" loading="lazy"><img src="videos/v-anime.jpg" alt="" loading="lazy"><img src="videos/v-street.jpg" alt="" loading="lazy"><img src="videos/v-folk.jpg" alt="" loading="lazy"><img src="videos/v-scifi.jpg" alt="" loading="lazy"><img src="videos/v-cinema.jpg" alt="" loading="lazy"></div></div>
+      <div class="bx hot"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12H3zM8 7V5h8v2"/></svg></div><h3>Реальні брифи</h3><p>Замовлення від брендів-партнерів і Demo Day перед замовниками.</p></div>
+      <div class="bx"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></div><h3>Ментор-практик</h3><p>Перевіряє кожне ДЗ і показує, як працює комерційний AI-продакшн.</p></div>
+      <div class="bx"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div><h3>Перші клієнти</h3><p>Профіль на Upwork, прайс, шаблони договорів і листів англійською.</p></div>
+      <div class="bx"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 20c.8-3 3-4.5 6-4.5S13.2 17 14 20M10 20c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg></div><h3>Спільнота</h3><p>Чат випускників, обмін замовленнями і нові нейромережі щомісяця.</p></div>
+      <div class="bx"><div class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M9 13l2 2 4-4"/></svg></div><h3>Документ і підтримка</h3><p>Документ про закінчення і 3 місяці кар'єрної підтримки.</p></div>
     </div>
   </div>
 </section>
 
-<!-- COMPARE -->
-<section class="soft">
+<section style="padding-top:0">
   <div class="wrap">
-    <span class="kicker">Чому не курс за $20</span>
-    <h2>Відео в записі дають інструменти. Ми даємо професію</h2>
-    <div class="compare">
+    <span class="tag">Чому не курс за $20</span>
+    <h2>Записи дають інструменти. <span class="g">Ми даємо професію</span></h2>
+    <div class="cmp">
       <div class="col bad"><h3>Звичайний курс у записі</h3><ul>
         <li><svg class="ico"><use href="#x"/></svg>Відео без зворотного зв'язку</li>
         <li><svg class="ico"><use href="#x"/></svg>Домашні завдання ніхто не перевіряє</li>
         <li><svg class="ico"><use href="#x"/></svg>Вигадані вправи замість замовлень</li>
-        <li><svg class="ico"><use href="#x"/></svg>Один урок про те, де шукати клієнтів</li>
+        <li><svg class="ico"><use href="#x"/></svg>Один урок про пошук клієнтів</li>
         <li><svg class="ico"><use href="#x"/></svg>Після курсу ти сам</li></ul></div>
       <div class="col good"><h3>AI Creator</h3><ul>
         <li><svg class="ico"><use href="#chk"/></svg>Живі заняття з ментором-практиком</li>
         <li><svg class="ico"><use href="#chk"/></svg>Кожне ДЗ з розбором</li>
         <li><svg class="ico"><use href="#chk"/></svg>Брифи від реальних брендів і Demo Day</li>
-        <li><svg class="ico"><use href="#chk"/></svg>2 тижні про продажі, ціни й англійську для клієнтів</li>
+        <li><svg class="ico"><use href="#chk"/></svg>2 тижні про продажі, ціни й англійську</li>
         <li><svg class="ico"><use href="#chk"/></svg>3 місяці кар'єрної підтримки після курсу</li></ul></div>
     </div>
   </div>
 </section>
 
-<!-- REVIEWS -->
-<section>
+<section style="padding-top:0">
   <div class="wrap">
-    <span class="kicker">Відгуки</span>
-    <h2>Студенти, які вже заробляють на AI</h2>
-    <div class="reviews">
-      <div class="rv"><div class="vid">Відеовідгук</div><div class="who"><b>Ім'я студента</b><span class="earn">перше замовлення</span></div><p>Ким був до курсу, що зробив і скільки заробив на першому замовленні.</p></div>
-      <div class="rv"><div class="vid">Відеовідгук</div><div class="who"><b>Ім'я студента</b><span class="earn">клієнт з США</span></div><p>Ким був до курсу, що зробив і скільки заробив на першому замовленні.</p></div>
-      <div class="rv"><div class="vid">Відеовідгук</div><div class="who"><b>Бренд-партнер</b><span class="earn">замовник</span></div><p>Що замовили у студентів і який результат отримали.</p></div>
+    <span class="tag">Відгуки</span>
+    <h2>Студенти, які вже <span class="g">заробляють на AI</span></h2>
+    <div class="revs">
+      <div class="rv"><div class="ph">Відеовідгук</div><div class="who"><b>Ім'я студента</b><span class="pill">перше замовлення</span></div><p>Ким був до курсу, що зробив і скільки заробив.</p></div>
+      <div class="rv"><div class="ph">Відеовідгук</div><div class="who"><b>Ім'я студента</b><span class="pill">клієнт з США</span></div><p>Ким був до курсу, що зробив і скільки заробив.</p></div>
+      <div class="rv"><div class="ph">Відеовідгук</div><div class="who"><b>Бренд-партнер</b><span class="pill">замовник</span></div><p>Що замовили у студентів і який результат отримали.</p></div>
     </div>
-    <span class="ph-note">Заглушка: замінити на реальні відгуки</span>
+    <span class="phnote">Заглушка: замінити на реальні відгуки</span>
   </div>
 </section>
 
-<!-- PRICING -->
-<section id="pricing" class="pricing">
+<section id="pricing" style="padding-top:0">
   <div class="wrap">
-    <span class="kicker">Вартість навчання</span>
-    <h2>Обери свій формат</h2>
-    <p class="lead">Оплата щомісяця або розстрочка без переплат.</p>
-    <div class="deadline">Ціна раннього запису до <b data-cfg="earlyUntil">30 листопада</b></div>
+    <span class="tag">Вартість навчання</span>
+    <h2>Обери <span class="g">свій формат</span></h2>
+    <p class="lead">Оплата щомісяця або розстрочка без переплат. Ціна раннього запису діє до <b data-cfg="earlyUntil">30 листопада</b>.</p>
     <div class="plans">
       <div class="plan">
         <div><h3>Старт</h3><p class="for">Для себе і свого бізнесу</p></div>
         <div><div class="old">38 400 грн</div><div class="price">31 200 <small>грн</small></div><div class="per">або 7 800 грн × 4 місяці</div></div>
         <ul><li><svg><use href="#chk"/></svg>Усі 9 модулів, живі заняття і записи</li><li><svg><use href="#chk"/></svg>Розбір ДЗ у групі</li><li><svg><use href="#chk"/></svg>Чат курсу</li><li class="off"><svg><use href="#x"/></svg>Реальні брифи і Demo Day</li><li class="off"><svg><use href="#x"/></svg>Кар'єрна підтримка</li></ul>
-        <a class="btn btn-line" href="#apply">Залишити заявку</a>
+        <a class="btn btn-ghost" href="#apply">Залишити заявку</a>
       </div>
       <div class="plan hot">
         <span class="badge">Найпопулярніший</span>
         <div><h3>Професія</h3><p class="for">Щоб заробляти на AI</p></div>
         <div><div class="old">50 400 грн</div><div class="price">40 800 <small>грн</small></div><div class="per">або 10 200 грн × 4 місяці</div></div>
         <ul><li><svg><use href="#chk"/></svg>Усе з тарифу «Старт»</li><li><svg><use href="#chk"/></svg>Особиста перевірка кожного ДЗ ментором</li><li><svg><use href="#chk"/></svg>Реальні брифи від брендів і Demo Day</li><li><svg><use href="#chk"/></svg>3 місяці кар'єрної підтримки</li><li><svg><use href="#chk"/></svg>Документ про закінчення</li></ul>
-        <a class="btn btn-main" href="#apply">Залишити заявку</a>
+        <a class="btn btn-hot" href="#apply">Залишити заявку</a>
       </div>
       <div class="plan">
         <div><h3>PRO</h3><p class="for">Максимум уваги ментора</p></div>
         <div><div class="old">67 200 грн</div><div class="price">55 200 <small>грн</small></div><div class="per">або 13 800 грн × 4 місяці</div></div>
-        <ul><li><svg><use href="#chk"/></svg>Усе з тарифу «Професія»</li><li><svg><use href="#chk"/></svg>4 консультації 1:1 з ментором</li><li><svg><use href="#chk"/></svg>Персональний розбір портфоліо і профілю на Upwork</li><li><svg><use href="#chk"/></svg>Особиста стратегія пошуку клієнтів у твоїй ніші</li><li><svg><use href="#chk"/></svg>Пріоритетні відповіді ментора в чаті</li></ul>
-        <a class="btn btn-line" href="#apply">Залишити заявку</a>
+        <ul><li><svg><use href="#chk"/></svg>Усе з тарифу «Професія»</li><li><svg><use href="#chk"/></svg>4 консультації 1:1 з ментором</li><li><svg><use href="#chk"/></svg>Персональний розбір портфоліо і профілю на Upwork</li><li><svg><use href="#chk"/></svg>Особиста стратегія пошуку клієнтів</li><li><svg><use href="#chk"/></svg>Пріоритетні відповіді ментора в чаті</li></ul>
+        <a class="btn btn-ghost" href="#apply">Залишити заявку</a>
       </div>
     </div>
-    <div class="guarantee"><div class="shield"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4z"/></svg></div><p><b>Не знаєш, який тариф обрати?</b> Залиш заявку: менеджер розпитає про твій досвід і цілі та підбере формат. Оплата щомісяця або розстрочка без переплат.</p></div>
+    <div class="help"><span class="ic"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4z"/></svg></span><p><b>Не знаєш, який тариф обрати?</b> Залиш заявку: менеджер розпитає про твій досвід і цілі та підбере формат.</p></div>
   </div>
 </section>
 
-<!-- GIFT -->
-<section>
+<section style="padding-top:0">
   <div class="wrap">
     <div class="gift">
       <div>
-        <h2>Безкоштовний урок у подарунок</h2>
-        <p>«Перший рекламний AI-ролик за 30 хвилин». Покроково: ідея, кадри, відео, озвучка. Надішлемо одразу після заявки.</p>
+        <span class="tag">Подарунок</span>
+        <h2>Безкоштовний урок <span class="g">«Перший AI-ролик за 30 хвилин»</span></h2>
+        <p>Покроково: ідея, кадри, відео, озвучка. Надішлемо одразу після заявки.</p>
+        <div style="margin-top:26px"><a class="btn btn-hot" href="#apply" data-intent="gift">Отримати урок <svg><use href="#arr"/></svg></a></div>
       </div>
-      <a class="btn" href="#apply" data-intent="gift">Отримати урок <svg><use href="#arr"/></svg></a>
+      <video data-src="videos/v-clay.mp4" poster="videos/v-clay.jpg" muted loop playsinline aria-label="Приклад AI-ролика"></video>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section id="faq" class="soft">
+<section id="faq" style="padding-top:0">
   <div class="wrap">
-    <span class="kicker">Питання</span>
-    <h2>Відповідаємо чесно</h2>
+    <span class="tag">Питання</span>
+    <h2>Відповідаємо <span class="g">чесно</span></h2>
     <div class="faq">
       <details><summary>Я ніколи не працював з AI. Впораюсь?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Так. Ми починаємо з нуля, а основи візуалу (світло, кадр, колір) проходимо раніше за складні інструменти. Більшість студентів приходять без досвіду.</div></details>
       <details><summary>Скільки часу потрібно на тиждень?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Два живі заняття по 1,5 години і 5–7 годин практики. Пропустив заняття, дивишся запис.</div></details>
-      <details><summary>Скільки коштують нейромережі?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Близько $30–60 на місяць. Покажемо безкоштовні тарифи і як економити кредити. Більшість мають безкоштовні або пробні тарифи для старту.</div></details>
+      <details><summary>Скільки коштують нейромережі?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Близько $30–60 на місяць. Покажемо безкоштовні тарифи і як економити кредити. Більшість сервісів мають пробні тарифи для старту.</div></details>
       <details><summary>Потрібен потужний комп'ютер?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Ні. Нейромережі працюють у хмарі, вистачить звичайного ноутбука та стабільного інтернету.</div></details>
-      <details><summary>Ви гарантуєте заробіток?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Дохід залежить від твоєї роботи, тому чесно: гарантувати суму не можемо. Ми даємо реальні брифи від брендів, Demo Day перед замовниками і 3 місяці кар'єрної підтримки після курсу.</div></details>
+      <details><summary>Ви гарантуєте заробіток?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Дохід залежить від твоєї роботи, тому гарантувати суму не можемо. Ми даємо реальні брифи від брендів, Demo Day перед замовниками і 3 місяці кар'єрної підтримки після курсу.</div></details>
       <details><summary>Нейромережі постійно змінюються. Курс не застаріє?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Програму оновлюємо щомісяця. А навички кадру, монтажу, реклами і продажів не застарівають, тому ти легко переходиш на нові сервіси.</div></details>
       <details><summary>Які сервіси використовуєте?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Лише міжнародні: Veo, Sora, Kling, Runway, Midjourney, ElevenLabs, HeyGen, ChatGPT, Claude та інші. Жодних російських сервісів.</div></details>
     </div>
   </div>
 </section>
 
-<!-- FORM -->
-<section id="apply">
+<section id="apply" style="padding-top:0">
   <div class="wrap final">
     <div>
-      <span class="kicker">Старт <span data-cfg="startDate">8 грудня</span></span>
-      <h2>Дізнайся, як AI може приносити дохід саме тобі</h2>
-      <p class="lead">Безкоштовна консультація 15 хвилин: розберемо твій досвід, підберемо тариф і надішлемо урок у подарунок.</p>
+      <span class="tag">Старт <span data-cfg="startDate">8 грудня</span></span>
+      <h2>Почни професію <span class="g">AI Creator</span></h2>
+      <p class="lead">Безкоштовна консультація: розберемо твій досвід, підберемо тариф, надішлемо детальну програму і урок у подарунок.</p>
       <div class="contacts">
         <div><span class="ci"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span><span data-cfg="phone">+380 00 000 00 00</span></div>
         <div><span class="ci"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></span><span data-cfg="instagram">@ai.creator.ua</span></div>
@@ -803,13 +590,13 @@
         <label class="f" for="f-name">Ім'я<input id="f-name" name="name" type="text" autocomplete="name" placeholder="Як до тебе звертатися"></label>
         <label class="f" for="f-phone">Телефон<input id="f-phone" name="phone" type="tel" autocomplete="tel" placeholder="+380"></label>
         <label class="f" for="f-intent">Що цікавить
-          <select id="f-intent" name="intent"><option value="consult">Безкоштовна консультація</option><option value="gift">Безкоштовний урок</option><option value="price">Ціни і розстрочка</option></select></label>
+          <select id="f-intent" name="intent"><option value="consult">Безкоштовна консультація</option><option value="program">Детальна програма в PDF</option><option value="gift">Безкоштовний урок</option><option value="price">Ціни і розстрочка</option></select></label>
         <label class="f" for="f-msg">Де зручніше спілкуватися
           <select id="f-msg" name="messenger"><option>Дзвінок</option><option>Viber</option><option>WhatsApp</option><option>Instagram</option></select></label>
-        <button class="btn btn-main" type="submit">Отримати консультацію <svg><use href="#arr"/></svg></button>
+        <button class="btn btn-hot" type="submit">Отримати консультацію <svg><use href="#arr"/></svg></button>
         <p class="consent">Натискаючи кнопку, ти погоджуєшся з політикою конфіденційності.</p>
       </form>
-      <div class="thanks" id="thanks" hidden>Дякуємо! Менеджер зателефонує протягом 15 хвилин у робочий час. Урок у подарунок надішлемо в обраний месенджер.</div>
+      <div class="thanks" id="thanks" hidden>Дякуємо! Менеджер зв'яжеться з тобою найближчим часом і надішле програму та урок у подарунок.</div>
     </div>
   </div>
 </section>
@@ -823,7 +610,7 @@
   </div>
 </footer>
 
-<div class="mcta"><a class="btn btn-main" href="#apply">Безкоштовна консультація</a></div>
+<div class="mcta"><a class="btn btn-hot" href="#apply">Безкоштовна консультація</a></div>
 
 <script>
   // ====== Налаштування: міняти тут ======
@@ -837,17 +624,32 @@
   };
   document.querySelectorAll('[data-cfg]').forEach(el => { const v = CONFIG[el.dataset.cfg]; if (v) el.textContent = v; });
 
-  // Відео: файли в папці videos/. Якщо файлу немає, лишається намальоване прев'ю.
-  document.querySelectorAll('video[data-src]').forEach(v => {
-    v.addEventListener('loadeddata', () => v.closest('.clip')?.classList.add('has-video'));
-    v.src = v.dataset.src;
-    if (v.autoplay) v.play().catch(() => {});
+  // Стрічка відео (дублюється для безкінечної прокрутки)
+  const REEL = ['street','3d','avatar','folk','anime','scifi','clay','cinema','vhs'];
+  const reel = document.getElementById('reel');
+  [...REEL, ...REEL].forEach(k => {
+    const v = document.createElement('video');
+    v.muted = true; v.loop = true; v.playsInline = true; v.poster = `videos/v-${k}.jpg`;
+    v.dataset.src = `videos/v-${k}.mp4`; v.setAttribute('aria-hidden', 'true');
+    reel.appendChild(v);
   });
-  document.querySelectorAll('.clip').forEach(c => {
+
+  // Відео вантажаться і грають лише коли видно на екрані
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    const v = e.target;
+    if (e.isIntersecting) { if (!v.getAttribute('src')) v.src = v.dataset.src; v.play().catch(() => {}); }
+    else if (!v.closest('.vcard.playing')) v.pause();
+  }), {rootMargin: '200px'});
+  document.querySelectorAll('video[data-src]').forEach(v => io.observe(v));
+
+  // Галерея: клік вмикає звук
+  document.querySelectorAll('.vcard').forEach(c => {
     const v = c.querySelector('video');
-    c.addEventListener('click', () => { if (!v.readyState) return; v.paused ? (v.muted = false, v.play()) : v.pause(); });
-    c.addEventListener('mouseenter', () => { if (v.readyState) v.play().catch(()=>{}); });
-    c.addEventListener('mouseleave', () => { if (v.readyState && v.muted) v.pause(); });
+    c.addEventListener('click', () => {
+      const on = !c.classList.contains('playing');
+      document.querySelectorAll('.vcard.playing').forEach(o => { o.classList.remove('playing'); o.querySelector('video').muted = true; });
+      if (on) { if (!v.getAttribute('src')) v.src = v.dataset.src; v.muted = false; v.currentTime = 0; v.play().catch(() => {}); c.classList.add('playing'); }
+    });
   });
 
   // Калькулятор доходу
@@ -863,7 +665,6 @@
   document.querySelectorAll('input[name=fmt]').forEach(r => r.addEventListener('change', calc));
   calc();
 
-  // Кнопка «урок у подарунок» обирає пункт у формі
   document.querySelectorAll('[data-intent]').forEach(a => a.addEventListener('click', () => { document.getElementById('f-intent').value = a.dataset.intent; }));
 
   // Форма
@@ -874,14 +675,13 @@
     if (!name) { form.name.focus(); return; }
     if (phone.length < 10) { form.phone.setCustomValidity('Перевір номер телефону'); form.phone.reportValidity(); return; }
     const data = Object.fromEntries(new FormData(form)); data.page = location.href;
-    if (CONFIG.formEndpoint) { try { await fetch(CONFIG.formEndpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); } catch (_) {} }
+    if (CONFIG.formEndpoint) { try { await fetch(CONFIG.formEndpoint, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)}); } catch (_) {} }
     form.hidden = true; document.getElementById('thanks').hidden = false;
   });
   form.phone.addEventListener('input', () => form.phone.setCustomValidity(''));
 
-  // Мобільна кнопка після першого екрана
   const m = document.querySelector('.mcta');
-  addEventListener('scroll', () => m.classList.toggle('show', scrollY > innerHeight * .8), {passive:true});
+  addEventListener('scroll', () => m.classList.toggle('show', scrollY > innerHeight * .8), {passive: true});
 </script>
 </body>
 </html>
