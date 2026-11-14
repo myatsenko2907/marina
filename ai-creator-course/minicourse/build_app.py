@@ -244,7 +244,21 @@ TEMPLATE = r"""<!doctype html>
   const LESSONS = __LESSONS__;
   const EXAMPLES = __EXAMPLES__;
   const exGrid = () => `<div class="exg">${EXAMPLES.map(([f, t, m]) => `<figure class="ex"><video data-src="media/vivix/${f}.mp4" poster="media/vivix/${f}.jpg" muted loop playsinline></video><figcaption><b>${esc(t)}</b><small>${esc(m)}</small></figcaption></figure>`).join('')}</div>`;
-  function liveVideos(){ const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { if (!v.getAttribute('src')) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause(); }), {rootMargin: '150px'}); document.querySelectorAll('video[data-src]').forEach(v => io.observe(v)); document.querySelectorAll('.ex').forEach(f => { if (f.dataset.tap) return; f.dataset.tap = 1; f.style.cursor = 'pointer'; f.addEventListener('click', () => { const v = f.querySelector('video'); if (!v.getAttribute('src')) v.src = v.dataset.src; if (v.paused || v.muted) { v.muted = false; v.play().catch(() => {}); } else v.pause(); }); }); }
+  // Відео вантажимо цілком через fetch і віддаємо плеєру як blob: так грає і в Safari на iPhone,
+  // навіть якщо сервер не віддає відео частинами (Range).
+  const blobCache = {};
+  function loadVideo(v, src){
+    if (v.dataset.loading) return v._ready || Promise.resolve();
+    v.dataset.loading = 1;
+    v._ready = (async () => {
+      try {
+        if (!blobCache[src]) { const r = await fetch(src); if (!r.ok) throw new Error(r.status); const buf = await r.arrayBuffer(); blobCache[src] = URL.createObjectURL(new Blob([buf], {type: 'video/mp4'})); }
+        v.src = blobCache[src];
+      } catch (_) { v.src = src; }
+    })();
+    return v._ready;
+  }
+  function liveVideos(){ const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { loadVideo(v, v.dataset.src).then(() => v.play().catch(() => {})); } else v.pause(); }), {rootMargin: '150px'}); document.querySelectorAll('video[data-src]').forEach(v => io.observe(v)); document.querySelectorAll('.ex').forEach(f => { if (f.dataset.tap) return; f.dataset.tap = 1; f.style.cursor = 'pointer'; f.addEventListener('click', () => { const v = f.querySelector('video'); loadVideo(v, v.dataset.src).then(() => { if (v.paused || v.muted) { v.muted = false; v.play().catch(() => {}); } else v.pause(); }); }); }); }
 
   // ====== Стан (лише в браузері учня) ======
   const store = {
@@ -380,7 +394,7 @@ TEMPLATE = r"""<!doctype html>
     $app.innerHTML = `<div class="wrap lesson">
       <nav class="crumbs"><a href="#home">Мої уроки</a><span>/</span><span>Урок ${l.n}</span></nav>
       <div class="lhead"><span class="tag">Урок ${l.n} з ${LESSONS.length}</span><h1>${esc(l.title)}</h1><p class="lead">${esc(l.subtitle)}</p></div>
-      <div class="video"><video id="vid" controls playsinline preload="metadata" poster="media/${l.id}.jpg"><source src="media/${l.id}.mp4" type="video/mp4"><track kind="captions" src="media/${l.id}.vtt" srclang="uk" label="Українська"></video></div>
+      <div class="video" style="position:relative"><video id="vid" controls playsinline preload="none" poster="media/${l.id}.jpg"><track kind="captions" src="media/${l.id}.vtt" srclang="uk" label="Українська"></video><div id="vload" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(18,19,23,.8);color:#fff;font-weight:800;font-size:14px;padding:10px 16px;border-radius:999px">Завантажуємо відео…</div></div>
       <div class="meta"><span class="chips">${l.tools.map(t => `<span>${esc(t)}</span>`).join('')}</span></div>
       <div class="res" style="margin-top:14px">${ic('chk')}<span>Результат уроку: ${esc(l.result)}</span></div>
       ${l.id === 'lesson-2' ? `<div style="margin-top:30px"><h3>Приклади: такі ролики роблять за формулою руху</h3>${exGrid()}</div>` : ''}
@@ -404,6 +418,8 @@ TEMPLATE = r"""<!doctype html>
       </div>
     </div>`;
     liveVideos();
+    { const v = document.getElementById('vid'), ld = document.getElementById('vload');
+      loadVideo(v, `media/${l.id}.mp4`).then(() => { ld.textContent = 'Натисни ▶'; v.addEventListener('play', () => ld.remove(), {once: true}); setTimeout(() => ld && ld.remove(), 2500); }); }
     document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
       document.querySelectorAll('.panel').forEach(p => p.hidden = p.dataset.p !== b.dataset.t);
