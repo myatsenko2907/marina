@@ -64,6 +64,8 @@ h2{font:800 50px/1.05 Unbounded;letter-spacing:-.035em;max-width:900px;margin-bo
 .outro .top,.outro .top b{color:#C9CBD2}
 .outro .sub{color:#C9CBD2}
 .outro h1{margin-top:60px}
+.real .list,.real .cmp,.real .grid,.real .prompt,.real .formula{max-width:850px}
+.real h1,.real h2{max-width:850px}
 .host{position:absolute;right:300px;bottom:78px;text-align:right;font:800 22px Unbounded;letter-spacing:-.02em}
 .host small{display:block;font:700 15px Manrope;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
 .task .host small,.outro .host small{color:#A3A6B0}
@@ -106,7 +108,7 @@ MOUTHS = [
 ]
 
 
-def slide_html(s, lesson):
+def slide_html(s, lesson, real=False):
     k = s["kind"]
     top = f'<div class="top"><b><i>AI</i>AI Creator · Старт</b><span>Урок {lesson["n"]}</span></div>'
     if k == "title":
@@ -126,8 +128,8 @@ def slide_html(s, lesson):
         body = f'<h2>{e(s["title"])}</h2><div class="grid">' + "".join(f"<div><b>{e(a)}</b><span>{e(b)}</span></div>" for a, b in s["items"]) + "</div>"
     elif k == "prompt":
         body = f'<h2>{e(s["title"])}</h2><div class="prompt">{e(s["prompt"])}</div>'
-    cls = {"task": "slide task", "outro": "slide outro", "title": "slide title"}.get(k, "slide")
-    return f'<!doctype html><html><head><meta charset="utf-8">{FONTS}<style>{CSS}</style></head><body><div class="{cls}">{top}{body}<div class="host">{HOST["name"]}<small>AI-ментор</small></div></div></body></html>'
+    cls = {"task": "slide task", "outro": "slide outro", "title": "slide title"}.get(k, "slide") + (" real" if real else "")
+    return f'<!doctype html><html><head><meta charset="utf-8">{FONTS}<style>{CSS}</style></head><body><div class="{cls}">{top}{body}<div class="host"{' style="right:350px"' if real else ''}>{HOST["name"]}<small>AI-ментор</small></div></div></body></html>'
 
 
 def run(cmd):
@@ -232,7 +234,10 @@ def make(lesson, avatar):
     full = WORK / f"{lid}-full.wav"
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(full)])
     # 2) слайди
-    jobs = [(slide_html(s, lesson), WORK / f"{lid}-s{i:02d}.png", (W, H), False) for i, s in enumerate(slides)]
+    avatar_mp4 = HERE / "media" / "vivix" / f"{lid}-avatar.mp4"
+    real = avatar_mp4.exists()
+    print(lid, "avatar:", "Vivix A1" if real else "мальований")
+    jobs = [(slide_html(s, lesson, real), WORK / f"{lid}-s{i:02d}.png", (W, H), False) for i, s in enumerate(slides)]
     render_pngs(jobs)
     # 3) кадри: слайд + аватар
     av_imgs = {k: Image.open(p).convert("RGBA").resize((236, 236), Image.LANCZOS) for k, p in avatar.items()}
@@ -241,7 +246,8 @@ def make(lesson, avatar):
     def frame(si, key):
         if (si, key) not in comp_cache:
             bg = Image.open(WORK / f"{lid}-s{si:02d}.png").convert("RGBA")
-            bg.alpha_composite(av_imgs[key], (W - 236 - 44, H - 236 - 40))
+            if not real:
+                bg.alpha_composite(av_imgs[key], (W - 236 - 44, H - 236 - 40))
             pth = WORK / f"{lid}-f{si:02d}-{key[0]}{key[1]}.jpg"
             bg.convert("RGB").save(pth, quality=92)
             comp_cache[(si, key)] = pth
@@ -261,7 +267,7 @@ def make(lesson, avatar):
             m = 0
         prev = m
         blink = "c" if (fi % 100) in (0, 1, 2) else "o"
-        entries.append(frame(si, (m, blink)))
+        entries.append(frame(si, (0, "o") if real else (m, blink)))
     # стискаємо однакові кадри поспіль у concat-список
     lines, i = [], 0
     while i < len(entries):
@@ -274,11 +280,36 @@ def make(lesson, avatar):
     flist = WORK / f"{lid}-frames.txt"
     flist.write_text("".join(lines))
     mp4 = OUT / f"{lid}.mp4"
-    run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(flist), "-i", str(full),
-         "-vf", f"fps={FPS},format=yuv420p", "-c:v", "libx264", "-preset", "slow", "-crf", "30", "-tune", "stillimage",
-         "-c:a", "aac", "-b:a", "96k", "-shortest", "-movflags", "+faststart", str(mp4)])
+    if real:
+        # картка з відео ведучої: скруглений прямокутник 280×380 з градієнтною рамкою
+        from PIL import ImageDraw
+        cw, ch, bw = 280, 380, 4
+        mask = Image.new("L", (cw, ch), 0); ImageDraw.Draw(mask).rounded_rectangle((0, 0, cw - 1, ch - 1), 28, fill=255)
+        mask.save(WORK / "av-mask.png")
+        ring = Image.new("RGBA", (cw + 2 * bw, ch + 2 * bw))
+        grad = Image.new("RGBA", ring.size)
+        for x in range(ring.size[0]):
+            q = x / ring.size[0]
+            c = (255, int(74 - 29 * min(1, q / .55)), int(28 + 92 * min(1, q / .55)), 255) if q < .55 else (255, int(45 + 131 * (q - .55) / .45), int(120 - 89 * (q - .55) / .45), 255)
+            ImageDraw.Draw(grad).line([(x, 0), (x, ring.size[1])], fill=c)
+        rmask = Image.new("L", ring.size, 0); ImageDraw.Draw(rmask).rounded_rectangle((0, 0, ring.size[0] - 1, ring.size[1] - 1), 32, fill=255)
+        ring.paste(grad, (0, 0), rmask); ring.save(WORK / "av-ring.png")
+        x0, y0 = W - cw - 44, H - ch - 40
+        fc = (f"[1:v]crop=660:896:6:40,scale={cw}:{ch},fps={FPS},format=rgba[av];[2:v]format=gray,scale={cw}:{ch}[m];[av][m]alphamerge[ava];"
+              f"[0:v]fps={FPS}[bg];[bg][3:v]overlay={x0 - bw}:{y0 - bw}[b1];[b1][ava]overlay={x0}:{y0}:shortest=1,format=yuv420p[v]")
+        run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(flist), "-i", str(avatar_mp4),
+             "-loop", "1", "-i", str(WORK / "av-mask.png"), "-loop", "1", "-i", str(WORK / "av-ring.png"), "-i", str(full),
+             "-filter_complex", fc, "-map", "[v]", "-map", "4:a", "-c:v", "libx264", "-preset", "slow", "-crf", "28",
+             "-c:a", "aac", "-b:a", "96k", "-shortest", "-movflags", "+faststart", str(mp4)])
+    else:
+        run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(flist), "-i", str(full),
+             "-vf", f"fps={FPS},format=yuv420p", "-c:v", "libx264", "-preset", "slow", "-crf", "30", "-tune", "stillimage",
+             "-c:a", "aac", "-b:a", "96k", "-shortest", "-movflags", "+faststart", str(mp4)])
     # обкладинка і субтитри
-    Image.open(frame(0, (0, "o"))).resize((960, 540)).save(OUT / f"{lid}.jpg", quality=86)
+    if real:
+        run(["ffmpeg", "-y", "-ss", "3", "-i", str(mp4), "-frames:v", "1", "-vf", "scale=960:-2", str(OUT / f"{lid}.jpg")])
+    else:
+        Image.open(frame(0, (0, "o"))).resize((960, 540)).save(OUT / f"{lid}.jpg", quality=86)
     (OUT / f"{lid}.vtt").write_text("WEBVTT\n\n" + "".join(f"{vtt_time(a)} --> {vtt_time(b)}\n{x}\n\n" for a, b, x in cues))
     print(lid, f"{t/60:.1f} min", f"{mp4.stat().st_size/1e6:.1f} MB")
 

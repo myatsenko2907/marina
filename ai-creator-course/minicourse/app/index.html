@@ -159,6 +159,13 @@
   .offer h3{font-size:24px}
   .offer .btn{background:#fff;color:var(--ink);justify-self:start}
 
+  .exg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:26px}
+  .ex{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:9/16;background:#111;max-width:100%}
+  .ex video{width:100%;height:100%;object-fit:cover}
+  .ex figcaption{position:absolute;left:0;right:0;bottom:0;padding:40px 12px 12px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff}
+  .ex b{display:block;font:700 14px/1.2 var(--display)}
+  .ex small{font-size:12px;opacity:.85}
+  @media (min-width:760px){.exg{grid-template-columns:repeat(6,1fr)}}
   footer{padding-block:30px 40px;border-top:1px solid var(--line);font-size:14px;color:var(--sub)}
   footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between}
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-weight:800;font-size:14px;z-index:60;box-shadow:0 14px 30px -12px rgba(0,0,0,.5)}
@@ -213,6 +220,9 @@
     host: {"name": "Ліна", "role": "AI-ментор курсу AI Creator"}
   };
   const LESSONS = [{"id": "lesson-1", "n": 1, "title": "Перше рекламне AI-фото", "subtitle": "Предметна зйомка без студії за 30 хвилин", "result": "3 рекламні фото твого товару і банер для соцмереж", "tools": ["Gemini (Nano Banana)", "ChatGPT або Claude", "Canva"], "guide": [["Що потрібно", ["Телефон з камерою", "Безкоштовний акаунт Google для Gemini (gemini.google.com)", "Безкоштовний акаунт Canva", "Будь-який товар удома: крем, свічка, чашка, навушники"]], ["Крок 1. Сфотографуй товар", ["Постав товар на світлий однотонний фон: аркуш паперу або стіл", "Знімай при денному світлі біля вікна, без спалаху", "Товар має бути в кадрі повністю, етикетка читається"]], ["Крок 2. Склади промпт за формулою", ["Об'єкт: «Залиш товар з фото без змін, включно з етикеткою»", "Сцена: де стоїть і що поруч (1–2 предмети)", "Світло: один з 4 рецептів нижче", "Камера: ракурс і фон", "Стиль: «реклама косметики», «каталог меблів», «реклама кави»"]], ["Крок 3. Згенеруй і покращ", ["Завантаж фото в Gemini і встав промпт", "Не сподобалось — змінюй одну частину формули за раз", "Обери 3 найкращі фото з різними сценами і світлом"]], ["Крок 4. Банер у Canva", ["Згенеруй варіант з фразою «вільне місце для тексту ліворуч»", "Canva → Створити дизайн → 1080×1350", "Заголовок до 5 слів, кнопка «Купити» або «Замовити»"]], ["4 рецепти світла", ["М'яке віконне — косметика, їжа, текстиль", "Золота година — напої, аксесуари, lifestyle", "Студійний софтбокс — техніка, ювелірка, каталог", "Контровий на темному фоні — преміум, парфуми, алкоголь"]]], "prompts": [["Косметика біля басейну", "Залиш товар з фото без змін, включно з етикеткою. Постав його на мокрий травертиновий камінь біля басейну. М'яке ранкове сонце зліва, легкі відблиски води. Ракурс 45 градусів, розмитий фон, 85 мм. Стиль преміальної реклами косметики."], ["Свічка або декор, затишок", "Залиш товар з фото без змін. Постав його на дерев'яний підвіконник поруч з гілкою евкаліпта і лляною серветкою. М'яке віконне світло, теплий ранок. Ракурс збоку, розмитий фон. Стиль lifestyle-реклами для Instagram."], ["Техніка, студійно", "Залиш товар з фото без змін. Постав його на матовий графітовий подіум. Студійне світло софтбоксом зверху і тонкий контровий контур. Чистий градієнтний фон. Ракурс 45 градусів. Стиль реклами Apple."], ["Напій або чашка, золота година", "Залиш товар з фото без змін. Постав його на столик літньої тераси, на фоні розмите море. Золота година, теплі довгі тіні, легкий серпанок. Макро, 85 мм. Стиль реклами напоїв."], ["Банер з місцем для тексту", "Залиш товар з фото без змін. Розмісти його праворуч у кадрі на однотонному пастельному фоні з м'якою тінню. Ліворуч залиш вільне місце для тексту. Студійне світло. Мінімалістичний стиль рекламного банера."]], "task": {"goal": "Зроби 3 рекламні фото свого товару і 1 банер.", "steps": ["Сфотографувала(в) товар на світлому фоні", "Зробила(в) фото №1: перша сцена і світло", "Зробила(в) фото №2: інша сцена і світло", "Зробила(в) фото №3: інший ракурс", "Зробила(в) банер у Canva 1080×1350"], "criteria": ["Товар упізнаваний, етикетка не зламана", "Три різні сцени або типи світла", "Без зайвих предметів і «пластику»", "На банері заголовок до 5 слів і кнопка"]}, "duration": 5}, {"id": "lesson-2", "n": 2, "title": "Перший рекламний AI-ролик", "subtitle": "Оживи своє фото і зроби відео для Reels", "result": "Вертикальний рекламний ролик 10–15 секунд з музикою", "tools": ["Kling або Veo (Gemini)", "Suno", "CapCut"], "guide": [["Що потрібно", ["3 фото з уроку 1", "Kling (klingai.com) або Gemini з Veo — безкоштовні кредити для старту", "Suno (suno.com) — безкоштовні генерації щодня", "CapCut на телефоні або комп'ютері"]], ["Крок 1. Обери кадри", ["Візьми 2–3 найкращі фото з уроку 1", "Найкраще оживають фото з чіткою сценою: вода, тканина, рослини, дим", "Фото має бути вертикальним або з запасом по краях"]], ["Крок 2. Оживи у Kling", ["Image to Video → завантаж фото", "Промпт за формулою: камера + рух у кадрі + атмосфера + темп", "Обов'язково: «товар не змінює форму і етикетку»", "Тривалість 5 с, 2–3 варіанти на кадр"]], ["Крок 3. Музика", ["Suno → Create → опиши стиль і тривалість", "Увімкни Instrumental", "Альтернатива: бібліотека звуків CapCut"]], ["Крок 4. Монтаж у CapCut", ["Новий проєкт 9:16", "Склей кліпи, обріж до 10–15 с", "Хук-текст у перші 2 секунди, великим шрифтом", "Музика, експорт 1080p, 30 fps"]], ["Словник руху", ["Slow push in — повільний наїзд", "Orbit 180° — облет навколо товару", "Pan left / right — панорама", "Static camera — рухаються лише світло й частинки", "Slow motion — уповільнення"]]], "prompts": [["Крапля і вода (косметика)", "Повільний наїзд камери до флакона. Крапля сироватки повільно падає і розбігається колами по воді. Сонячні відблиски м'яко рухаються по каменю. Товар не змінює форму і етикетку. Кінематографічно, повільний темп."], ["Орбіта навколо товару", "Камера повільно облітає товар на 180 градусів. Світло м'яко ковзає по поверхні, на фоні легкий боке. Товар нерухомий і не змінює форму. Преміальна реклама, плавний рух."], ["Затишок і дим (свічка, напій)", "Статична камера. Від свічки підіймається тонкий дим, полум'я легко тремтить, промені світла з вікна повільно рухаються. Товар не змінюється. Затишна атмосфера, повільний темп."], ["Розкриття з тіні", "Сцена починається в напівтемряві, світло плавно розкриває товар зліва направо. Легкий пил у промені світла. Повільний наїзд. Товар не змінює форму і етикетку. Драматична преміальна реклама."], ["Музика в Suno", "Light lo-fi chill beat, warm and modern, for a beauty product ad, 15 seconds, instrumental"]], "task": {"goal": "Зроби рекламний ролик 10–15 секунд зі своїх фото.", "steps": ["Оживила(в) 2–3 фото у Kling або Veo", "Згенерувала(в) музику в Suno або взяла(в) з CapCut", "Змонтувала(в) ролик 9:16 з хуком у перші 2 секунди", "Експортувала(в) 1080p", "Опублікувала(в) або зберегла(в) у портфоліо"], "criteria": ["Товар не деформується", "Плавний рух без мерехтіння", "Є хук-текст у перші 2 секунди", "Довжина 10–15 секунд, формат 9:16"]}, "duration": 4}];
+  const EXAMPLES = [["01-serum", "Сироватка біля басейну", "Наїзд + крапля"], ["02-candle", "Свічка на підвіконні", "Статика + дим"], ["03-headphones", "Навушники в студії", "Орбіта"], ["04-coffee", "Кава на терасі", "Золота година"], ["05-perfume", "Парфуми з тіні", "Розкриття світлом"], ["06-sneakers", "Кросівок", "Легкий поворот"]];
+  const exGrid = () => `<div class="exg">${EXAMPLES.map(([f, t, m]) => `<figure class="ex"><video data-src="media/vivix/${f}.mp4" poster="media/vivix/${f}.jpg" muted loop playsinline></video><figcaption><b>${esc(t)}</b><small>${esc(m)}</small></figcaption></figure>`).join('')}</div>`;
+  function liveVideos(){ const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { if (!v.getAttribute('src')) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause(); }), {rootMargin: '150px'}); document.querySelectorAll('video[data-src]').forEach(v => io.observe(v)); }
 
   // ====== Стан (лише в браузері учня) ======
   const store = {
@@ -265,6 +275,12 @@
     </div></section>
 
     <section style="padding-top:0"><div class="wrap">
+      <span class="tag">Урок 2</span><h2>Такі ролики ти навчишся робити <span class="g">з одного фото</span></h2>
+      <p class="lead">Усі приклади згенеровані нейромережею: без камери, студії і моделей.</p>
+      ${exGrid()}
+    </div></section>
+
+    <section style="padding-top:0"><div class="wrap">
       <span class="tag">Формат</span><h2>Що в кожному <span class="g">уроці</span></h2>
       <div class="inside">
         <div class="ins"><div class="ic">${ic('play')}</div><h3>Відео з AI-ментором</h3><p>4–5 хвилин: пояснення, приклади і покрокова інструкція.</p></div>
@@ -309,6 +325,7 @@
       if (CONFIG.accessCodes.includes(c)) { state.access = true; save(); toast('Доступ відкрито'); location.hash = '#home'; route(); }
       else document.getElementById('codeerr').hidden = false;
     });
+    liveVideos();
     if (!CONFIG.payUrl) document.getElementById('paybtn').addEventListener('click', ev => { ev.preventDefault(); document.getElementById('code').focus(); toast('Посилання на оплату ще не підключене'); });
   }
 
@@ -344,6 +361,7 @@
       <div class="video"><video id="vid" controls playsinline preload="metadata" poster="media/${l.id}.jpg"><source src="media/${l.id}.mp4" type="video/mp4"><track kind="captions" src="media/${l.id}.vtt" srclang="uk" label="Українська"></video></div>
       <div class="meta"><span class="chips">${l.tools.map(t => `<span>${esc(t)}</span>`).join('')}</span></div>
       <div class="res" style="margin-top:14px">${ic('chk')}<span>Результат уроку: ${esc(l.result)}</span></div>
+      ${l.id === 'lesson-2' ? `<div style="margin-top:30px"><h3>Приклади: такі ролики роблять за формулою руху</h3>${exGrid()}</div>` : ''}
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-t="guide">Конспект</button>
         <button role="tab" aria-selected="false" data-t="prompts">Промпти</button>
@@ -362,6 +380,7 @@
         <span class="note" id="donehint">${Object.values(checks).filter(Boolean).length} з ${l.task.steps.length} кроків завдання виконано</span>
       </div>
     </div>`;
+    liveVideos();
     document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
       document.querySelectorAll('.panel').forEach(p => p.hidden = p.dataset.p !== b.dataset.t);

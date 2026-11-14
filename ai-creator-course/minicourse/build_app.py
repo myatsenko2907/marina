@@ -15,6 +15,8 @@ def minutes(lid):
     return max(1, round(float(out or 0) / 60))
 
 
+EXAMPLES = [("01-serum", "Сироватка біля басейну", "Наїзд + крапля"), ("02-candle", "Свічка на підвіконні", "Статика + дим"), ("03-headphones", "Навушники в студії", "Орбіта"), ("04-coffee", "Кава на терасі", "Золота година"), ("05-perfume", "Парфуми з тіні", "Розкриття світлом"), ("06-sneakers", "Кросівок", "Легкий поворот")]
+
 data = [{k: l[k] for k in ("id", "n", "title", "subtitle", "result", "tools", "guide", "prompts", "task")} | {"duration": minutes(l["id"])} for l in LESSONS]
 
 TEMPLATE = r"""<!doctype html>
@@ -178,6 +180,13 @@ TEMPLATE = r"""<!doctype html>
   .offer h3{font-size:24px}
   .offer .btn{background:#fff;color:var(--ink);justify-self:start}
 
+  .exg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:26px}
+  .ex{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:9/16;background:#111;max-width:100%}
+  .ex video{width:100%;height:100%;object-fit:cover}
+  .ex figcaption{position:absolute;left:0;right:0;bottom:0;padding:40px 12px 12px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff}
+  .ex b{display:block;font:700 14px/1.2 var(--display)}
+  .ex small{font-size:12px;opacity:.85}
+  @media (min-width:760px){.exg{grid-template-columns:repeat(6,1fr)}}
   footer{padding-block:30px 40px;border-top:1px solid var(--line);font-size:14px;color:var(--sub)}
   footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between}
   .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-weight:800;font-size:14px;z-index:60;box-shadow:0 14px 30px -12px rgba(0,0,0,.5)}
@@ -232,6 +241,9 @@ TEMPLATE = r"""<!doctype html>
     host: __HOST__
   };
   const LESSONS = __LESSONS__;
+  const EXAMPLES = __EXAMPLES__;
+  const exGrid = () => `<div class="exg">${EXAMPLES.map(([f, t, m]) => `<figure class="ex"><video data-src="media/vivix/${f}.mp4" poster="media/vivix/${f}.jpg" muted loop playsinline></video><figcaption><b>${esc(t)}</b><small>${esc(m)}</small></figcaption></figure>`).join('')}</div>`;
+  function liveVideos(){ const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { if (!v.getAttribute('src')) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause(); }), {rootMargin: '150px'}); document.querySelectorAll('video[data-src]').forEach(v => io.observe(v)); }
 
   // ====== Стан (лише в браузері учня) ======
   const store = {
@@ -284,6 +296,12 @@ TEMPLATE = r"""<!doctype html>
     </div></section>
 
     <section style="padding-top:0"><div class="wrap">
+      <span class="tag">Урок 2</span><h2>Такі ролики ти навчишся робити <span class="g">з одного фото</span></h2>
+      <p class="lead">Усі приклади згенеровані нейромережею: без камери, студії і моделей.</p>
+      ${exGrid()}
+    </div></section>
+
+    <section style="padding-top:0"><div class="wrap">
       <span class="tag">Формат</span><h2>Що в кожному <span class="g">уроці</span></h2>
       <div class="inside">
         <div class="ins"><div class="ic">${ic('play')}</div><h3>Відео з AI-ментором</h3><p>4–5 хвилин: пояснення, приклади і покрокова інструкція.</p></div>
@@ -328,6 +346,7 @@ TEMPLATE = r"""<!doctype html>
       if (CONFIG.accessCodes.includes(c)) { state.access = true; save(); toast('Доступ відкрито'); location.hash = '#home'; route(); }
       else document.getElementById('codeerr').hidden = false;
     });
+    liveVideos();
     if (!CONFIG.payUrl) document.getElementById('paybtn').addEventListener('click', ev => { ev.preventDefault(); document.getElementById('code').focus(); toast('Посилання на оплату ще не підключене'); });
   }
 
@@ -363,6 +382,7 @@ TEMPLATE = r"""<!doctype html>
       <div class="video"><video id="vid" controls playsinline preload="metadata" poster="media/${l.id}.jpg"><source src="media/${l.id}.mp4" type="video/mp4"><track kind="captions" src="media/${l.id}.vtt" srclang="uk" label="Українська"></video></div>
       <div class="meta"><span class="chips">${l.tools.map(t => `<span>${esc(t)}</span>`).join('')}</span></div>
       <div class="res" style="margin-top:14px">${ic('chk')}<span>Результат уроку: ${esc(l.result)}</span></div>
+      ${l.id === 'lesson-2' ? `<div style="margin-top:30px"><h3>Приклади: такі ролики роблять за формулою руху</h3>${exGrid()}</div>` : ''}
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-t="guide">Конспект</button>
         <button role="tab" aria-selected="false" data-t="prompts">Промпти</button>
@@ -381,6 +401,7 @@ TEMPLATE = r"""<!doctype html>
         <span class="note" id="donehint">${Object.values(checks).filter(Boolean).length} з ${l.task.steps.length} кроків завдання виконано</span>
       </div>
     </div>`;
+    liveVideos();
     document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
       document.querySelectorAll('.panel').forEach(p => p.hidden = p.dataset.p !== b.dataset.t);
@@ -438,6 +459,6 @@ TEMPLATE = r"""<!doctype html>
 </html>
 """
 
-html = TEMPLATE.replace("__LESSONS__", json.dumps(data, ensure_ascii=False)).replace("__HOST__", json.dumps(HOST, ensure_ascii=False))
+html = TEMPLATE.replace("__EXAMPLES__", json.dumps(EXAMPLES, ensure_ascii=False)).replace("__LESSONS__", json.dumps(data, ensure_ascii=False)).replace("__HOST__", json.dumps(HOST, ensure_ascii=False))
 (HERE / "app" / "index.html").write_text(html)
 print("ok", len(html))
