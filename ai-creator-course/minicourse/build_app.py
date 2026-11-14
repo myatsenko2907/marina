@@ -384,6 +384,7 @@ TEMPLATE = r"""<!doctype html>
       <div class="meta"><span class="chips">${l.tools.map(t => `<span>${esc(t)}</span>`).join('')}</span></div>
       <div class="res" style="margin-top:14px">${ic('chk')}<span>Результат уроку: ${esc(l.result)}</span></div>
       ${l.id === 'lesson-2' ? `<div style="margin-top:30px"><h3>Приклади: такі ролики роблять за формулою руху</h3>${exGrid()}</div>` : ''}
+      ${l.id === 'lesson-3' ? `<div style="margin-top:30px"><h3>Готовий мультфільм з уроку</h3><div class="exg" style="grid-template-columns:repeat(auto-fill,minmax(160px,220px))"><figure class="ex"><video data-src="media/vivix/raccoon-final.mp4" poster="media/vivix/raccoon-final.jpg" muted loop playsinline controls></video><figcaption><b>Ракета-1</b><small>30 секунд · 5 сцен · 1 герой</small></figcaption></figure></div></div>` : ''}
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-t="guide">Конспект</button>
         <button role="tab" aria-selected="false" data-t="prompts">Промпти</button>

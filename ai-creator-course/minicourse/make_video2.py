@@ -117,6 +117,17 @@ def make(lesson, avatar):
     pl = WORK / f"{lid}-parts.txt"; pl.write_text("".join(f"file '{p}'\n" for p in parts))
     base = WORK / f"{lid}-base.mp4"
     enc(["-f", "concat", "-safe", "0", "-i", str(pl), "-c", "copy", str(base)])
+    mp4 = OUT / f"{lid}.mp4"
+    others_real = any((HERE / "media" / "vivix" / f"{l['id']}-avatar.mp4").exists() for l in LESSONS if l["id"] != lid)
+    if not real and others_real:
+        # у цьому уроці ще немає справжньої ведучої — не змішуємо з мальованою, лише слайди і демо
+        print(lid, "ведуча: без аватара (чекаємо Vivix)")
+        enc(["-i", str(base), "-i", str(full), "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "slow", "-crf", "27",
+             "-c:a", "aac", "-b:a", "96k", "-t", f"{t:.3f}", "-movflags", "+faststart", str(mp4)])
+        enc(["-ss", "2", "-i", str(mp4), "-frames:v", "1", "-vf", "scale=960:-2", str(OUT / f"{lid}.jpg")])
+        (OUT / f"{lid}.vtt").write_text("WEBVTT\n\n" + "".join(f"{mv.vtt_time(a)} --> {mv.vtt_time(b)}\n{x}\n\n" for a, b, x in cues))
+        print(lid, f"{t / 60:.1f} хв", f"{mp4.stat().st_size / 1e6:.1f} МБ")
+        return
     # доріжка ведучої
     if real:
         track, crop = avatar_mp4, "crop=660:896:6:40,"
