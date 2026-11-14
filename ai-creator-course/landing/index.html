@@ -304,6 +304,143 @@
 
 
 
+
+  /* ===== v4: насичений дизайн ===== */
+  .hero{position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:-20% -10% auto -10%;height:120%;z-index:-1;background:
+    radial-gradient(38% 42% at 82% 28%,rgba(255,79,31,.22),transparent 70%),
+    radial-gradient(30% 36% at 62% 78%,rgba(255,201,60,.28),transparent 70%),
+    radial-gradient(34% 40% at 98% 70%,rgba(124,198,255,.30),transparent 70%),
+    radial-gradient(30% 30% at 8% 8%,rgba(215,255,59,.25),transparent 70%)}
+  .hero .sub{font-size:18px;color:var(--sub);max-width:600px;margin:-6px 0 22px}
+  .hero .sub b{color:var(--ink)}
+  .proof{display:flex;align-items:center;gap:14px;margin-top:22px;flex-wrap:wrap}
+  .avs{display:flex}
+  .avs i{width:38px;height:38px;border-radius:50%;border:3px solid #fff;margin-left:-10px;display:grid;place-items:center;font:800 13px var(--text);font-style:normal;color:#fff}
+  .avs i:first-child{margin-left:0}
+  .proof p{font-size:14px;color:var(--sub);line-height:1.35}
+  .proof b{color:var(--ink)}
+  /* AI-студія */
+  .studio{position:relative;background:#fff;border-radius:24px;box-shadow:0 40px 80px -40px rgba(21,23,28,.45),0 0 0 1px rgba(21,23,28,.06);overflow:hidden}
+  .st-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--sub)}
+  .st-bar i{width:10px;height:10px;border-radius:50%;background:#E3E5EA}
+  .st-bar i:nth-child(1){background:#FF6159}.st-bar i:nth-child(2){background:#FFBD2E}.st-bar i:nth-child(3){background:#28C941}
+  .st-bar span{margin-left:auto;font-size:12px;color:var(--accent);background:var(--accent-soft);padding:4px 8px;border-radius:6px}
+  .prompt{margin:14px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:14px;font-weight:600}
+  .prompt .typed{flex:1;min-width:0;white-space:nowrap;overflow:hidden;border-right:2px solid var(--accent);animation:type 7s steps(48) infinite,caret .8s step-end infinite;width:0;max-width:100%}
+  @keyframes type{0%{width:0}55%,100%{width:100%}}
+  @keyframes caret{50%{border-color:transparent}}
+  .prompt .go{flex:none;width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center}
+  .prompt .go svg{width:16px;height:16px}
+  .gen{margin:0 14px;display:flex;gap:10px;align-items:center;font-size:12px;font-weight:700;color:var(--sub)}
+  .gen .barw{flex:1;height:6px;border-radius:6px;background:var(--soft);overflow:hidden}
+  .gen .barw i{display:block;height:100%;width:30%;background:linear-gradient(90deg,var(--accent),#FFB03A);border-radius:6px;animation:load 7s ease-in-out infinite}
+  @keyframes load{0%{width:4%}60%,100%{width:100%}}
+  .tiles{display:grid;grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:120px 120px;gap:8px;padding:14px}
+  .tiles .art{border-radius:12px}
+  .tiles .t1{grid-row:span 2}
+  .chip-f{position:absolute;z-index:3;background:#fff;border-radius:14px;padding:10px 12px;box-shadow:0 16px 30px -12px rgba(21,23,28,.3);font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center;line-height:1.2}
+  .chip-f small{display:block;font-weight:600;color:var(--sub);font-size:11px}
+  .chip-f .sq{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;font-size:12px}
+  .cf1{left:-14px;bottom:28px;animation:bob 5s ease-in-out infinite}
+  .cf2{right:-12px;top:70px;animation:bob 6s ease-in-out infinite reverse}
+  @keyframes bob{50%{transform:translateY(-8px)}}
+  .hero-media{padding:0 6px}
+
+  /* професія */
+  .prof{display:grid;gap:28px;margin-top:36px}
+  .def{background:var(--ink);color:#fff;border-radius:28px;padding:30px;position:relative;overflow:hidden}
+  .def::after{content:"";position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,79,31,.55),transparent 70%)}
+  .def h3{font-size:clamp(22px,3vw,30px);margin-bottom:14px}
+  .def h3 mark{background:none;color:var(--lime)}
+  .def p{color:#C9CCD3;max-width:560px;position:relative;z-index:1}
+  .where{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;position:relative;z-index:1}
+  .where span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700}
+  .does{display:grid;gap:12px}
+  .do{border-radius:20px;padding:22px;display:grid;grid-template-columns:52px 1fr;gap:14px;align-items:start}
+  .do .ic2{width:52px;height:52px;border-radius:16px;background:#fff;display:grid;place-items:center}
+  .do p{font-size:14px;color:#4A4F5A;margin-top:4px}
+  .c1{background:#FFE7DE}.c1 .ic2{color:#FF4F1F}
+  .c2{background:#FFF3C9}.c2 .ic2{color:#C88A00}
+  .c3{background:#DDF0FF}.c3 .ic2{color:#1F7AD6}
+  .c4{background:#EAF8C9}.c4 .ic2{color:#4F8A00}
+  .bigstats{display:grid;gap:12px;margin-top:28px}
+  .bs{border-radius:22px;padding:24px;display:grid;gap:6px}
+  .bs b{font:800 clamp(36px,5vw,54px)/1 var(--display)}
+  .bs p{font-size:14px;font-weight:600}
+  .bs small{font-size:12px;opacity:.7}
+  .bs.o{background:var(--accent);color:#fff}
+  .bs.y{background:#FFC93C;color:var(--ink)}
+  .bs.l{background:var(--lime);color:var(--ink)}
+  .ladder{margin-top:28px;display:grid;gap:12px}
+  .rung{display:grid;grid-template-columns:1fr;gap:14px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+  .rung .lv{font:800 12px var(--text);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-radius:8px;background:var(--soft)}
+  .rung .sum{font:800 20px var(--display);color:var(--accent)}
+  .rung .lv{justify-self:start}
+  .rung p{font-size:14px;color:var(--sub)}
+  .rung h4{font:700 16px var(--display)}
+
+  /* bento */
+  .bento{display:grid;gap:12px;margin-top:40px}
+  .bx{border-radius:24px;padding:26px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;min-height:180px}
+  .bx h3{font-size:22px}
+  .bx p{font-size:15px;color:var(--sub);max-width:420px}
+  .bx .n{font:800 clamp(54px,8vw,92px)/.9 var(--display);color:var(--accent)}
+  .bx.port{background:var(--ink);color:#fff}
+  .bx.port p{color:#C9CCD3}
+  .mosaic{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:auto;padding-top:14px}
+  .mosaic .art{aspect-ratio:1;border-radius:10px;max-width:100%}
+  .bx.s1{background:#FFF3C9}.bx.s2{background:#DDF0FF}.bx.s3{background:#EAF8C9}.bx.s4{background:#FFE7DE}.bx.s5{background:var(--soft)}
+  .bx .ic3{width:46px;height:46px;border-radius:14px;background:#fff;display:grid;place-items:center}
+
+  /* картки «для кого» кольорові */
+  .grid-4 .card:nth-child(1){background:#FFE7DE;border-color:transparent}
+  .grid-4 .card:nth-child(2){background:#DDF0FF;border-color:transparent}
+  .grid-4 .card:nth-child(3){background:#FFF3C9;border-color:transparent}
+  .grid-4 .card:nth-child(4){background:#EAF8C9;border-color:transparent}
+  .grid-4 .card .ic{background:#fff}
+  .grid-4 .card p{color:#4A4F5A}
+
+  /* живі прев'ю */
+  .a-product::before{animation:float 4s ease-in-out infinite}
+  .a-product::after{animation:float 4s ease-in-out infinite}
+  .a-product .drop{position:absolute;left:50%;top:-6%;width:4%;aspect-ratio:.7;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#F6C76A;transform:translateX(-50%);animation:drop 2.8s ease-in infinite;z-index:2}
+  @keyframes drop{0%{top:-6%;opacity:0}15%{opacity:1}70%{top:30%;opacity:1}75%,100%{top:30%;opacity:0}}
+  @keyframes float{50%{translate:0 -4px}}
+  .a-ugc .face,.a-ugc .hair{animation:talk 1.6s ease-in-out infinite}
+  @keyframes talk{50%{translate:0 -3px}}
+  .a-ugc .cap b{animation:capin 3s steps(1) infinite}
+  @keyframes capin{0%{opacity:0}20%,100%{opacity:1}}
+  .a-mascot .m,.a-mascot .smile{animation:bounce 1.8s cubic-bezier(.3,.6,.4,1) infinite}
+  @keyframes bounce{50%{translate:0 -10%}}
+  .a-fashion .fig{animation:sway 5s ease-in-out infinite;transform-origin:50% 100%}
+  @keyframes sway{50%{rotate:3deg}}
+  .a-infl .ring{animation:glow 2.4s ease-in-out infinite}
+  @keyframes glow{50%{box-shadow:0 0 50px rgba(242,239,230,.6)}}
+  .a-video .scene{animation:sun 9s ease-in-out infinite alternate;background-size:100% 100%,100% 100%}
+  @keyframes sun{to{background-position:0 -8px,0 0;filter:saturate(1.25)}}
+
+  @media (min-width:720px){
+    .does{grid-template-columns:1fr 1fr}
+    .bigstats{grid-template-columns:repeat(3,1fr)}
+    .bento{grid-template-columns:repeat(3,1fr)}
+    .bx.port{grid-column:span 2;grid-row:span 2}
+    .ladder{grid-template-columns:repeat(3,1fr)}
+    .rung{grid-template-columns:1fr;align-items:start}
+  }
+  @media (min-width:980px){
+    .prof{grid-template-columns:1fr 1.1fr;align-items:stretch}
+    .tiles{grid-template-rows:140px 140px}
+  }
+
+  .hero-grid>*{min-width:0}
+  .tiles>div{position:relative;min-width:0}
+  .tiles .art{position:absolute;inset:0}
+  .hero h1{font-size:clamp(32px,5vw,60px)}
+  .cf2{top:auto;bottom:-16px;right:-10px}
+  .cf1{bottom:auto;top:-20px;left:-14px}
+  @media (max-width:420px){.cf2{display:none}.tiles{grid-template-rows:96px 96px}}
+
   @media (min-width:720px){
     .gallery{grid-template-columns:repeat(3,1fr)}
     .grid-4{grid-template-columns:repeat(2,1fr)}
@@ -362,26 +499,38 @@
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="kicker">Онлайн-професія · 4 місяці</span>
-      <h1>Заробляй на <mark>AI-відео</mark> для брендів</h1>
+      <span class="kicker">Нова професія 2026</span>
+      <h1>Стань <mark>AI Creator</mark> і заробляй на професії майбутнього</h1>
+      <p class="sub"><b>AI Creator</b> створює рекламні відео, фото та AI-аватарів для брендів за допомогою нейромереж: без камери, студії й акторів. Бізнес уже платить за це, а фахівців на ринку ще мало.</p>
       <ul class="checks">
-        <li><svg class="ico"><use href="#chk"/></svg>Навчишся робити рекламні ролики, фото й AI-аватари для бізнесу</li>
-        <li><svg class="ico"><use href="#chk"/></svg>Зробиш реальні замовлення від брендів ще під час навчання</li>
-        <li><svg class="ico"><use href="#chk"/></svg>Вийдеш на клієнтів з України, США та Європи з портфоліо з 10+ робіт</li>
+        <li><svg class="ico"><use href="#chk"/></svg>З нуля до професії за 4 місяці: живі заняття з ментором-практиком</li>
+        <li><svg class="ico"><use href="#chk"/></svg>Портфоліо з 70+ робіт: генеруєш контент щотижня</li>
+        <li><svg class="ico"><use href="#chk"/></svg>Реальні замовлення від брендів ще під час навчання</li>
       </ul>
       <div class="cta-row">
         <a class="btn btn-main" href="#apply">Отримати безкоштовну консультацію <svg><use href="#arr"/></svg></a>
-        <a class="btn btn-line" href="#works">Дивитися роботи</a>
+        <a class="btn btn-line" href="#profession">Що це за професія</a>
       </div>
-      <p class="promise"><span class="dot"></span>Передзвонимо протягом 15 хвилин у робочий час</p>
+      <div class="proof">
+        <div class="avs"><i style="background:#FF4F1F">О</i><i style="background:#1F7AD6">А</i><i style="background:#C88A00">М</i><i style="background:#4F8A00">Д</i></div>
+        <p><b>Група до 16 людей</b><br>Передзвонимо протягом 15 хвилин</p>
+      </div>
     </div>
     <div class="hero-media">
-      <div class="showreel">
-        <div class="art a-video"><div class="scene"><span class="rec">REC</span><span class="tc">00:00:12:08</span><div class="play"><svg viewBox="0 0 24 24" fill="#0F0F11"><path d="M6 4l14 8-14 8z"/></svg></div></div><div class="tl"><div class="tr v"><i style="width:30%"></i><i style="width:22%"></i><i style="width:40%"></i></div><div class="tr a"><i style="width:70%"></i><i style="width:24%"></i></div><div class="tr s"><i style="width:18%"></i><i style="width:12%"></i><i style="width:30%"></i></div></div></div>
-        <video data-src="videos/00-showreel.mp4" muted loop playsinline autoplay preload="none"></video>
+      <div class="studio" aria-label="Як працює AI Creator: промпт і результат">
+        <div class="st-bar"><i></i><i></i><i></i>AI Studio<span>Veo · Kling · Nano Banana</span></div>
+        <div class="prompt"><span class="typed">Рекламний ролик сироватки, золоте світло, макро, повільна крапля</span><span class="go"><svg><use href="#arr"/></svg></span></div>
+        <div class="gen">Генерація<span class="barw"><i></i></span>4 варіанти</div>
+        <div class="tiles">
+          <div class="t1"><div class="art a-product"><span class="drop"></span><div class="shadow"></div><span class="tag">SÉRUM</span></div></div>
+          <div><div class="art a-ugc"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><p class="cap"><b>3 тижні шукала цей крем</b></p></div></div>
+          <div><div class="art a-mascot"><div class="m"></div><div class="smile"></div></div></div>
+          <div><div class="art a-fashion"><div class="arch"></div><div class="fig"></div></div></div>
+          <div><div class="art a-infl"><span class="ui">● LIVE</span><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div></div></div>
+        </div>
       </div>
-      <div class="floating fl-1"><div><b>+329%</b>попит на AI-відео<br>на Upwork за рік</div></div>
-      <div class="floating fl-2"><div><b>$150–1200</b>за один рекламний<br>AI-ролик</div></div>
+      <div class="chip-f cf1"><span class="sq" style="background:var(--ok)"><svg class="ico" style="width:16px;height:16px"><use href="#chk"/></svg></span><div>Ролик готовий за 2 год<small>замість 2 тижнів зйомок</small></div></div>
+      <div class="chip-f cf2"><span class="sq" style="background:var(--accent)">$</span><div>$150–1200<small>за рекламний AI-ролик</small></div></div>
     </div>
   </div>
 </section>
@@ -390,8 +539,40 @@
   <div class="strip-in"><span>Veo</span><span>Sora</span><span>Kling</span><span>Runway</span><span>Midjourney</span><span>Nano Banana</span><span>Flux</span><span>Higgsfield</span><span>ElevenLabs</span><span>HeyGen</span><span>Suno</span><span>ChatGPT</span><span>Claude</span><span>Veo</span><span>Sora</span><span>Kling</span><span>Runway</span><span>Midjourney</span><span>Nano Banana</span><span>Flux</span><span>Higgsfield</span><span>ElevenLabs</span><span>HeyGen</span><span>Suno</span><span>ChatGPT</span><span>Claude</span></div>
 </div>
 
+<!-- PROFESSION -->
+<section id="profession">
+  <div class="wrap">
+    <span class="kicker">Професія AI Creator</span>
+    <h2>Хто такий AI Creator і чому на нього такий попит</h2>
+    <p class="lead">Ще 2 роки тому такої професії не було. Сьогодні бренди замовляють AI-рекламу щотижня, бо це у 5–10 разів швидше і дешевше за класичну зйомку.</p>
+    <div class="prof">
+      <div class="def">
+        <h3>AI Creator: <mark>режисер, оператор і дизайнер</mark> в одній людині</h3>
+        <p>Ти отримуєш бриф від бренду, пишеш сценарій з ChatGPT або Claude, генеруєш кадри в Midjourney і Nano Banana, оживлюєш їх у Veo чи Kling, додаєш голос в ElevenLabs і монтуєш готовий ролик. Те, що раніше робила команда з 10 людей, тепер робиш ти за день.</p>
+        <div class="where"><span>Рекламні агенції</span><span>Бренди та e-commerce</span><span>SMM-агенції</span><span>Фриланс: Upwork, Fiverr</span><span>Своя AI-студія</span></div>
+      </div>
+      <div class="does">
+        <div class="do c1"><div class="ic2"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg></div><div><h3>Рекламні відео</h3><p>Продуктові ролики, промо для Meta й TikTok Ads, кліпи</p></div></div>
+        <div class="do c2"><div class="ic2"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></div><div><h3>AI-фото</h3><p>Предметна зйомка, fashion, картки для маркетплейсів без студії</p></div></div>
+        <div class="do c3"><div class="ic2"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></div><div><h3>AI-аватари та UGC</h3><p>Віртуальні ведучі, відгуки «від покупця», AI-інфлюенсери</p></div></div>
+        <div class="do c4"><div class="ic2"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div><div><h3>Персонажі брендів</h3><p>Маскоти, мультфільми, цифрові двійники людей</p></div></div>
+      </div>
+    </div>
+    <div class="bigstats">
+      <div class="bs o"><b>+329%</b><p>зріс попит на AI-відео на Upwork за рік</p><small>Upwork, In-Demand Skills 2026</small></div>
+      <div class="bs y"><b>+84%</b><p>зросла медіанна зарплата AI creator в Україні</p><small>Work.ua, 2026</small></div>
+      <div class="bs l"><b>5–10×</b><p>швидше і дешевше за класичну зйомку реклами</p><small>оцінка за ринковими кейсами</small></div>
+    </div>
+    <div class="ladder">
+      <div class="rung"><span class="lv">Старт</span><div><h4>Перші клієнти</h4><p>Фриланс і перші абонементи після курсу</p></div><span class="sum">30–45 тис. грн</span></div>
+      <div class="rung"><span class="lv">Досвід</span><div><h4>Іноземні бренди</h4><p>Upwork, ролики для e-commerce, $150–1200 за ролик</p></div><span class="sum">$1500–3000</span></div>
+      <div class="rung"><span class="lv">Своя студія</span><div><h4>AI-продакшн</h4><p>Команда, пакети креативів для брендів на абонементі</p></div><span class="sum">від $5000</span></div>
+    </div>
+  </div>
+</section>
+
 <!-- WORKS -->
-<section id="works">
+<section id="works" class="soft">
   <div class="wrap center">
     <span class="kicker">Що ти будеш створювати</span>
     <h2>Контент, за який бізнес платить уже зараз</h2>
@@ -399,7 +580,7 @@
   </div>
   <div class="wrap">
     <div class="gallery">
-      <button class="clip" type="button"><div class="art a-product"><div class="shadow"></div><span class="tag">SÉRUM</span></div><video data-src="videos/01-cosmetics.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Реклама косметики</b><small>Veo · 15 с</small></span></button>
+      <button class="clip" type="button"><div class="art a-product"><span class="drop"></span><div class="shadow"></div><span class="tag">SÉRUM</span></div><video data-src="videos/01-cosmetics.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Реклама косметики</b><small>Veo · 15 с</small></span></button>
       <button class="clip" type="button"><div class="art a-ugc"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><p class="cap"><b>3 тижні шукала цей крем</b></p></div><video data-src="videos/02-ugc.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>UGC-відгук для Reels</b><small>Higgsfield · 20 с</small></span></button>
       <button class="clip" type="button"><div class="art a-infl"><span class="ui">● LIVE</span><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div></div><video data-src="videos/03-avatar.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>AI-аватар експерта</b><small>HeyGen · ElevenLabs</small></span></button>
       <button class="clip" type="button"><div class="art a-mascot"><div class="m"></div><div class="smile"></div></div><video data-src="videos/04-cartoon.mp4" muted loop playsinline preload="none"></video><span class="pl"><svg><use href="#play"/></svg></span><span class="meta"><b>Мультфільм з маскотом</b><small>Kling · Suno</small></span></button>
@@ -463,7 +644,7 @@
     <div class="steps">
       <div class="step"><div class="num">1</div><div><h3>Живі заняття</h3><p>2 рази на тиждень онлайн з ментором-практиком. Група до 16 людей, усі записи залишаються в тебе.</p></div></div>
       <div class="step"><div class="num">2</div><div><h3>Практика щотижня</h3><p>Кожне домашнє завдання ментор перевіряє і розбирає. Без перевірки не буде прогресу.</p></div></div>
-      <div class="step"><div class="num">3</div><div><h3>Реальні брифи</h3><p>Робиш замовлення для справжніх брендів-партнерів і збираєш портфоліо з 10+ робіт.</p></div></div>
+      <div class="step"><div class="num">3</div><div><h3>Реальні брифи</h3><p>Робиш замовлення для справжніх брендів-партнерів і щотижня поповнюєш портфоліо. До кінця курсу 70+ робіт.</p></div></div>
       <div class="step"><div class="num">4</div><div><h3>Перші клієнти</h3><p>Профіль на Upwork, свій прайс, Demo Day перед замовниками і 3 місяці підтримки після курсу.</p></div></div>
     </div>
   </div>
@@ -473,7 +654,7 @@
 <section id="program">
   <div class="wrap">
     <span class="kicker">Програма · 16 тижнів</span>
-    <h2>9 модулів. Кожен закінчується роботою в портфоліо</h2>
+    <h2>9 модулів і 70+ робіт у портфоліо</h2>
     <p class="lead">Програму оновлюємо щомісяця, щоб ти працював у найновіших нейромережах.</p>
     <div class="program">
       <details class="mod" open><summary><span class="wk">Тиждень 1</span><span class="mt">Швидкий старт у професії</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Як заробляє AI-креатор: послуги, клієнти, ціни</li><li>Набір нейромереж і як вкластися в $30–60 на місяць</li><li>ChatGPT і Claude як твій креативний директор: ідеї, сценарії, промпти</li></ul><div class="res"><b>Результат:</b> власний AI-асистент для креативу</div></div></details>
@@ -485,6 +666,23 @@
       <details class="mod"><summary><span class="wk">Тиждень 12</span><span class="mt">AI-агенти: 20 креативів за годину</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>AI-агент веде ланцюжок «бриф → сценарій → генерація» замість тебе</li><li>Нодові схеми у Figma Weave, Flora, Krea: десятки варіантів за один запуск</li></ul><div class="res"><b>Результат:</b> власна система масового виробництва креативів</div></div></details>
       <details class="mod"><summary><span class="wk">Тижні 13–14</span><span class="mt">Перші гроші: клієнти, ціни, договори</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Портфоліо, Behance і сайт-візитка за годину</li><li>Upwork, Fiverr, Freelancehunt, Instagram, холодні листи</li><li>Прайс, абонементи, як підняти чек зі $100 до $1000</li><li>ФОП, договір, оплата з-за кордону; англійська для брифів</li></ul><div class="res"><b>Результат:</b> перше оплачене замовлення</div></div></details>
       <details class="mod"><summary><span class="wk">Тижні 15–16</span><span class="mt">Спеціалізація і Demo Day</span><span class="tg"><svg><use href="#plus"/></svg></span></summary><div class="mb"><ul><li>Обираєш напрям: AI-реклама, AI-фільми, AI-персонажі або AI-автоматизація</li><li>Фінальний проєкт для реального замовника</li><li>Захист перед брендами, агенціями та рекрутерами</li></ul><div class="res"><b>Результат:</b> шоурил, кейс і знайомства з замовниками</div></div></details>
+    </div>
+  </div>
+</section>
+
+<!-- BENTO -->
+<section>
+  <div class="wrap">
+    <span class="kicker">Що ти отримаєш</span>
+    <h2>Виходиш з курсу з професією, а не з сертифікатом</h2>
+    <div class="bento">
+      <div class="bx port"><span class="n">70+</span><h3>робіт у портфоліо</h3><p>Ти генеруєш контент щотижня: фото, ролики, креативи, персонажі. До кінця курсу збираєш портфоліо з 70+ робіт і шоурил.</p>
+        <div class="mosaic"><div class="art a-product"><span class="drop"></span><div class="shadow"></div><span class="tag">SÉRUM</span></div><div class="art a-ugc"><div class="bars"><i></i><i></i><i></i></div><div class="hair"></div><div class="face"></div><div class="body"></div><p class="cap"><b>3 тижні шукала цей крем</b></p></div><div class="art a-mascot"><div class="m"></div><div class="smile"></div></div><div class="art a-fashion"><div class="arch"></div><div class="fig"></div></div><div class="art a-infl"><span class="ui">● LIVE</span><div class="ring"></div><div class="hair"></div><div class="face"></div><div class="body"></div></div><div class="art a-clip"></div><div class="art a-video"><div class="scene"><span class="rec">REC</span><span class="tc">00:00:12:08</span></div><div class="tl"><div class="tr v"><i style="width:30%"></i><i style="width:22%"></i><i style="width:40%"></i></div><div class="tr a"><i style="width:70%"></i><i style="width:24%"></i></div></div></div><div class="art a-product"><span class="drop"></span><div class="shadow"></div><span class="tag">SÉRUM</span></div></div></div>
+      <div class="bx s1"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12H3zM8 7V5h8v2"/></svg></div><h3>Реальні брифи</h3><p>Замовлення від брендів-партнерів і Demo Day перед замовниками.</p></div>
+      <div class="bx s2"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></div><h3>Ментор-практик</h3><p>Перевіряє кожне ДЗ і показує, як працює комерційний AI-продакшн.</p></div>
+      <div class="bx s3"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/></svg></div><h3>Перші клієнти</h3><p>Профіль на Upwork, прайс, шаблони договорів і листів англійською.</p></div>
+      <div class="bx s4"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 20c.8-3 3-4.5 6-4.5S13.2 17 14 20M10 20c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg></div><h3>Спільнота</h3><p>Чат випускників, обмін замовленнями і нові нейромережі щомісяця.</p></div>
+      <div class="bx s5"><div class="ic3"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><path d="M9 13l2 2 4-4"/></svg></div><h3>Документ і підтримка</h3><p>Документ про закінчення і 3 місяці кар'єрної підтримки.</p></div>
     </div>
   </div>
 </section>
@@ -535,25 +733,25 @@
     <div class="plans">
       <div class="plan">
         <div><h3>Старт</h3><p class="for">Для себе і свого бізнесу</p></div>
-        <div><div class="old">32 000 грн</div><div class="price">26 000 <small>грн</small></div><div class="per">або 6 500 грн × 4 місяці</div></div>
+        <div><div class="old">38 400 грн</div><div class="price">31 200 <small>грн</small></div><div class="per">або 7 800 грн × 4 місяці</div></div>
         <ul><li><svg><use href="#chk"/></svg>Усі 9 модулів, живі заняття і записи</li><li><svg><use href="#chk"/></svg>Розбір ДЗ у групі</li><li><svg><use href="#chk"/></svg>Чат курсу</li><li class="off"><svg><use href="#x"/></svg>Реальні брифи і Demo Day</li><li class="off"><svg><use href="#x"/></svg>Кар'єрна підтримка</li></ul>
         <a class="btn btn-line" href="#apply">Залишити заявку</a>
       </div>
       <div class="plan hot">
         <span class="badge">Найпопулярніший</span>
         <div><h3>Професія</h3><p class="for">Щоб заробляти на AI</p></div>
-        <div><div class="old">42 000 грн</div><div class="price">34 000 <small>грн</small></div><div class="per">або 8 500 грн × 4 місяці</div></div>
+        <div><div class="old">50 400 грн</div><div class="price">40 800 <small>грн</small></div><div class="per">або 10 200 грн × 4 місяці</div></div>
         <ul><li><svg><use href="#chk"/></svg>Усе з тарифу «Старт»</li><li><svg><use href="#chk"/></svg>Особиста перевірка кожного ДЗ ментором</li><li><svg><use href="#chk"/></svg>Реальні брифи від брендів і Demo Day</li><li><svg><use href="#chk"/></svg>3 місяці кар'єрної підтримки</li><li><svg><use href="#chk"/></svg>Документ про закінчення</li></ul>
         <a class="btn btn-main" href="#apply">Залишити заявку</a>
       </div>
       <div class="plan">
-        <div><h3>PRO</h3><p class="for">З гарантованим замовленням</p></div>
-        <div><div class="old">56 000 грн</div><div class="price">46 000 <small>грн</small></div><div class="per">або 11 500 грн × 4 місяці</div></div>
-        <ul><li><svg><use href="#chk"/></svg>Усе з тарифу «Професія»</li><li><svg><use href="#chk"/></svg>4 консультації 1:1 з ментором</li><li><svg><use href="#chk"/></svg>Гарантоване оплачене замовлення від партнера</li><li><svg><use href="#chk"/></svg>Кредити на нейромережі на весь курс</li></ul>
+        <div><h3>PRO</h3><p class="for">Максимум уваги ментора</p></div>
+        <div><div class="old">67 200 грн</div><div class="price">55 200 <small>грн</small></div><div class="per">або 13 800 грн × 4 місяці</div></div>
+        <ul><li><svg><use href="#chk"/></svg>Усе з тарифу «Професія»</li><li><svg><use href="#chk"/></svg>4 консультації 1:1 з ментором</li><li><svg><use href="#chk"/></svg>Персональний розбір портфоліо і профілю на Upwork</li><li><svg><use href="#chk"/></svg>Особиста стратегія пошуку клієнтів у твоїй ніші</li><li><svg><use href="#chk"/></svg>Пріоритетні відповіді ментора в чаті</li></ul>
         <a class="btn btn-line" href="#apply">Залишити заявку</a>
       </div>
     </div>
-    <div class="guarantee"><div class="shield"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div><p><b>Гарантія повернення коштів.</b> Пройди перші 2 тижні навчання. Якщо зрозумієш, що курс не для тебе, повернемо 100% оплати.</p></div>
+    <div class="guarantee"><div class="shield"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4z"/></svg></div><p><b>Не знаєш, який тариф обрати?</b> Залиш заявку: менеджер розпитає про твій досвід і цілі та підбере формат. Оплата щомісяця або розстрочка без переплат.</p></div>
   </div>
 </section>
 
@@ -578,9 +776,9 @@
     <div class="faq">
       <details><summary>Я ніколи не працював з AI. Впораюсь?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Так. Ми починаємо з нуля, а основи візуалу (світло, кадр, колір) проходимо раніше за складні інструменти. Більшість студентів приходять без досвіду.</div></details>
       <details><summary>Скільки часу потрібно на тиждень?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Два живі заняття по 1,5 години і 5–7 годин практики. Пропустив заняття, дивишся запис.</div></details>
-      <details><summary>Скільки коштують нейромережі?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Близько $30–60 на місяць. Покажемо безкоштовні тарифи і як економити кредити. У тарифі PRO кредити вже включені.</div></details>
+      <details><summary>Скільки коштують нейромережі?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Близько $30–60 на місяць. Покажемо безкоштовні тарифи і як економити кредити. Більшість мають безкоштовні або пробні тарифи для старту.</div></details>
       <details><summary>Потрібен потужний комп'ютер?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Ні. Нейромережі працюють у хмарі, вистачить звичайного ноутбука та стабільного інтернету.</div></details>
-      <details><summary>Ви гарантуєте заробіток?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Дохід залежить від твоєї роботи, тому чесно: гарантувати суму не можемо. Ми гарантуємо реальні брифи, Demo Day і 3 місяці підтримки, а в тарифі PRO оплачене замовлення від партнера.</div></details>
+      <details><summary>Ви гарантуєте заробіток?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Дохід залежить від твоєї роботи, тому чесно: гарантувати суму не можемо. Ми даємо реальні брифи від брендів, Demo Day перед замовниками і 3 місяці кар'єрної підтримки після курсу.</div></details>
       <details><summary>Нейромережі постійно змінюються. Курс не застаріє?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Програму оновлюємо щомісяця. А навички кадру, монтажу, реклами і продажів не застарівають, тому ти легко переходиш на нові сервіси.</div></details>
       <details><summary>Які сервіси використовуєте?<svg class="ico"><use href="#plus"/></svg></summary><div class="a">Лише міжнародні: Veo, Sora, Kling, Runway, Midjourney, ElevenLabs, HeyGen, ChatGPT, Claude та інші. Жодних російських сервісів.</div></details>
     </div>
