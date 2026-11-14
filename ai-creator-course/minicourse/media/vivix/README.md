@@ -137,3 +137,24 @@ Product commercial, one continuous shot. A single clean white minimalist sneaker
 One continuous shot, static camera, vertical framing, medium close-up portrait. A friendly young woman in her late twenties, a mentor and online course host, with shoulder-length brown hair, wearing a simple light beige blouse, looks directly into the camera with a warm calm smile and stands still, neutral soft light-gray studio background, soft even front lighting, photorealistic, natural skin texture. No text, no logos.
 ```
 
+
+## Полные уроки с аватаром (Ліна, своё аудио)
+
+| Файл | Длительность | Размер |
+| - | - | - |
+| `lesson-1-avatar.mp4` | 358,6 с (mp3: 358,608 с) | 38 МБ |
+| `lesson-2-avatar.mp4` | 319,2 с (mp3: 319,152 с) | 34 МБ |
+| `lesson-N-avatar.jpg` | обложки 360 px | — |
+
+- **Исходник:** озвучка v2 `ai-creator-course/minicourse/media/audio/lesson-{1,2}.mp3` с ветки `claude/dreamy-cannon-glzjto` (коммит 64c9e32).
+- **Генерация:** `vivix-a1`, по **одной генерации на урок, без нарезки**: A1 принял mp3 на 6 минут целиком полем `audio`. `first_frame_image` — `v2/host-frame.jpg` (та же ведущая), `resolution` 720p, `video_ratio` 9:16. Prompt: «A young woman, a friendly course mentor, talks to the camera in a lively and natural way, warm facial expressions, light natural hand gestures, small head movements, static camera, the same creative studio background.»
+  - `job_96d0cffa0710c3bee061fa515b059eb3`: урок 1, 359,0 с видео, сгенерирован за 5,3 мин.
+  - `job_2ea0a8b655cd9dcdb426a2e2ec98e204`: урок 2, 319,7 с видео, за 4,6 мин.
+- **Сборка:** HLS склеен в mp4. Кросс-корреляция звука A1 с исходным mp3 показала сдвиг 0,02 с в начале и 0,003–0,007 с дальше, то есть видео начинается синхронно с аудио. В конце было ~0,8 с лишнего хвоста — обрезан по длине mp3. Звук — исходный mp3 (AAC 128k). Видео: 720×1280, H.264 CRF 28, faststart.
+- **Проверка липсинка:** крупные планы лица на 30, 160 и 300 с в каждом уроке, по 4 кадра с шагом 0,12 с. Артикуляция меняется в такт речи, лицо и фон стабильны до конца урока, ведущая не «уплывает».
+
+### Расход A1 на уроки
+
+2 генерации, **678,7 с A1** (359,0 + 319,7). Цена A1 не опубликована, списание видно в platform.vivix.ai → Billing.
+
+Итого A1 за всё время: 32 с (тесты v1/v2) + 678,7 с = **≈ 710,7 с (11,8 мин), 5 генераций**.
