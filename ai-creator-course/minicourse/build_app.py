@@ -448,6 +448,7 @@ TEMPLATE = r"""<!doctype html>
     nav();
     const h = location.hash.replace('#', '');
     const l = LESSONS.find(x => x.id === h);
+    if (h === 'demo') { state.access = true; save(); history.replaceState(null, '', '#home'); nav(); }  // демо-доступ для перегляду команди
     if (!state.access) { sales(); if (h === 'buy' || h === 'lessons') document.getElementById(h)?.scrollIntoView(); else scrollTo(0, 0); return; }
     if (l) lesson(l); else if (h === 'finish') finish(); else dash();
     scrollTo(0, 0);
