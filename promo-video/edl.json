@@ -1,5 +1,5 @@
 {
- "_comment": "Edit decision list. Shot refs = 'location:index' in work/shots.json, or objects with manual in/out. Durations on a 0.5 s (120 BPM) grid.",
+ "_comment": "Edit decision list v2",
  "segments": [
   {
    "type": "title",
@@ -7,50 +7,211 @@
     "ONE ACADEMY",
     "ACROSS THE WORLD"
    ],
-   "t_in": 1.5,
-   "t_out": 9.6,
-   "fade_in": 1.2,
-   "dim": 0.3,
+   "t_in": 1.2,
+   "t_out": 6.8,
+   "fade_in": 1.0,
+   "dim": 0.28,
+   "big": 130,
+   "small": 50,
    "shots": [
     [
      {
-      "loc": "ivano_frankivsk",
+      "loc": "stanislav",
+      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
+      "start": 0.5,
+      "end": 1.9,
+      "speed": 0.42
+     },
+     3.5,
+     "out"
+    ],
+    [
+     {
+      "loc": "stanislav",
       "file": "sources/ivano_frankivsk/stanislav_school.mp4",
       "start": 89.9,
       "end": 91.5,
-      "speed": 0.55,
-      "nostab": true
+      "speed": 0.45
+     },
+     3.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "stanislav",
+   "shots": [
+    [
+     {
+      "loc": "stanislav",
+      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
+      "start": 2.1,
+      "end": 3.7,
+      "speed": 0.53
      },
      3.0,
      "in"
     ],
     [
      {
-      "ref": "nolabel:4",
-      "start": 2.65,
-      "end": 4.2,
-      "speed": 0.62
+      "loc": "stanislav",
+      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
+      "start": 4.2,
+      "end": 6.6
      },
+     2.5,
+     "right"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "ivano_frankivsk",
+   "shots": [
+    [
+     "ivano_frankivsk:15",
      2.5,
      "in"
     ],
     [
+     "ivano_frankivsk:8",
+     2.0,
+     "right"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "kyiv",
+   "shots": [
+    [
      {
-      "ref": "ukraine:1",
-      "start": 239.6,
-      "end": 242.4,
-      "speed": 1.0
+      "loc": "kyiv",
+      "file": "sources/ukraine/step_school_2026.mp4",
+      "start": 0.3,
+      "end": 3.2,
+      "speed": 0.72
      },
-     2.5,
+     4.0,
+     "in"
+    ],
+    [
+     {
+      "loc": "kyiv",
+      "file": "sources/ukraine/step_school_2026.mp4",
+      "start": 140.4,
+      "end": 141.8,
+      "speed": 0.7
+     },
+     2.0,
      "right"
     ],
     [
      {
-      "ref": "bucharest:6",
-      "start": 1.2,
-      "end": 4.2
+      "loc": "kyiv",
+      "file": "sources/ukraine/step_school_2026.mp4",
+      "start": 88.0,
+      "end": 88.9,
+      "speed": 0.45
      },
      2.0,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "lviv",
+   "shots": [
+    [
+     {
+      "loc": "lviv",
+      "file": "sources/extra/lviv_tour.mp4",
+      "start": 11.0,
+      "end": 12.8,
+      "nostab": true
+     },
+     2.0,
+     "still"
+    ],
+    [
+     {
+      "loc": "lviv",
+      "file": "sources/extra/lviv_tour.mp4",
+      "start": 40.2,
+      "end": 42.0,
+      "nostab": true
+     },
+     1.5,
+     "still"
+    ],
+    [
+     {
+      "loc": "lviv",
+      "file": "sources/extra/lviv_tour.mp4",
+      "start": 18.3,
+      "end": 20.1,
+      "nostab": true
+     },
+     1.5,
+     "still"
+    ],
+    [
+     {
+      "loc": "lviv",
+      "file": "sources/extra/lviv_tour.mp4",
+      "start": 89.2,
+      "end": 91.4,
+      "nostab": true
+     },
+     2.0,
+     "still"
+    ],
+    [
+     {
+      "loc": "lviv",
+      "file": "sources/extra/lviv_tour.mp4",
+      "start": 100.3,
+      "end": 101.9,
+      "nostab": true
+     },
+     1.0,
+     "still"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "dnipro",
+   "shots": [
+    [
+     {
+      "loc": "dnipro",
+      "file": "sources/dnipro/dnipro_school.mp4",
+      "start": 202.0,
+      "end": 204.2,
+      "speed": 0.73
+     },
+     3.0,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "zhytomyr",
+   "shots": [
+    [
+     {
+      "loc": "zhytomyr",
+      "file": "sources/zhytomyr/zhytomyr_school.mp4",
+      "start": 43.0,
+      "end": 45.5,
+      "cy": 0.3,
+      "speed": 0.72
+     },
+     3.5,
      "in"
     ]
    ]
@@ -62,27 +223,27 @@
     [
      {
       "ref": "bucharest:6",
-      "start": 0.0,
-      "end": 1.2,
-      "speed": 0.7
+      "start": 1.3,
+      "end": 2.6,
+      "speed": 0.65
      },
      2.0,
      "in"
     ],
     [
-     "bucharest:0",
+     {
+      "ref": "bucharest:6",
+      "start": 2.7,
+      "end": 4.2,
+      "speed": 0.75
+     },
      2.0,
      "right"
     ],
     [
-     "bucharest:2",
+     "bucharest:0",
      2.0,
      "in"
-    ],
-    [
-     "bucharest:1",
-     1.5,
-     "left"
     ]
    ]
   },
@@ -107,16 +268,6 @@
     ],
     [
      "bratislava:3",
-     2.0,
-     "in"
-    ],
-    [
-     "bratislava:13",
-     2.0,
-     "right"
-    ],
-    [
-     "bratislava:5",
      1.5,
      "in"
     ]
@@ -124,81 +275,119 @@
   },
   {
    "type": "group",
-   "loc": "ukraine",
-   "shots": [
-    [
-     "ukraine:5",
-     2.0,
-     "in"
-    ],
-    [
-     "ukraine:29",
-     2.5,
-     "in"
-    ],
-    [
-     "ukraine:28",
-     2.0,
-     "right"
-    ],
-    [
-     "ukraine:47",
-     2.0,
-     "left"
-    ],
-    [
-     "ukraine:24",
-     1.5,
-     "in"
-    ]
-   ]
-  },
-  {
-   "type": "tri",
-   "dur": 5.0,
-   "caption": "single",
-   "shots": [
-    "tbilisi:6",
-    "tbilisi:25",
-    "tbilisi:14"
-   ]
-  },
-  {
-   "type": "group",
-   "loc": "ivano_frankivsk",
+   "loc": "chisinau",
    "shots": [
     [
      {
-      "loc": "ivano_frankivsk",
-      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
-      "start": 0.6,
-      "end": 1.9,
-      "speed": 0.6,
+      "loc": "chisinau",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 38.05,
+      "end": 38.95,
+      "speed": 0.45,
+      "frost": true,
       "nostab": true
      },
-     2.5,
-     "out"
-    ],
-    [
-     "ivano_frankivsk:15",
      2.0,
      "in"
-    ],
-    [
-     "ivano_frankivsk:8",
-     2.0,
-     "right"
     ]
    ]
   },
   {
-   "type": "tri",
-   "dur": 4.5,
-   "caption": "single",
+   "type": "group",
+   "loc": "tbilisi",
    "shots": [
-    "baku:5",
-    "baku:2",
-    "baku:3"
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_b.mp4",
+      "start": 0.3,
+      "end": 3.0
+     },
+     2.5,
+     "right"
+    ],
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_b.mp4",
+      "start": 61.3,
+      "end": 63.8
+     },
+     2.0,
+     "in"
+    ],
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_b.mp4",
+      "start": 57.9,
+      "end": 60.4
+     },
+     2.5,
+     "left"
+    ],
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_b.mp4",
+      "start": 3.2,
+      "end": 5.0
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "baku",
+   "shots": [
+    [
+     {
+      "loc": "baku",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 20.05,
+      "end": 20.95,
+      "speed": 0.45,
+      "frost": true,
+      "nostab": true
+     },
+     2.0,
+     "in"
+    ],
+    [
+     {
+      "loc": "baku",
+      "file": "sources/extra/baku_new.mp4",
+      "start": 75.5,
+      "end": 78.8,
+      "cy": 0.45
+     },
+     2.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "baku",
+      "file": "sources/extra/baku_new.mp4",
+      "start": 80.6,
+      "end": 84.0,
+      "cy": 0.5
+     },
+     2.0,
+     "right"
+    ],
+    [
+     {
+      "loc": "baku",
+      "file": "sources/extra/baku_new.mp4",
+      "start": 85.5,
+      "end": 88.5,
+      "cy": 0.5
+     },
+     2.0,
+     "in"
+    ]
    ]
   },
   {
@@ -207,18 +396,44 @@
    "shots": [
     [
      "kazakhstan:13",
-     3.0,
+     2.0,
      "in"
     ],
     [
      "kazakhstan:7",
-     2.5,
+     2.0,
      "right"
     ],
     [
      "kazakhstan:14",
-     2.5,
+     2.0,
      "left"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "nolabel",
+   "shots": [
+    [
+     {
+      "ref": "nolabel:4",
+      "start": 2.65,
+      "end": 4.2,
+      "speed": 0.62
+     },
+     2.5,
+     "in"
+    ],
+    [
+     "nolabel:0",
+     1.5,
+     "in"
+    ],
+    [
+     "nolabel:9",
+     2.0,
+     "right"
     ]
    ]
   },
@@ -231,11 +446,40 @@
       "ref": "cambodia:0",
       "start": 0.2,
       "end": 4.8,
-      "nostab": true,
-      "speed": 0.82
+      "nostab": true
      },
-     5.5,
+     3.5,
      "in"
+    ],
+    [
+     {
+      "loc": "cambodia",
+      "file": "sources/extra/cam_0712.mp4",
+      "start": 1.0,
+      "end": 5.5
+     },
+     2.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "cambodia",
+      "file": "sources/extra/cam_0700.mp4",
+      "start": 1.0,
+      "end": 4.5
+     },
+     2.0,
+     "right"
+    ],
+    [
+     {
+      "loc": "cambodia",
+      "file": "sources/extra/cam_0713.mp4",
+      "start": 2.0,
+      "end": 5.0
+     },
+     1.5,
+     "left"
     ]
    ]
   },
@@ -246,220 +490,273 @@
     [
      {
       "loc": "tijuana",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 18.05,
+      "end": 18.95,
+      "speed": 0.45,
+      "frost": true,
+      "nostab": true
+     },
+     2.0,
+     "in"
+    ],
+    [
+     {
+      "loc": "tijuana",
       "file": "sources/tijuana/tijuana.mov",
       "start": 2.4,
       "end": 3.65,
-      "speed": 0.5
+      "speed": 0.6
      },
-     2.5,
+     2.0,
      "in"
     ]
-   ]
-  },
-  {
-   "type": "tri",
-   "dur": 4.5,
-   "shots": [
-    "tbilisi:17",
-    "baku:6",
-    "tbilisi:33"
    ]
   },
   {
    "type": "group",
-   "loc": "nolabel",
+   "loc": "sofia",
    "shots": [
-    [
-     "nolabel:0",
-     2.0,
-     "in"
-    ],
-    [
-     "nolabel:9",
-     2.0,
-     "right"
-    ],
-    [
-     "nolabel:10",
-     2.0,
-     "in"
-    ]
-   ]
-  },
-  {
-   "type": "grid",
-   "dur": 6.0,
-   "shots": [
-    "bucharest:2",
-    "bratislava:5",
-    "kazakhstan:13",
-    "ukraine:28"
-   ]
-  },
-  {
-   "type": "montage",
-   "shots": [
-    [
-     "ukraine:51",
-     1.0
-    ],
-    [
-     "bratislava:12",
-     1.0
-    ],
-    [
-     "kazakhstan:5",
-     1.0
-    ],
-    [
-     "bucharest:2",
-     0.5
-    ],
-    [
-     "bratislava:10",
-     0.5
-    ],
-    [
-     "ukraine:52",
-     1.0
-    ],
-    [
-     "ivano_frankivsk:7",
-     1.0
-    ],
-    [
-     "ukraine:58",
-     0.5
-    ],
-    [
-     "bratislava:7",
-     0.5
-    ],
-    [
-     "kazakhstan:4",
-     1.0
-    ],
-    [
-     "ukraine:48",
-     1.0
-    ],
-    [
-     "ukraine:1",
-     0.5
-    ],
-    [
-     "bratislava:1",
-     0.5
-    ],
-    [
-     "ukraine:5",
-     0.5
-    ],
-    [
-     "bratislava:0",
-     0.5
-    ],
-    [
-     "nolabel:1",
-     1.0
-    ],
-    [
-     "ukraine:3",
-     1.0
-    ],
-    [
-     "ukraine:57",
-     1.0
-    ],
-    [
-     "ukraine:32",
-     1.0
-    ],
-    [
-     "kazakhstan:1",
-     1.0
-    ],
-    [
-     "ukraine:18",
-     1.0
-    ],
-    [
-     "ukraine:19",
-     1.0
-    ],
-    [
-     "ukraine:46",
-     1.0
-    ],
-    [
-     "ukraine:40",
-     1.0
-    ],
-    [
-     "bratislava:11",
-     1.0
-    ],
-    [
-     "ukraine:29",
-     1.0
-    ],
     [
      {
-      "ref": "bucharest:6",
-      "start": 1.4,
-      "end": 3.4
+      "loc": "sofia",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 14.05,
+      "end": 14.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
      },
-     1.0
-    ],
-    [
-     "ukraine:47",
-     1.0
+     1.5,
+     "in"
     ]
    ]
   },
   {
-   "type": "title",
+   "type": "group",
+   "loc": "odesa",
+   "shots": [
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 16.05,
+      "end": 16.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "geneva",
+   "shots": [
+    [
+     {
+      "loc": "geneva",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 25.05,
+      "end": 25.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "telaviv",
+   "shots": [
+    [
+     {
+      "loc": "telaviv",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 27.05,
+      "end": 27.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "lutsk",
+   "shots": [
+    [
+     {
+      "loc": "lutsk",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 34.05,
+      "end": 34.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "astana",
+   "shots": [
+    [
+     {
+      "loc": "astana",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 37.05,
+      "end": 37.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "prague",
+   "shots": [
+    [
+     {
+      "loc": "prague",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 44.05,
+      "end": 44.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "kharkiv",
+   "shots": [
+    [
+     {
+      "loc": "kharkiv",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 45.05,
+      "end": 45.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "seattle",
+   "shots": [
+    [
+     {
+      "loc": "seattle",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 42.05,
+      "end": 42.95,
+      "speed": 0.6,
+      "frost": true,
+      "nostab": true
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "mosaic",
+   "dur": 10.5,
    "lines": [
     "STEP IT ACADEMY",
     "ONE ACADEMY. ACROSS THE WORLD."
    ],
-   "t_in": 0.8,
-   "t_out": 9.6,
-   "fade_out": 1.8,
-   "dim": 0.3,
+   "t_in": 2.5,
+   "dim": 0.5,
    "shots": [
-    [
-     {
-      "ref": "ukraine:47",
-      "start": 225.6,
-      "end": 227.6,
-      "speed": 0.6
-     },
-     3.0,
-     "out"
-    ],
-    [
-     {
-      "ref": "bucharest:6",
-      "start": 1.4,
-      "end": 3.4,
-      "speed": 0.6
-     },
-     3.0,
-     "in"
-    ],
-    [
-     {
-      "loc": "ivano_frankivsk",
-      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
-      "start": 89.9,
-      "end": 91.5,
-      "speed": 0.4,
-      "nostab": true
-     },
-     4.0,
-     "out"
-    ]
+    {
+     "loc": "bucharest",
+     "file": "sources/bucharest/bucharest.mp4",
+     "start": 1.3,
+     "end": 4.2,
+     "speed": 0.28
+    },
+    {
+     "loc": "tbilisi",
+     "file": "sources/extra/tbilisi_b.mp4",
+     "start": 0.3,
+     "end": 3.0,
+     "speed": 0.26
+    },
+    {
+     "loc": "cambodia",
+     "file": "sources/cambodia/DJI_20260428100112_0651_D.MP4",
+     "start": 0.2,
+     "end": 4.8,
+     "speed": 0.44,
+     "nostab": true
+    },
+    {
+     "loc": "kyiv",
+     "file": "sources/ukraine/step_school_2026.mp4",
+     "start": 0.3,
+     "end": 3.2,
+     "speed": 0.28
+    },
+    {
+     "loc": "stanislav",
+     "file": "sources/ivano_frankivsk/stanislav_school.mp4",
+     "start": 89.9,
+     "end": 91.5,
+     "speed": 0.155,
+     "nostab": true
+    },
+    {
+     "loc": "lviv",
+     "file": "sources/extra/lviv_tour.mp4",
+     "start": 0.2,
+     "end": 10.5,
+     "nostab": true
+    },
+    {
+     "loc": "baku",
+     "file": "sources/extra/baku_new.mp4",
+     "start": 75.5,
+     "end": 79.3,
+     "cy": 0.45,
+     "speed": 0.36
+    },
+    {
+     "loc": "nolabel",
+     "file": "sources/nolabel/promo_video.mp4",
+     "start": 2.65,
+     "end": 4.2,
+     "speed": 0.15
+    },
+    {
+     "ref": "bratislava:11",
+     "speed": 0.38
+    }
    ]
   }
  ]

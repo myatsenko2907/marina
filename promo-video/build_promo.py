@@ -256,7 +256,8 @@ def center_title(lines, dur, t_in=0.0, t_out=None, big=120, small=48):
     return ",".join(out)
 
 
-GRADE = ("eq=contrast=1.07:saturation=1.10:gamma=0.97,"
+GRADE = ("normalize=smoothing=45:independence=0.4:strength=0.55,"
+         "eq=contrast=1.06:saturation=1.12:gamma=0.98,"
          "colorbalance=rs=-0.02:bs=0.03:rh=0.02:bh=-0.02,unsharp=5:5:0.4")
 
 
@@ -289,7 +290,10 @@ def _render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
     elif src_len > dur * 1.4:
         speed = min(src_len / dur, 1.25)          # gentle energy; more would exaggerate hand-held shake
     ss = shot["start"] + max(0, (src_len - dur * speed) / 2) + shot.get("offset", 0)
-    fill = [f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={w}:{h}"]
+    cy = shot.get("cy", 0.5)
+    fill = [f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={w}:{h}:(iw-{w})/2:(ih-{h})*{cy}"]
+    if shot.get("frost"):   # hide burned-in city plates of the old tour video (1280x720) under a frosted panel
+        fill = ["split[fm][fc];[fc]crop=680:270:0:450,boxblur=60:5,eq=saturation=0.15:brightness=-0.30[fb];[fm][fb]overlay=0:450"] + fill
     if speed < 0.85:   # real slow motion: motion-compensated in-between frames instead of duplicates
         pre = [f"setpts=PTS/{speed:.3f}"] + fill + \
             [f"minterpolate=fps={FPS}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1"]
@@ -300,8 +304,8 @@ def _render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
     if not shot.get("nostab"):
         trf = str(out) + ".trf"
         run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + inp +
-            ["-vf", ",".join(pre + [f"vidstabdetect=shakiness=7:accuracy=15:result={trf}"]), "-f", "null", "-"])
-        vf.append(f"vidstabtransform=input={trf}:smoothing=24:optzoom=1:zoomspeed=0.2:interpol=bicubic")
+            ["-vf", ",".join(pre + [f"vidstabdetect=shakiness=9:accuracy=15:stepsize=6:result={trf}"]), "-f", "null", "-"])
+        vf.append(f"vidstabtransform=input={trf}:smoothing=40:optzoom=1:zoomspeed=0.15:interpol=bicubic")
     vf += move_chain(dur, w, h, move)
     if extra:
         vf.append(extra)
@@ -344,7 +348,7 @@ def get_shot(shots, ref):
         s = get_shot(shots, ref["ref"])
     else:
         s = {"file": str(ROOT / ref["file"])}
-    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab")})
+    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab", "frost", "cy")})
     return s
 
 
@@ -401,6 +405,26 @@ def render(length=120.0):
                   f"[a][1:v]overlay={gw + 8}:0:enable='gte(t,0.1)'[b];[b][2:v]overlay=0:{gh + 8}:enable='gte(t,0.2)'[c];"
                   f"[c][3:v]overlay={gw + 8}:{gh + 8}:enable='gte(t,0.3)',format=yuv420p")
             run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + ins + ["-filter_complex", fc, "-t", str(seg["dur"]),
+                 "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
+        elif kind == "mosaic":          # 3x3 wall of campuses under the closing title
+            tw, th = (W - 12) // 3, (H - 12) // 3
+            tw -= tw % 2; th -= th % 2
+            parts = []
+            for j, ref in enumerate(seg["shots"]):
+                r = tmp / f"s{n:03d}_{j}.mp4"
+                render_shot(get_shot(picks, ref), seg["dur"], r, tw, th, ["in", "out"][j % 2])
+                parts.append(r)
+            ins = sum((["-i", str(x)] for x in parts), [])
+            fc = f"color=c=0x05070C:s={W}x{H}:r={FPS}:d={seg['dur']}[b0];"
+            order = [4, 1, 3, 5, 7, 0, 2, 6, 8]   # tiles appear from the centre outwards
+            for k, j in enumerate(order):
+                x, y = (j % 3) * (tw + 6), (j // 3) * (th + 6)
+                fc += f"[b{k}][{j}:v]overlay={x}:{y}:enable='gte(t,{0.12 * k:.2f})'[b{k + 1}];"
+            dur = seg["dur"]
+            fc += (f"[b9]drawbox=x=0:y=0:w=iw:h=ih:color=black@{seg.get('dim', 0.45)}:t=fill:enable='gte(t,{seg.get('t_in', 2.0) - 0.6})',"
+                   + center_title(seg["lines"], dur, seg.get("t_in", 2.0), dur - 0.4, 130, 52)
+                   + f",fade=out:st={dur - 1.6}:d=1.6,format=yuv420p")
+            run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + ins + ["-filter_complex", fc, "-t", str(dur),
                  "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
         elif kind == "montage":         # fast cuts, small corner label per shot
             raws = []
