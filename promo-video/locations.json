@@ -1,0 +1,29 @@
+{
+  "_comment": "Folder name in sources/ -> on-screen caption (English). Order = order in the film. Add/remove freely.",
+  "intro_title": ["ONE ACADEMY", "ACROSS THE WORLD"],
+  "outro_title": ["STEP IT ACADEMY", "itstep.org"],
+  "_stats_comment": "Leave stats empty to auto-count countries/cities from the footage used. Put official numbers here when approved, e.g. [\"20+ COUNTRIES\", \"100+ CAMPUSES\"].",
+  "stats": [],
+  "locations": [
+    {"dir": "bucharest",  "city": "BUCHAREST",      "country": "ROMANIA"},
+    {"dir": "bratislava", "city": "BRATISLAVA",     "country": "SLOVAKIA"},
+    {"dir": "prague",     "city": "PRAGUE",         "country": "CZECH REPUBLIC"},
+    {"dir": "warsaw",     "city": "WARSAW",         "country": "POLAND"},
+    {"dir": "sofia",      "city": "SOFIA",          "country": "BULGARIA"},
+    {"dir": "chisinau",   "city": "CHISINAU",       "country": "MOLDOVA"},
+    {"dir": "kyiv",       "city": "KYIV",           "country": "UKRAINE"},
+    {"dir": "lviv",       "city": "LVIV",           "country": "UKRAINE"},
+    {"dir": "dnipro",     "city": "DNIPRO",         "country": "UKRAINE"},
+    {"dir": "kharkiv",    "city": "KHARKIV",        "country": "UKRAINE"},
+    {"dir": "odesa",      "city": "ODESA",          "country": "UKRAINE"},
+    {"dir": "tbilisi",    "city": "TBILISI",        "country": "GEORGIA"},
+    {"dir": "baku",       "city": "BAKU",           "country": "AZERBAIJAN"},
+    {"dir": "almaty",     "city": "ALMATY",         "country": "KAZAKHSTAN"},
+    {"dir": "karaganda",  "city": "KARAGANDA",      "country": "KAZAKHSTAN"},
+    {"dir": "tashkent",   "city": "TASHKENT",       "country": "UZBEKISTAN"},
+    {"dir": "cambodia",   "city": "PHNOM PENH",     "country": "CAMBODIA"},
+    {"dir": "tijuana",    "city": "TIJUANA",        "country": "MEXICO"},
+    {"dir": "rio",        "city": "RIO DE JANEIRO", "country": "BRAZIL"},
+    {"dir": "usa",        "city": "",               "country": "USA"}
+  ]
+}
