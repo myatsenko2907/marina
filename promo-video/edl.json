@@ -396,58 +396,6 @@
   },
   {
    "type": "group",
-   "loc": "chisinau",
-   "shots": [
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
-      "start": 0.5,
-      "end": 1.55,
-      "clean": true,
-      "speed": 0.7,
-      "smooth": 90
-     },
-     1.5,
-     "still"
-    ],
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
-      "start": 2.5,
-      "end": 4.0,
-      "clean": true
-     },
-     1.5,
-     "in"
-    ],
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
-      "start": 24.8,
-      "end": 26.8,
-      "clean": true
-     },
-     2.0,
-     "in"
-    ],
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
-      "start": 54.8,
-      "end": 56.8,
-      "clean": true
-     },
-     2.5,
-     "left"
-    ]
-   ]
-  },
-  {
-   "type": "group",
    "loc": "lviv",
    "shots": [
     [
@@ -544,6 +492,36 @@
      "kazakhstan:13",
      1.5,
      "right"
+    ],
+    [
+     {
+      "loc": "kazakhstan",
+      "file": "sources/kazakhstan/IMG_6001.mov",
+      "start": 24.6,
+      "end": 26.8
+     },
+     1.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "kazakhstan",
+      "file": "sources/kazakhstan/IMG_6001.mov",
+      "start": 68.8,
+      "end": 70.7
+     },
+     1.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "kazakhstan",
+      "file": "sources/kazakhstan/IMG_6001.mov",
+      "start": 76.6,
+      "end": 78.7
+     },
+     1.5,
+     "in"
     ],
     [
      {
