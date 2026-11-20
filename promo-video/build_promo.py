@@ -292,6 +292,9 @@ def _render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
     ss = shot["start"] + max(0, (src_len - dur * speed) / 2) + shot.get("offset", 0)
     cy = shot.get("cy", 0.5)
     fill = [f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={w}:{h}:(iw-{w})/2:(ih-{h})*{cy}"]
+    if shot.get("crop"):   # [x, y, w, h] as fractions: cut away burned subtitles / logos
+        cx, cyy, cw, ch = shot["crop"]
+        fill = [f"crop=iw*{cw}:ih*{ch}:iw*{cx}:ih*{cyy}"] + fill
     if shot.get("frost"):   # hide burned-in city plates of the old tour video (1280x720) under a frosted panel
         fill = ["split[fm][fc];[fc]crop=680:270:0:450,boxblur=60:5,eq=saturation=0.15:brightness=-0.30[fb];[fm][fb]overlay=0:450"] + fill
     if speed < 0.85:   # real slow motion: motion-compensated in-between frames instead of duplicates
@@ -333,6 +336,56 @@ def render_triptych(items, dur, out, tmp, panel_caps=True):
          "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
 
 
+def render_wall(seg, out, tmp):
+    from concurrent.futures import ThreadPoolExecutor
+    dur, cols, rows = seg["dur"], 10, 10
+    TW, TH, G = 380, 212, 4                 # tiles on a 3840x2160 canvas (2x, for a smooth pull-back)
+    tiles = seg["tiles"][:cols * rows]
+    def one(args):
+        j, (f, st, crop) = args
+        o = tmp.with_name(tmp.stem + f"_w{j:03d}.mp4")
+        if o.exists() and o.stat().st_size > 1000:
+            return o
+        src = str(ROOT / f)
+        try:
+            ln = float(run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", src]).stdout)
+        except Exception:
+            ln = dur
+        avail = max(ln - st - 0.1, 0.5)
+        sp = min(1.0, avail / dur)
+        vf = ([f"crop=iw*{crop[2]}:ih*{crop[3]}:iw*{crop[0]}:ih*{crop[1]}"] if crop else []) + \
+            [f"setpts=PTS/{sp:.3f}", f"fps={FPS}", f"scale={TW}:{TH}:force_original_aspect_ratio=increase", f"crop={TW}:{TH}",
+             "eq=contrast=1.06:saturation=1.15", f"trim=duration={dur}", "setpts=PTS-STARTPTS", "format=yuv420p"]
+        run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-ss", f"{st:.2f}", "-t", f"{dur * sp + 0.5:.2f}", "-i", src,
+             "-an", "-vf", ",".join(vf), "-c:v", "libx264", "-preset", "ultrafast", "-crf", "18", str(o)])
+        return o
+    with ThreadPoolExecutor(4) as ex:
+        parts = list(ex.map(one, enumerate(tiles)))
+    ox, oy = (3840 - (cols * TW + (cols - 1) * G)) // 2, (2160 - (rows * TH + (rows - 1) * G)) // 2
+    layout = "|".join(f"{ox + (j % cols) * (TW + G)}_{oy + (j // cols) * (TH + G)}" for j in range(len(parts)))
+    ins = sum((["-i", str(x)] for x in parts), [])
+    grid = tmp.with_name(tmp.stem + "_grid.mp4")
+    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + ins + ["-filter_complex",
+         "".join(f"[{j}:v]" for j in range(len(parts))) + f"xstack=inputs={len(parts)}:layout={layout}:fill=0x05070C,"
+         f"pad=3840:2160:(ow-iw)/2:(oh-ih)/2:color=0x05070C,format=yuv420p", "-t", str(dur),
+         "-c:v", "libx264", "-preset", "fast", "-crf", "16", str(grid)])
+    # pull-back: start on the hero window (index seg['hero']) and ease out to the full wall in `pull` seconds
+    hero, pull, z0 = seg.get("hero", 44), seg.get("pull", 4.5), seg.get("z0", 5.0)
+    hx = ox + (hero % cols) * (TW + G) + TW / 2
+    hy = oy + (hero // cols) * (TH + G) + TH / 2
+    fr = int(pull * FPS)
+    e = f"(1-pow(1-min(on/{fr},1),3))"                     # ease-out cubic
+    z = f"{z0}-({z0}-1)*{e}"
+    x = f"max(0,min(iw-iw/zoom,({hx})*(1-{e})+(iw/2)*{e}-iw/zoom/2))"
+    y = f"max(0,min(ih-ih/zoom,({hy})*(1-{e})+(ih/2)*{e}-ih/zoom/2))"
+    t_in = seg.get("t_in", pull + 0.3)
+    vf = (f"zoompan=z='{z}':x='{x}':y='{y}':d=1:s={W}x{H}:fps={FPS},"
+          f"drawbox=x=0:y=0:w=iw:h=ih:color=black@{seg.get('dim', 0.5)}:t=fill:enable='gte(t,{t_in - 0.4})',"
+          + center_title(seg["lines"], dur, t_in, dur - 0.4, 130, 52) + f",fade=out:st={dur - 1.6}:d=1.6,format=yuv420p")
+    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(grid), "-vf", vf, "-t", str(dur),
+         "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
+
+
 def overlay_text(src, vf, out):
     run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(src), "-vf", vf + ",format=yuv420p",
          "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
@@ -348,7 +401,7 @@ def get_shot(shots, ref):
         s = get_shot(shots, ref["ref"])
     else:
         s = {"file": str(ROOT / ref["file"])}
-    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab", "frost", "cy")})
+    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab", "frost", "cy", "crop")})
     return s
 
 
@@ -363,11 +416,14 @@ def render(length=120.0):
     tmp = WORK / "clips"
     tmp.mkdir(parents=True, exist_ok=True)
     clips = []
-    for n, seg in enumerate(edl["segments"]):
-        out = tmp / f"s{n:03d}.mp4"
+    def seg_job(args):
+        n, seg = args
+        import hashlib
+        key = hashlib.md5(json.dumps(seg, sort_keys=True).encode()).hexdigest()[:10]
+        out = tmp / f"seg_{key}.mp4"
         kind = seg["type"]
         if out.exists() and out.stat().st_size > 10000 and not os.environ.get("REBUILD"):
-            clips.append(out); print(f"  segment {n} cached", flush=True); continue
+            print(f"  segment {n} cached", flush=True); return out
         if kind == "group":            # several shots of one location under one caption
             loc = L[seg["loc"]]
             raws = []
@@ -406,6 +462,8 @@ def render(length=120.0):
                   f"[c][3:v]overlay={gw + 8}:{gh + 8}:enable='gte(t,0.3)',format=yuv420p")
             run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + ins + ["-filter_complex", fc, "-t", str(seg["dur"]),
                  "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
+        elif kind == "wall":            # 10x10 wall of live campus windows; camera pulls back from one window to all 100
+            render_wall(seg, out, tmp / f"s{n:03d}")
         elif kind == "mosaic":          # 3x3 wall of campuses under the closing title
             tw, th = (W - 12) // 3, (H - 12) // 3
             tw -= tw % 2; th -= th % 2
@@ -454,8 +512,16 @@ def render(length=120.0):
             if seg.get("fade_out"):
                 vf.append(f"fade=out:st={tot - seg['fade_out']}:d={seg['fade_out']}")
             overlay_text(raw, ",".join(vf), out)
-        clips.append(out)
         print(f"  segment {n} ({kind}) ok", flush=True)
+        return out
+
+    from concurrent.futures import ThreadPoolExecutor
+    segs = list(enumerate(edl["segments"]))
+    # heaviest first so the pool stays busy
+    order = sorted(segs, key=lambda x: -(10 if x[1]["type"] == "wall" else len(x[1].get("shots", []))))
+    with ThreadPoolExecutor(int(os.environ.get("JOBS", 4))) as ex:
+        res = dict(zip([n for n, _ in order], ex.map(seg_job, order)))
+    clips = [res[n] for n, _ in segs]
 
     OUT.mkdir(exist_ok=True)
     silent = WORK / "silent.mp4"
