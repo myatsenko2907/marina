@@ -42,7 +42,11 @@ random.seed(7)
 
 
 def run(cmd, **kw):
-    return subprocess.run(cmd, check=True, text=True, capture_output=True, **kw)
+    r = subprocess.run(cmd, text=True, capture_output=True, **kw)
+    if r.returncode:
+        sys.stderr.write(r.stderr[-2000:])
+        raise subprocess.CalledProcessError(r.returncode, cmd[:6])
+    return r
 
 
 def probe(path):
@@ -136,13 +140,22 @@ def score_shot(fs):
 
 def analyse():
     WORK.mkdir(exist_ok=True)
-    all_shots = {}
-    for loc in CFG["locations"]:
+    from multiprocessing import Pool
+    with Pool(4) as pool:
+        res = pool.map(analyse_loc, CFG["locations"])
+    all_shots = {k: v for k, v in res if v}
+    (WORK / "shots.json").write_text(json.dumps(all_shots, indent=1, ensure_ascii=False))
+    pick(all_shots)
+
+
+def analyse_loc(loc):
+    cv2.setNumThreads(1)
+    if True:
         d = SRC / loc["dir"]
         files = sorted(p for p in d.glob("**/*") if p.suffix.lower() in VIDEO_EXT) if d.exists() else []
         if not files:
             print(f"  [skip] {loc['dir']}: no footage")
-            continue
+            return loc["dir"], []
         shots = []
         for f in files:
             try:
@@ -151,12 +164,15 @@ def analyse():
                 print(f"  [bad] {f}: {e}")
                 continue
             vertical = h > w
-            cuts = [0.0] + scene_cuts(f) + [dur]
-            cap = cv2.VideoCapture(str(f))
+            rel = str(f.relative_to(SRC)).replace("/", "_")
+            px = WORK / "proxy" / (rel + ".mp4")
+            ana = px if px.exists() else f
+            cuts = [0.0] + scene_cuts(ana) + [dur]
+            cap = cv2.VideoCapture(str(ana))
             for a, b in zip(cuts, cuts[1:]):
                 a, b = a + 0.25, b - 0.25          # avoid transition frames
                 t = a
-                while b - t >= 2.0:                # windows of up to 4 s inside a scene
+                while b - t >= 1.2:                # windows of up to 4 s inside a scene
                     e = min(t + 4.0, b)
                     fr = [frame_at(cap, t + (e - t) * k) for k in (0.15, 0.5, 0.85)]
                     fr = [x for x in fr if x is not None]
@@ -165,17 +181,16 @@ def analyse():
                         sc, info = score_shot(feats)
                         if vertical:
                             sc -= 1.5             # vertical phone footage needs heavy crop
-                        shots.append(dict(file=str(f), start=round(t, 2), end=round(e, 2),
-                                          score=sc, vertical=vertical, **info))
+                        shots.append(dict(file=str(f), proxy=str(ana), start=round(t, 2), end=round(e, 2),
+                                          score=sc, vertical=vertical, src_w=w, src_h=h, **info))
                     t = e + 0.5
             cap.release()
-            print(f"  {loc['dir']}: {f.name} -> {len(shots)} candidate shots so far")
-        all_shots[loc["dir"]] = sorted(shots, key=lambda s: -s["score"])
-    (WORK / "shots.json").write_text(json.dumps(all_shots, indent=1, ensure_ascii=False))
-    pick(all_shots)
+            pass
+        print(f"  {loc['dir']}: done, {len(shots)} shots", flush=True)
+        return loc["dir"], sorted(shots, key=lambda s: -s["score"])
 
 
-def pick(all_shots, per_loc=4):
+def pick(all_shots, per_loc=14):
     picks = {}
     for loc, shots in all_shots.items():
         chosen = []
@@ -185,7 +200,7 @@ def pick(all_shots, per_loc=4):
         for s in pool:
             if s in chosen or s["score"] < -3:
                 continue
-            if any(c["file"] == s["file"] and abs(c["start"] - s["start"]) < 8 for c in chosen):
+            if any(c["file"] == s["file"] and abs(c["start"] - s["start"]) < 3 for c in chosen):
                 continue
             chosen.append(s)
             if len(chosen) >= per_loc:
@@ -196,198 +211,230 @@ def pick(all_shots, per_loc=4):
 
 
 # ---------- rendering ----------
+BEAT = 0.5          # 120 BPM grid: every cut lands on a beat
+GAP = 6             # gutter between triptych panels
+
+
 def esc(t):
     return t.replace("\\", "\\\\").replace(":", "\\:").replace("'", "’").replace("%", "\\%")
 
 
-def caption_filter(city, country, dur):
-    """Lower-left caption: accent bar + CITY (bold) + COUNTRY (light), slides/fades in & out."""
-    fi, fo = 0.35, 0.3
-    alpha = f"if(lt(t,{fi}),t/{fi},if(gt(t,{dur - fo}),({dur}-t)/{fo},1))"
-    x = f"110-40*pow(1-min(t/{fi + 0.2},1),3)"
-    parts = [f"drawbox=x=80:y=ih-210:w=6:h=110:color=0x00C2FF@1:t=fill:enable='gte(t,0.1)'"]
+def caption_filter(city, country, dur, x0=96, base=None, big=76, small=36):
+    """Lower-left caption: accent bar + CITY (bold) + COUNTRY, eased slide/fade in and out."""
+    if not (city or country):
+        return None
+    fi, fo, d0 = 0.45, 0.35, 0.15
+    alpha = f"if(lt(t,{d0}),0,if(lt(t,{d0 + fi}),(t-{d0})/{fi},if(gt(t,{dur - fo}),max(0,({dur}-t)/{fo}),1)))"
+    x = f"{x0 + 26}-50*pow(1-min(max(t-{d0},0)/{fi + 0.25},1),3)"
     main, sub = (city, country) if city else (country, "")
-    parts.append(f"drawtext=fontfile={FONT_BOLD}:text='{esc(main)}':fontsize=78:fontcolor=white:"
-                 f"x={x}:y=h-218:alpha='{alpha}':shadowcolor=black@0.45:shadowx=0:shadowy=3")
+    yb = base if base is not None else "h-150"
+    bar_h = big + (small + 18 if sub else 0)
+    ybox = yb.replace("h-", "ih-") if isinstance(yb, str) else yb
+    parts = [f"drawbox=x={x0}:y={ybox}-{bar_h}+8:w=5:h={bar_h - 4}:color=0x2EC5FF:t=fill:"
+             f"enable='between(t,{d0 + 0.1},{dur - fo})'"]
+    ymain = f"{yb}-{bar_h}" if sub else f"{yb}-{big}"
+    parts.append(f"drawtext=fontfile={FONT_BOLD}:text='{esc(main)}':fontsize={big}:fontcolor=white:"
+                 f"x='{x}':y={ymain}:alpha='{alpha}':shadowcolor=black@0.55:shadowx=0:shadowy=3")
     if sub:
-        parts.append(f"drawtext=fontfile={FONT_MED}:text='{esc(sub)}':fontsize=40:fontcolor=white@0.9:"
-                     f"x={x}+3:y=h-132:alpha='{alpha}':shadowcolor=black@0.45:shadowx=0:shadowy=2")
+        parts.append(f"drawtext=fontfile={FONT_MED}:text='{esc(sub)}':fontsize={small}:fontcolor=white@0.92:"
+                     f"x='{x}+2':y={yb}-{small}+2:alpha='{alpha}':shadowcolor=black@0.55:shadowx=0:shadowy=2")
     return ",".join(parts)
 
 
-def center_title(lines, dur, big=110, small=54):
-    fi = 0.5
-    alpha = f"if(lt(t,{fi}),t/{fi},if(gt(t,{dur - 0.4}),({dur}-t)/0.4,1))"
+def center_title(lines, dur, t_in=0.0, t_out=None, big=120, small=48):
+    t_out = dur if t_out is None else t_out
+    fi, fo = 0.8, 0.6
+    alpha = f"if(lt(t,{t_in}),0,if(lt(t,{t_in + fi}),(t-{t_in})/{fi},if(gt(t,{t_out - fo}),max(0,({t_out}-t)/{fo}),1)))"
     out = []
     for i, ln in enumerate(lines):
         size = big if i == 0 else small
-        y = f"(h/2)-{size}+{i * (big + 22)}" if len(lines) > 1 else "(h-text_h)/2"
         font = FONT_BOLD if i == 0 else FONT_MED
-        out.append(f"drawtext=fontfile={font}:text='{esc(ln)}':fontsize={size}:fontcolor=white:"
-                   f"x=(w-text_w)/2:y={y}-60:alpha='{alpha}':shadowcolor=black@0.5:shadowx=0:shadowy=4")
+        y = f"(h/2)-{big}" if i == 0 else f"(h/2)+{int(big * 0.25)}"
+        spacing = "" if i == 0 else ""
+        out.append(f"drawtext=fontfile={font}:text='{esc(ln)}':fontsize={size}:fontcolor=white:{spacing}"
+                   f"x=(w-text_w)/2:y={y}:alpha='{alpha}':shadowcolor=black@0.6:shadowx=0:shadowy=4")
     return ",".join(out)
 
 
-def base_chain(shot, dur, zoom=True):
-    """Crop/scale to 16:9, gentle push-in for a 'drone/gimbal' feel, unified grade."""
-    vf = [f"scale={W}:{H}:force_original_aspect_ratio=increase", f"crop={W}:{H}", "setsar=1"]
-    if zoom:
-        frames = int(dur * FPS)
-        z = random.choice([0.06, 0.08, -0.06])
-        zexpr = f"1+{abs(z)}*on/{frames}" if z > 0 else f"{1 + abs(z)}-{abs(z)}*on/{frames}"
-        vf.append(f"scale={int(W * 1.1)}:{int(H * 1.1)},zoompan=z='{zexpr}':d=1:x='iw/2-(iw/zoom/2)':"
-                  f"y='ih/2-(ih/zoom/2)':s={W}x{H}:fps={FPS}")
-    vf += [f"fps={FPS}", "eq=contrast=1.06:saturation=1.12:gamma=0.98",
-           "colorbalance=rs=-0.03:bs=0.04:rh=0.03:bh=-0.02",  # teal shadows / warm highlights
-           "vignette=PI/5"]
-    return vf
+GRADE = ("eq=contrast=1.07:saturation=1.10:gamma=0.97,"
+         "colorbalance=rs=-0.02:bs=0.03:rh=0.02:bh=-0.02,unsharp=5:5:0.4")
 
 
-def render_clip(shot, dur, extra_vf, out):
+def move_chain(dur, w, h, move):
+    """Slow push-in / pull-out / lateral drift, computed on a 2x canvas so motion is sub-pixel smooth."""
+    frames = max(int(round(dur * FPS)), 1)
+    z0, z1, dx = {"in": (1.0, 1.07, 0), "out": (1.07, 1.0, 0), "left": (1.07, 1.07, -1),
+                  "right": (1.07, 1.07, 1), "still": (1.02, 1.02, 0)}[move]
+    zexpr = f"{z0}+({z1 - z0})*on/{frames}"
+    xexpr = (f"(iw-iw/zoom)/2+{dx}*(iw-iw/zoom)/2*(2*on/{frames}-1)" if dx else "(iw-iw/zoom)/2")
+    return [f"scale={w * 2}:{h * 2}:flags=lanczos",
+            f"zoompan=z='{zexpr}':d=1:x='{xexpr}':y='(ih-ih/zoom)/2':s={w}x{h}:fps={FPS}", GRADE]
+
+
+def render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
     src_len = shot["end"] - shot["start"]
-    speed = max(src_len / dur, 1.0) if src_len > dur * 1.6 else 1.0
-    ss = shot["start"] + max(0, (src_len - dur * speed) / 2)
-    vf = base_chain(shot, dur)
-    if speed > 1.0:
-        vf.insert(0, f"setpts=PTS/{speed:.3f}")
-    if extra_vf:
-        vf.append(extra_vf)
+    speed = 1.0
+    if shot.get("speed"):
+        speed = shot["speed"]
+    elif src_len > dur * 1.4:
+        speed = min(src_len / dur, 1.25)          # gentle energy; more would exaggerate hand-held shake
+    ss = shot["start"] + max(0, (src_len - dur * speed) / 2) + shot.get("offset", 0)
+    pre = ([f"setpts=PTS/{speed:.3f}"] if speed != 1.0 else []) + \
+        [f"fps={FPS}", f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={w}:{h}"]
+    inp = ["-ss", f"{ss:.3f}", "-t", f"{dur * speed + 0.6:.2f}", "-i", shot["file"], "-an"]
+    vf = list(pre)
+    if not shot.get("nostab"):
+        trf = str(out) + ".trf"
+        run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + inp +
+            ["-vf", ",".join(pre + [f"vidstabdetect=shakiness=7:accuracy=15:result={trf}"]), "-f", "null", "-"])
+        vf.append(f"vidstabtransform=input={trf}:smoothing=24:optzoom=1:zoomspeed=0.2:interpol=bicubic")
+    vf += move_chain(dur, w, h, move)
+    if extra:
+        vf.append(extra)
     vf.append(f"trim=duration={dur},setpts=PTS-STARTPTS,format=yuv420p")
-    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-ss", f"{ss:.2f}", "-t", f"{dur * speed + 0.5:.2f}",
-         "-i", shot["file"], "-an", "-vf", ",".join(vf), "-r", str(FPS), "-c:v", "libx264", "-preset", "medium",
-         "-crf", "18", str(out)])
+    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + inp + ["-vf", ",".join(vf), "-r", str(FPS),
+         "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
 
 
-def black_clip(dur, extra_vf, out):
-    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i",
-         f"color=c=0x05070C:s={W}x{H}:r={FPS}:d={dur}", "-vf", (extra_vf + "," if extra_vf else "") + "format=yuv420p",
-         "-c:v", "libx264", "-crf", "18", str(out)])
+def render_triptych(items, dur, out, tmp, panel_caps=True):
+    """Three vertical shots side by side, each with its own small caption; panels reveal left-to-right."""
+    pw = (W - 2 * GAP) // 3
+    parts = []
+    moves = ["in", "out", "in"]
+    for i, (shot, loc) in enumerate(items):
+        p = tmp.with_name(tmp.stem + f"_p{i}.mp4")
+        cap = caption_filter(loc.get("city"), loc.get("country"), dur, x0=34, base="h-70", big=44, small=24) \
+            if (panel_caps and loc.get("caption", True)) else None
+        render_shot(shot, dur, p, pw, H, moves[i], cap)
+        parts.append(p)
+    ins = sum((["-i", str(p)] for p in parts), [])
+    fc = (f"color=c=0x05070C:s={W}x{H}:r={FPS}:d={dur}[bg];"
+          f"[bg][0:v]overlay=x=0:y=0[a];[a][1:v]overlay=x={pw + GAP}:y=0:enable='gte(t,0.12)'[b];"
+          f"[b][2:v]overlay=x={2 * (pw + GAP)}:y=0:enable='gte(t,0.24)',format=yuv420p")
+    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + ins + ["-filter_complex", fc, "-t", str(dur),
+         "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
+
+
+def overlay_text(src, vf, out):
+    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(src), "-vf", vf + ",format=yuv420p",
+         "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
+
+
+def get_shot(shots, ref):
+    """ref = 'loc:index' into shots.json, or {"ref": "loc:i", "start":.., "end":.., "speed":..}
+    or {"loc": .., "file": "sources/..", "start":.., "end":..} for hand-picked moments."""
+    if isinstance(ref, str):
+        loc, i = ref.split(":")
+        return dict(shots[loc][int(i)])
+    if "ref" in ref:
+        s = get_shot(shots, ref["ref"])
+    else:
+        s = {"file": str(ROOT / ref["file"])}
+    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab")})
+    return s
+
+
+def ref_loc(ref):
+    return (ref if isinstance(ref, str) else ref.get("ref", ref.get("loc", ""))).split(":")[0]
 
 
 def render(length=120.0):
-    picks = json.loads((WORK / "picks.json").read_text())
-    locs = [l for l in CFG["locations"] if picks.get(l["dir"])]
-    if not locs:
-        sys.exit("no picked shots - run analyse first")
-    countries = sorted({l["country"] for l in locs})
-    cities = [l for l in locs if l["city"]]
-    stats = CFG.get("stats") or [f"{len(countries)} COUNTRIES", f"{len(cities)} CITIES", "ONE ACADEMY"]
-
-    # global ranking for intro/montage: best exteriors from everywhere
-    flat = [(l, s) for l in locs for s in picks[l["dir"]]]
-    ext = sorted([x for x in flat if x[1]["kind"] == "exterior"], key=lambda x: -x[1]["score"])
-    best = sorted(flat, key=lambda x: -x[1]["score"])
-
-    intro_len, montage_len, stats_len, outro_len = 8.0, 9.0, 6.0, 6.0
-    body_len = length - intro_len - montage_len - stats_len - outro_len
-    used = set()
-
-    plan = []   # (shot|None, dur, extra_vf)
-    # 1) INTRO: 4 fast exteriors, title over them
-    intro_src = (ext or best)[:4]
-    for i, (l, s) in enumerate(intro_src):
-        d = intro_len / len(intro_src)
-        used.add(id(s))
-        plan.append((s, d, None))
-    plan.append(("TITLE", 0, None))   # marker -> title overlaid on whole intro later
-
-    # 2) BODY: per location, 2-3 shots, first one carries the caption
-    per = body_len / len(locs)
-    n_per = 3 if per >= 6 else 2
-    for l in locs:
-        shots = [s for s in picks[l["dir"]] if id(s) not in used][:n_per] or picks[l["dir"]][:1]
-        d = per / len(shots)
-        for j, s in enumerate(shots):
-            used.add(id(s))
-            cap = caption_filter(l["city"], l["country"], per) if j == 0 else None
-            plan.append((s, d, ("CAP", l, per, j)))
-
-    # 3) SCALE MONTAGE: rapid 0.75 s cuts of facades/halls from every location
-    rest = [x for x in best if id(x[1]) not in used] + best
-    n = int(montage_len / 0.75)
-    for l, s in rest[:n]:
-        plan.append((s, montage_len / n, ("MINI", l)))
-
-    # 4) STATS on dark + 5) OUTRO on best exterior
-    plan.append((None, stats_len, center_title(stats[:1] + [" · ".join(stats[1:])], stats_len, 130, 60)))
-    plan.append(((ext or best)[0][1], outro_len, center_title(CFG["outro_title"], outro_len, 120, 56)))
-
-    clips_dir = WORK / "clips"
-    clips_dir.mkdir(parents=True, exist_ok=True)
+    picks = json.loads((WORK / "shots.json").read_text())
+    edl = json.loads((ROOT / "edl.json").read_text())
+    L = {l["dir"]: l for l in CFG["locations"]}
+    tmp = WORK / "clips"
+    tmp.mkdir(parents=True, exist_ok=True)
     clips = []
-    k = 0
-    i = 0
-    # intro clips rendered then concatenated with title on top
-    intro_parts = []
-    while plan[i][0] != "TITLE":
-        s, d, _ = plan[i]
-        p = clips_dir / f"intro_{i:02d}.mp4"
-        render_clip(s, d, None, p)
-        intro_parts.append(p)
-        i += 1
-    i += 1
-    intro = clips_dir / "000_intro.mp4"
-    concat(intro_parts, clips_dir / "intro_raw.mp4")
-    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(clips_dir / "intro_raw.mp4"), "-vf",
-         "fade=in:st=0:d=0.8," + center_title(CFG["intro_title"], intro_len, 120, 64),
-         "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", str(intro)])
-    clips.append(intro)
-
-    # body: group shots of one location so the caption spans the cut
-    group, gl = [], None
-    def flush():
-        nonlocal k
-        if not group:
-            return
-        parts = []
-        for s, d in group:
-            p = clips_dir / f"b{k:03d}.mp4"; k += 1
-            render_clip(s, d, None, p); parts.append(p)
-        raw = clips_dir / f"g{k:03d}_raw.mp4"
-        concat(parts, raw)
-        out = clips_dir / f"g{k:03d}.mp4"
-        tot = sum(d for _, d in group)
-        run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(raw), "-vf",
-             caption_filter(gl["city"], gl["country"], tot), "-c:v", "libx264", "-crf", "18",
-             "-pix_fmt", "yuv420p", str(out)])
+    for n, seg in enumerate(edl["segments"]):
+        out = tmp / f"s{n:03d}.mp4"
+        kind = seg["type"]
+        if out.exists() and out.stat().st_size > 10000 and not os.environ.get("REBUILD"):
+            clips.append(out); print(f"  segment {n} cached", flush=True); continue
+        if kind == "group":            # several shots of one location under one caption
+            loc = L[seg["loc"]]
+            raws = []
+            for j, (ref, d, mv) in enumerate(seg["shots"]):
+                r = tmp / f"s{n:03d}_{j}.mp4"
+                render_shot(get_shot(picks, ref), d, r, move=mv)
+                raws.append(r)
+            raw = tmp / f"s{n:03d}_raw.mp4"
+            concat(raws, raw)
+            tot = sum(d for _, d, _ in seg["shots"])
+            vf = caption_filter(loc["city"], loc["country"], tot) if loc.get("caption", True) else None
+            vf = ",".join(x for x in [vf, seg.get("vf")] if x)
+            overlay_text(raw, vf, out) if vf else raw.rename(out)
+        elif kind == "tri":
+            items = [(get_shot(picks, r), L[ref_loc(r)]) for r in seg["shots"]]
+            single = seg.get("caption") == "single"
+            render_triptych(items, seg["dur"], out, tmp / f"s{n:03d}", panel_caps=not single)
+            if single:
+                loc = items[0][1]
+                fixed = tmp / f"s{n:03d}_cap.mp4"
+                overlay_text(out, caption_filter(loc["city"], loc["country"], seg["dur"]), fixed)
+                fixed.replace(out)
+        elif kind == "grid":            # 2x2: four countries at once
+            gw, gh = (W - GAP) // 2, (H - GAP) // 2
+            parts = []
+            for j, ref in enumerate(seg["shots"]):
+                loc = L[ref_loc(ref)]
+                cap = caption_filter(loc["city"], loc["country"], seg["dur"], x0=40, base="h-46", big=46, small=24) \
+                    if loc.get("caption", True) else None
+                r = tmp / f"s{n:03d}_{j}.mp4"
+                render_shot(get_shot(picks, ref), seg["dur"], r, gw, gh, ["in", "out", "out", "in"][j], cap)
+                parts.append(r)
+            ins = sum((["-i", str(x)] for x in parts), [])
+            fc = (f"color=c=0x05070C:s={W}x{H}:r={FPS}:d={seg['dur']}[bg];[bg][0:v]overlay=0:0[a];"
+                  f"[a][1:v]overlay={gw + GAP}:0:enable='gte(t,0.1)'[b];[b][2:v]overlay=0:{gh + GAP}:enable='gte(t,0.2)'[c];"
+                  f"[c][3:v]overlay={gw + GAP}:{gh + GAP}:enable='gte(t,0.3)',format=yuv420p")
+            run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + ins + ["-filter_complex", fc, "-t", str(seg["dur"]),
+                 "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
+        elif kind == "montage":         # fast cuts, small corner label per shot
+            raws = []
+            for j, (ref, d) in enumerate(seg["shots"]):
+                loc = L[ref_loc(ref)]
+                lab = (loc["city"] + "  ·  " if loc["city"] else "") + loc["country"]
+                extra = (f"drawtext=fontfile={FONT_MED}:text='{esc(lab)}':fontsize=30:fontcolor=white@0.9:"
+                         f"x=96:y=h-104:shadowcolor=black@0.6:shadowy=2") if loc.get("caption", True) and lab.strip() else None
+                r = tmp / f"s{n:03d}_{j}.mp4"
+                render_shot(get_shot(picks, ref), d, r, move=random.choice(["in", "out", "left", "right"]), extra=extra)
+                raws.append(r)
+            concat(raws, out)
+        elif kind == "title":           # shots with a centred title over them
+            raws = []
+            for j, (ref, d, mv) in enumerate(seg["shots"]):
+                r = tmp / f"s{n:03d}_{j}.mp4"
+                render_shot(get_shot(picks, ref), d, r, move=mv)
+                raws.append(r)
+            raw = tmp / f"s{n:03d}_raw.mp4"
+            concat(raws, raw)
+            tot = sum(d for _, d, _ in seg["shots"])
+            vf = [f"drawbox=x=0:y=0:w=iw:h=ih:color=black@{seg.get('dim', 0.35)}:t=fill",
+                  center_title(seg["lines"], tot, seg.get("t_in", 1.0), seg.get("t_out", tot - 0.3),
+                               seg.get("big", 120), seg.get("small", 46))]
+            if seg.get("fade_in"):
+                vf.append(f"fade=in:st=0:d={seg['fade_in']}")
+            if seg.get("fade_out"):
+                vf.append(f"fade=out:st={tot - seg['fade_out']}:d={seg['fade_out']}")
+            overlay_text(raw, ",".join(vf), out)
         clips.append(out)
-        group.clear()
-
-    for s, d, tag in plan[i:]:
-        if isinstance(tag, tuple) and tag[0] == "CAP":
-            l = tag[1]
-            if gl is not l:
-                flush(); gl = l
-            group.append((s, d))
-            continue
-        flush(); gl = None
-        p = clips_dir / f"z{k:03d}.mp4"; k += 1
-        if isinstance(tag, tuple) and tag[0] == "MINI":
-            l = tag[1]
-            label = f"drawtext=fontfile={FONT_MED}:text='{esc((l['city'] + ' · ' if l['city'] else '') + l['country'])}':" \
-                    f"fontsize=34:fontcolor=white@0.85:x=90:y=h-110:shadowcolor=black@0.5:shadowy=2"
-            render_clip(s, d, label, p)
-        elif s is None:
-            black_clip(d, tag, p)
-        else:
-            render_clip(s, d, tag + f",fade=out:st={d - 1.0}:d=1.0", p)
-        clips.append(p)
-    flush()
+        print(f"  segment {n} ({kind}) ok", flush=True)
 
     OUT.mkdir(exist_ok=True)
     silent = WORK / "silent.mp4"
     concat(clips, silent)
-    final = OUT / "STEP_IT_Academy_global_promo.mp4"
+    dur = float(run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+                     str(silent)]).stdout)
+    final = OUT / "STEP_IT_Academy_global_promo_1080p.mp4"
     music = ROOT / "music.mp3"
     if music.exists():
         run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(silent), "-i", str(music),
-             "-filter_complex", f"[1:a]atrim=0:{length},afade=in:st=0:d=1.5,afade=out:st={length - 3}:d=3,"
-             "loudnorm=I=-14:TP=-1.5:LRA=11[a]", "-map", "0:v", "-map", "[a]", "-c:v", "copy",
-             "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart", str(final)])
+             "-filter_complex", f"[1:a]atrim=0:{dur},afade=in:st=0:d=0.5,afade=out:st={dur - 2.5}:d=2.5,"
+             "loudnorm=I=-14:TP=-1.0:LRA=11[a]", "-map", "0:v", "-map", "[a]", "-c:v", "copy",
+             "-c:a", "aac", "-b:a", "320k", "-ar", "48000", "-t", str(dur), "-movflags", "+faststart", str(final)])
     else:
         run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(silent), "-c", "copy",
              "-movflags", "+faststart", str(final)])
-    print("done ->", final)
+    print(f"done -> {final} ({dur:.1f}s)")
 
 
 def concat(parts, out):
