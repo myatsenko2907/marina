@@ -211,9 +211,24 @@
     [
      {
       "loc": "baku",
+      "file": "sources/extra/tour_of_branches.mp4",
+      "start": 20.05,
+      "end": 20.95,
+      "speed": 0.4,
+      "frost": true,
+      "nostab": true,
+      "clean": true
+     },
+     2.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "baku",
       "file": "sources/extra/baku_tour.mp4",
       "start": 130.3,
-      "end": 132.6
+      "end": 132.6,
+      "clean": true
      },
      2.0,
      "in"
@@ -223,7 +238,8 @@
       "loc": "baku",
       "file": "sources/extra/baku_tour.mp4",
       "start": 132.8,
-      "end": 134.5
+      "end": 134.5,
+      "clean": true
      },
      2.0,
      "in"
@@ -233,7 +249,8 @@
       "loc": "baku",
       "file": "sources/extra/baku_tour.mp4",
       "start": 42.0,
-      "end": 45.0
+      "end": 45.0,
+      "clean": true
      },
      2.0,
      "right"
@@ -243,7 +260,8 @@
       "loc": "baku",
       "file": "sources/extra/baku_tour.mp4",
       "start": 91.0,
-      "end": 93.5
+      "end": 93.5,
+      "clean": true
      },
      1.5,
      "left"
@@ -253,7 +271,8 @@
       "loc": "baku",
       "file": "sources/extra/baku_tour.mp4",
       "start": 139.5,
-      "end": 142.0
+      "end": 142.0,
+      "clean": true
      },
      1.5,
      "in"
@@ -302,7 +321,8 @@
        0.14,
        0.7,
        0.7
-      ]
+      ],
+      "clean": true
      },
      2.5,
      "in"
@@ -328,7 +348,8 @@
        0.14,
        0.7,
        0.7
-      ]
+      ],
+      "clean": true
      },
      2.0,
      "right"
@@ -355,7 +376,8 @@
       "file": "sources/extra/lviv_tour.mp4",
       "start": 11.0,
       "end": 12.8,
-      "nostab": true
+      "nostab": true,
+      "clean": true
      },
      2.0,
      "still"
@@ -366,7 +388,8 @@
       "file": "sources/extra/lviv_tour.mp4",
       "start": 40.2,
       "end": 42.0,
-      "nostab": true
+      "nostab": true,
+      "clean": true
      },
      1.0,
      "still"
@@ -377,7 +400,8 @@
       "file": "sources/extra/lviv_tour.mp4",
       "start": 18.3,
       "end": 20.1,
-      "nostab": true
+      "nostab": true,
+      "clean": true
      },
      1.0,
      "still"
@@ -388,7 +412,8 @@
       "file": "sources/extra/lviv_tour.mp4",
       "start": 89.2,
       "end": 91.4,
-      "nostab": true
+      "nostab": true,
+      "clean": true
      },
      2.0,
      "still"
@@ -404,7 +429,8 @@
       "loc": "chisinau",
       "file": "sources/extra/chisinau.mp4",
       "start": 0.2,
-      "end": 4.5
+      "end": 4.5,
+      "clean": true
      },
      3.0,
      "in"
@@ -414,7 +440,8 @@
       "loc": "chisinau",
       "file": "sources/extra/chisinau.mp4",
       "start": 24.8,
-      "end": 26.8
+      "end": 26.8,
+      "clean": true
      },
      2.0,
      "in"
@@ -424,7 +451,8 @@
       "loc": "chisinau",
       "file": "sources/extra/chisinau.mp4",
       "start": 33.0,
-      "end": 36.0
+      "end": 36.0,
+      "clean": true
      },
      1.5,
      "right"
@@ -434,7 +462,8 @@
       "loc": "chisinau",
       "file": "sources/extra/chisinau.mp4",
       "start": 54.8,
-      "end": 56.8
+      "end": 56.8,
+      "clean": true
      },
      1.5,
      "left"
@@ -573,6 +602,72 @@
      "nolabel:9",
      1.0,
      "right"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "odesa",
+   "shots": [
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 243.25,
+      "end": 247.25
+     },
+     2.0,
+     "in"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 225.25,
+      "end": 229.25
+     },
+     1.5,
+     "right"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 81.25,
+      "end": 85.25
+     },
+     1.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 126.25,
+      "end": 130.25
+     },
+     1.5,
+     "right"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 198.25,
+      "end": 202.25
+     },
+     1.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 392.15,
+      "end": 396.15
+     },
+     1.5,
+     "left"
     ]
    ]
   },

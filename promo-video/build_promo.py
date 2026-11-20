@@ -292,6 +292,8 @@ def _render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
     ss = shot["start"] + max(0, (src_len - dur * speed) / 2) + shot.get("offset", 0)
     cy = shot.get("cy", 0.5)
     fill = [f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={w}:{h}:(iw-{w})/2:(ih-{h})*{cy}"]
+    if shot.get("clean"):  # low-res / noisy source: denoise before upscaling, sharpen after
+        fill = ["hqdn3d=3:2.5:6:5"] + fill + ["unsharp=5:5:0.9:5:5:0.0"]
     if shot.get("crop"):   # [x, y, w, h] as fractions: cut away burned subtitles / logos
         cx, cyy, cw, ch = shot["crop"]
         fill = [f"crop=iw*{cw}:ih*{ch}:iw*{cx}:ih*{cyy}"] + fill
@@ -401,7 +403,7 @@ def get_shot(shots, ref):
         s = get_shot(shots, ref["ref"])
     else:
         s = {"file": str(ROOT / ref["file"])}
-    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab", "frost", "cy", "crop")})
+    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab", "frost", "cy", "crop", "clean")})
     return s
 
 

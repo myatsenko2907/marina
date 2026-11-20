@@ -5,7 +5,9 @@ import numpy as np, wave, subprocess, sys
 from pathlib import Path
 
 SR = 48000
-LEN = 120.0
+import os
+LEN = float(os.environ.get('LEN', 120))
+KS = LEN / 120.0
 BEAT = 0.5
 N = int(SR * LEN)
 t = np.arange(N) / SR
@@ -52,11 +54,11 @@ for c in range(int(LEN / 4)):
 pad = np.convolve(pad, np.ones(24) / 24, mode="same")  # soften
 pad *= 0.035
 # swell: quiet intro, full in body, bigger in montage, decay in outro
-sw = np.interp(t, [0, 8, 10, 86, 88, 110, 111, 120], [0.35, 0.8, 0.9, 0.9, 1.15, 1.15, 1.3, 0.0])
+sw = np.interp(t, [0, 8, 10, 86*KS, 88*KS, LEN-10, LEN-9, LEN], [0.35, 0.8, 0.9, 0.9, 1.15, 1.15, 1.3, 0.0])
 L += pad * sw; R += np.roll(pad, 300) * sw
 
 # --- sub bass pulse on 8ths (root of chord)
-for k in range(int(10 / 0.25), int(110 / 0.25)):
+for k in range(int(10 / 0.25), int((LEN-10) / 0.25)):
     st = k * 0.25; ch = chords[int(st // 4) % 4]
     n = int(0.22 * SR); tt = np.arange(n) / SR
     b = np.sin(2 * np.pi * note(ch[0] - 24) * tt) * env(n, 0.005, 6)
@@ -70,7 +72,7 @@ def kick():
 K = kick()
 for k in range(int(LEN / BEAT)):
     st = k * BEAT
-    if 10 <= st < 110 or (2 <= st < 10 and k % 4 == 0):
+    if 10 <= st < LEN-10 or (2 <= st < 10 and k % 4 == 0):
         add(K, st, 0, 0.7 if st >= 10 else 0.45)
 
 # --- snare/clap on 2 & 4 in body, toms build in montage
@@ -81,17 +83,17 @@ SN = noise_hit(0.3, 14, 3)
 HH = noise_hit(0.05, 40, 1) - noise_hit(0.05, 40, 6)
 for k in range(int(LEN / BEAT)):
     st = k * BEAT
-    if 18 <= st < 110 and k % 2 == 1:
+    if 18 <= st < LEN-10 and k % 2 == 1:
         add(SN, st, 0.1, 0.32)
 for k in range(int(LEN / 0.25)):
     st = k * 0.25
-    if 26 <= st < 110:
+    if 26 <= st < LEN-10:
         add(HH, st, 0.4 if k % 2 else -0.4, 0.10 if k % 2 else 0.05)
 def tom(f):
     n = int(0.5 * SR); tt = np.arange(n) / SR
     return np.sin(2 * np.pi * np.cumsum(f * (1 + 0.6 * np.exp(-tt * 20))) / SR) * env(n, 0.002, 7)
 T1, T2 = tom(90), tom(65)
-for k in range(int(86 / 0.25), int(110 / 0.25)):
+for k in range(int(86*KS / 0.25), int((LEN-10) / 0.25)):
     st = k * 0.25
     if k % 4 in (1, 3): add(T1 if k % 8 < 4 else T2, st, -0.3 if k % 8 < 4 else 0.3, 0.32)
 
@@ -105,9 +107,9 @@ def impact():
     boom = np.sin(2 * np.pi * np.cumsum(30 + 80 * np.exp(-tt * 6)) / SR) * env(n, 0.002, 2.2)
     return boom + noise_hit(3.5, 5, 12) * 0.5
 IMP = impact()
-for at, d in [(10, 3), (80, 2), (86, 4), (110, 4)]:
+for at, d in [(10, 3), (80*KS, 2), (86*KS, 4), (LEN-10, 4)]:
     add(riser(d), at - d, 0, 0.5)
-    add(IMP, at, 0, 0.9 if at in (10, 110) else 0.6)
+    add(IMP, at, 0, 0.9 if at in (10, LEN-10) else 0.6)
 
 # --- piano-ish arpeggio motif (sine + harmonics), sparse in intro, steady in body
 def pluck(f, d=0.6):
@@ -115,7 +117,7 @@ def pluck(f, d=0.6):
     return (np.sin(2 * np.pi * f * tt) + 0.4 * np.sin(4 * np.pi * f * tt) + 0.15 * np.sin(6 * np.pi * f * tt)) * env(n, 0.003, 7)
 for k in range(int(LEN / 0.25)):
     st = k * 0.25
-    if st >= 110: break
+    if st >= LEN-10: break
     ch = chords[int(st // 4) % 4]
     step = [0, 1, 2, 1, 0, 2, 1, 2][k % 8]
     if st < 10 and k % 2: continue
