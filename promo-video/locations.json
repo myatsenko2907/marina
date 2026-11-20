@@ -135,6 +135,12 @@
    "dir": "cambodia_ol",
    "city": "PHNOM PENH",
    "country": "CAMBODIA  ·  OLYMPIC CAMPUS"
+  },
+  {
+   "dir": "__open",
+   "city": "",
+   "country": "",
+   "caption": false
   }
  ]
 }

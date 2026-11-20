@@ -294,6 +294,8 @@ def _render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
         speed = shot["speed"]
     elif src_len > dur * 1.4:
         speed = min(src_len / dur, 1.25)          # gentle energy; more would exaggerate hand-held shake
+    if src_len < dur * speed - 0.02:          # never run past the chosen moment into the next scene
+        speed = max(src_len / dur, 0.25)
     ss = shot["start"] + max(0, (src_len - dur * speed) / 2) + shot.get("offset", 0)
     cy = shot.get("cy", 0.5)
     fill = [f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={w}:{h}:(iw-{w})/2:(ih-{h})*{cy}"]
@@ -426,21 +428,23 @@ def render(length=120.0):
     def seg_job(args):
         n, seg = args
         import hashlib
-        key = hashlib.md5((json.dumps(seg, sort_keys=True) + ("S" if STATIC else "")).encode()).hexdigest()[:10]
+        key = hashlib.md5((json.dumps(seg, sort_keys=True) + ("S" if STATIC else "") + f"X{os.environ.get('XF', '')}v2").encode()).hexdigest()[:10]
         out = tmp / f"seg_{key}.mp4"
         kind = seg["type"]
         if out.exists() and out.stat().st_size > 10000 and not os.environ.get("REBUILD"):
             print(f"  segment {n} cached", flush=True); return out
         if kind == "group":            # several shots of one location under one caption
             loc = L[seg["loc"]]
-            raws = []
+            raws, lens = [], []
+            last_seg = n == len(edl["segments"]) - 1
             for j, (ref, d, mv) in enumerate(seg["shots"]):
                 r = tmp / f"s{n:03d}_{j}.mp4"
-                render_shot(get_shot(picks, ref), d, r, move=mv)
-                raws.append(r)
+                dd = d + (XF if XF and not (last_seg and j == len(seg["shots"]) - 1) else 0)
+                render_shot(get_shot(picks, ref), dd, r, move=mv)
+                raws.append(r); lens.append(dd)
             raw = tmp / f"s{n:03d}_raw.mp4"
-            concat(raws, raw)
-            tot = sum(d for _, d, _ in seg["shots"])
+            xfade_join(raws, lens, raw) if XF else concat(raws, raw)
+            tot = sum(d for _, d, _ in seg["shots"]) + (XF if XF and not last_seg else 0)
             vf = caption_filter(loc["city"], loc["country"], tot) if loc.get("caption", True) else None
             vf = ",".join(x for x in [vf, seg.get("vf")] if x)
             overlay_text(raw, vf, out) if vf else raw.rename(out)
@@ -503,14 +507,15 @@ def render(length=120.0):
                 raws.append(r)
             concat(raws, out)
         elif kind == "title":           # shots with a centred title over them
-            raws = []
+            raws, lens = [], []
             for j, (ref, d, mv) in enumerate(seg["shots"]):
                 r = tmp / f"s{n:03d}_{j}.mp4"
-                render_shot(get_shot(picks, ref), d, r, move=mv)
-                raws.append(r)
+                dd = d + (XF if XF else 0)
+                render_shot(get_shot(picks, ref), dd, r, move=mv)
+                raws.append(r); lens.append(dd)
             raw = tmp / f"s{n:03d}_raw.mp4"
-            concat(raws, raw)
-            tot = sum(d for _, d, _ in seg["shots"])
+            xfade_join(raws, lens, raw) if XF else concat(raws, raw)
+            tot = sum(d for _, d, _ in seg["shots"]) + (XF if XF else 0)
             vf = [f"drawbox=x=0:y=0:w=iw:h=ih:color=black@{seg.get('dim', 0.35)}:t=fill",
                   center_title(seg["lines"], tot, seg.get("t_in", 1.0), seg.get("t_out", tot - 0.3),
                                seg.get("big", 120), seg.get("small", 46))]
@@ -532,7 +537,11 @@ def render(length=120.0):
 
     OUT.mkdir(exist_ok=True)
     silent = WORK / "silent.mp4"
-    concat(clips, silent)
+    if XF:
+        lens = [float(run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(c)]).stdout) for c in clips]
+        xfade_join(clips, lens, silent)
+    else:
+        concat(clips, silent)
     dur = float(run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
                      str(silent)]).stdout)
     final = OUT / os.environ.get("OUTNAME", "STEP_IT_Academy_global_promo_1080p.mp4")
@@ -546,6 +555,24 @@ def render(length=120.0):
         run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(silent), "-c", "copy",
              "-movflags", "+faststart", str(final)])
     print(f"done -> {final} ({dur:.1f}s)")
+
+
+XF = float(os.environ.get("XF", 0))     # crossfade length between shots/segments (0 = hard cuts)
+
+
+def xfade_join(parts, lens, out):
+    if len(parts) == 1:
+        import shutil; shutil.copy(parts[0], out); return
+    ins = sum((["-i", str(p)] for p in parts), [])
+    fc, prev, off = "", "[0:v]", 0.0
+    for i in range(1, len(parts)):
+        off += lens[i - 1] - XF
+        lab = f"[x{i}]" if i < len(parts) - 1 else ""
+        fc += f"{prev}[{i}:v]xfade=transition=fade:duration={XF}:offset={off:.3f}{lab};"
+        prev = lab
+    fc = fc.rstrip(";") + ",format=yuv420p"
+    run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + ins + ["-filter_complex", fc,
+         "-c:v", "libx264", "-preset", "slow", "-crf", "14", "-r", str(FPS), str(out)])
 
 
 def concat(parts, out):

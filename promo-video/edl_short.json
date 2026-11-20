@@ -2,25 +2,16 @@
  "_comment": "Short 45s cut, static camera",
  "segments": [
   {
-   "type": "title",
-   "lines": [
-    "ITSTEP",
-    "ACROSS THE WORLD"
-   ],
-   "t_in": 0.6,
-   "t_out": 3.8,
-   "fade_in": 0.6,
-   "dim": 0.28,
-   "big": 140,
-   "small": 50,
+   "type": "group",
+   "loc": "__open",
    "shots": [
     [
      {
-      "loc": "stanislav",
+      "loc": "__open",
       "file": "sources/ivano_frankivsk/stanislav_school.mp4",
-      "start": 0.6,
+      "start": 0.9,
       "end": 1.9,
-      "speed": 0.6,
+      "speed": 0.5,
       "nostab": true
      },
      2.0,
@@ -28,11 +19,11 @@
     ],
     [
      {
-      "loc": "stanislav",
+      "loc": "__open",
       "file": "sources/ivano_frankivsk/stanislav_school.mp4",
       "start": 89.9,
       "end": 91.5,
-      "speed": 0.75,
+      "speed": 0.8,
       "nostab": true
      },
      2.0,
@@ -197,10 +188,10 @@
      {
       "loc": "lviv",
       "file": "sources/extra/lviv_tour.mp4",
-      "start": 89.6,
-      "end": 91.2,
-      "nostab": true,
-      "clean": true
+      "start": 0.0,
+      "end": 1.2,
+      "speed": 0.8,
+      "nostab": true
      },
      1.5,
      "none"
@@ -224,22 +215,6 @@
     [
      "bratislava:3",
      1.0,
-     "none"
-    ]
-   ]
-  },
-  {
-   "type": "group",
-   "loc": "ivano_frankivsk",
-   "shots": [
-    [
-     {
-      "loc": "ivano_frankivsk",
-      "file": "sources/ivano_frankivsk/ivano_frankivsk.mp4",
-      "start": 48.3,
-      "end": 49.85
-     },
-     1.5,
      "none"
     ]
    ]
@@ -288,8 +263,9 @@
      {
       "loc": "odesa",
       "file": "sources/ukraine/IMG_6242.mov",
-      "start": 81.25,
-      "end": 85.25
+      "start": 18.25,
+      "end": 19.0,
+      "speed": 0.6
      },
      1.0,
      "none"
