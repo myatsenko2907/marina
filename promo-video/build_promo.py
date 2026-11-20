@@ -310,7 +310,7 @@ def _render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
         trf = str(out) + ".trf"
         run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + inp +
             ["-vf", ",".join(pre + [f"vidstabdetect=shakiness=9:accuracy=15:stepsize=6:result={trf}"]), "-f", "null", "-"])
-        vf.append(f"vidstabtransform=input={trf}:smoothing=40:optzoom=1:zoomspeed=0.15:interpol=bicubic")
+        vf.append(f"vidstabtransform=input={trf}:smoothing={shot.get('smooth', 40)}:optzoom=1:zoomspeed=0.15:interpol=bicubic")
     vf += move_chain(dur, w, h, move)
     if extra:
         vf.append(extra)
@@ -403,7 +403,7 @@ def get_shot(shots, ref):
         s = get_shot(shots, ref["ref"])
     else:
         s = {"file": str(ROOT / ref["file"])}
-    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab", "frost", "cy", "crop", "clean")})
+    s.update({k: v for k, v in ref.items() if k in ("start", "end", "speed", "offset", "nostab", "frost", "cy", "crop", "clean", "smooth")})
     return s
 
 

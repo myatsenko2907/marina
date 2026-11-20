@@ -4,7 +4,7 @@
   {
    "type": "title",
    "lines": [
-    "ONE ACADEMY",
+    "ITSTEP",
     "ACROSS THE WORLD"
    ],
    "t_in": 1.2,
@@ -211,24 +211,19 @@
     [
      {
       "loc": "baku",
-      "file": "sources/extra/tour_of_branches.mp4",
-      "start": 20.05,
-      "end": 20.95,
-      "speed": 0.4,
-      "frost": true,
-      "nostab": true,
-      "clean": true
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 0.2,
+      "end": 3.0
      },
-     2.5,
+     3.0,
      "in"
     ],
     [
      {
       "loc": "baku",
-      "file": "sources/extra/baku_tour.mp4",
-      "start": 130.3,
-      "end": 132.6,
-      "clean": true
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 3.2,
+      "end": 5.0
      },
      2.0,
      "in"
@@ -236,32 +231,39 @@
     [
      {
       "loc": "baku",
-      "file": "sources/extra/baku_tour.mp4",
-      "start": 132.8,
-      "end": 134.5,
-      "clean": true
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 74.3,
+      "end": 76.8
      },
-     2.0,
-     "in"
-    ],
-    [
-     {
-      "loc": "baku",
-      "file": "sources/extra/baku_tour.mp4",
-      "start": 42.0,
-      "end": 45.0,
-      "clean": true
-     },
-     2.0,
+     1.5,
      "right"
     ],
     [
      {
       "loc": "baku",
-      "file": "sources/extra/baku_tour.mp4",
-      "start": 91.0,
-      "end": 93.5,
-      "clean": true
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 43.3,
+      "end": 46.0
+     },
+     2.5,
+     "out"
+    ],
+    [
+     {
+      "loc": "baku",
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 63.3,
+      "end": 65.0
+     },
+     2.0,
+     "in"
+    ],
+    [
+     {
+      "loc": "baku",
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 68.3,
+      "end": 70.5
      },
      1.5,
      "left"
@@ -269,10 +271,63 @@
     [
      {
       "loc": "baku",
-      "file": "sources/extra/baku_tour.mp4",
-      "start": 139.5,
-      "end": 142.0,
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 87.3,
+      "end": 88.8
+     },
+     1.5,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "tbilisi",
+   "shots": [
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_new.mp4",
+      "start": 62.4,
+      "end": 64.4,
+      "crop": [
+       0.15,
+       0.14,
+       0.7,
+       0.7
+      ],
       "clean": true
+     },
+     2.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_b.mp4",
+      "start": 62.1,
+      "end": 63.4,
+      "speed": 0.65
+     },
+     2.0,
+     "in"
+    ],
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_b.mp4",
+      "start": 0.3,
+      "end": 3.0
+     },
+     2.0,
+     "left"
+    ],
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_b.mp4",
+      "start": 3.2,
+      "end": 5.0
      },
      1.5,
      "in"
@@ -287,9 +342,9 @@
      {
       "loc": "kyiv",
       "file": "sources/ukraine/step_school_2026.mp4",
-      "start": 0.3,
-      "end": 3.2,
-      "speed": 0.72
+      "start": 1.6,
+      "end": 3.4,
+      "speed": 0.6
      },
      3.0,
      "in"
@@ -308,58 +363,50 @@
   },
   {
    "type": "group",
-   "loc": "tbilisi",
+   "loc": "chisinau",
    "shots": [
     [
      {
-      "loc": "tbilisi",
-      "file": "sources/extra/tbilisi_new.mp4",
-      "start": 61.8,
-      "end": 64.4,
-      "crop": [
-       0.15,
-       0.14,
-       0.7,
-       0.7
-      ],
+      "loc": "chisinau",
+      "file": "sources/extra/chisinau.mp4",
+      "start": 0.5,
+      "end": 2.6,
+      "clean": true,
+      "speed": 0.7,
+      "smooth": 90
+     },
+     3.0,
+     "still"
+    ],
+    [
+     {
+      "loc": "chisinau",
+      "file": "sources/extra/chisinau.mp4",
+      "start": 24.8,
+      "end": 26.8,
       "clean": true
      },
-     2.5,
+     2.0,
      "in"
     ],
     [
      {
-      "loc": "tbilisi",
-      "file": "sources/extra/tbilisi_b.mp4",
-      "start": 61.3,
-      "end": 63.8
+      "loc": "chisinau",
+      "file": "sources/extra/chisinau.mp4",
+      "start": 57.2,
+      "end": 58.8,
+      "clean": true
      },
-     2.0,
+     1.5,
      "in"
     ],
     [
      {
-      "loc": "tbilisi",
-      "file": "sources/extra/tbilisi_new.mp4",
-      "start": 69.0,
-      "end": 72.5,
-      "crop": [
-       0.15,
-       0.14,
-       0.7,
-       0.7
-      ],
+      "loc": "chisinau",
+      "file": "sources/extra/chisinau.mp4",
+      "start": 54.8,
+      "end": 56.8,
       "clean": true
-     },
-     2.0,
-     "right"
-    ],
-    [
-     {
-      "loc": "tbilisi",
-      "file": "sources/extra/tbilisi_b.mp4",
-      "start": 0.3,
-      "end": 3.0
      },
      1.5,
      "left"
@@ -422,73 +469,6 @@
   },
   {
    "type": "group",
-   "loc": "chisinau",
-   "shots": [
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
-      "start": 0.2,
-      "end": 4.5,
-      "clean": true
-     },
-     3.0,
-     "in"
-    ],
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
-      "start": 24.8,
-      "end": 26.8,
-      "clean": true
-     },
-     2.0,
-     "in"
-    ],
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
-      "start": 33.0,
-      "end": 36.0,
-      "clean": true
-     },
-     1.5,
-     "right"
-    ],
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
-      "start": 54.8,
-      "end": 56.8,
-      "clean": true
-     },
-     1.5,
-     "left"
-    ]
-   ]
-  },
-  {
-   "type": "group",
-   "loc": "ivano_frankivsk",
-   "shots": [
-    [
-     {
-      "loc": "ivano_frankivsk",
-      "file": "sources/ivano_frankivsk/ivano_frankivsk.mp4",
-      "start": 48.3,
-      "end": 49.85,
-      "speed": 0.39
-     },
-     4.0,
-     "in"
-    ]
-   ]
-  },
-  {
-   "type": "group",
    "loc": "bratislava",
    "shots": [
     [
@@ -509,23 +489,6 @@
     [
      "bratislava:3",
      1.0,
-     "in"
-    ]
-   ]
-  },
-  {
-   "type": "group",
-   "loc": "dnipro",
-   "shots": [
-    [
-     {
-      "loc": "dnipro",
-      "file": "sources/dnipro/dnipro_school.mp4",
-      "start": 202.0,
-      "end": 204.2,
-      "speed": 0.73
-     },
-     3.0,
      "in"
     ]
    ]
@@ -563,18 +526,17 @@
   },
   {
    "type": "group",
-   "loc": "zhytomyr",
+   "loc": "ivano_frankivsk",
    "shots": [
     [
      {
-      "loc": "zhytomyr",
-      "file": "sources/zhytomyr/zhytomyr_school.mp4",
-      "start": 43.0,
-      "end": 45.5,
-      "cy": 0.3,
-      "speed": 0.72
+      "loc": "ivano_frankivsk",
+      "file": "sources/ivano_frankivsk/ivano_frankivsk.mp4",
+      "start": 48.3,
+      "end": 49.55,
+      "speed": 0.31
      },
-     3.5,
+     4.0,
      "in"
     ]
    ]
@@ -602,72 +564,6 @@
      "nolabel:9",
      1.0,
      "right"
-    ]
-   ]
-  },
-  {
-   "type": "group",
-   "loc": "odesa",
-   "shots": [
-    [
-     {
-      "loc": "odesa",
-      "file": "sources/ukraine/IMG_6242.mov",
-      "start": 243.25,
-      "end": 247.25
-     },
-     2.0,
-     "in"
-    ],
-    [
-     {
-      "loc": "odesa",
-      "file": "sources/ukraine/IMG_6242.mov",
-      "start": 225.25,
-      "end": 229.25
-     },
-     1.5,
-     "right"
-    ],
-    [
-     {
-      "loc": "odesa",
-      "file": "sources/ukraine/IMG_6242.mov",
-      "start": 81.25,
-      "end": 85.25
-     },
-     1.5,
-     "in"
-    ],
-    [
-     {
-      "loc": "odesa",
-      "file": "sources/ukraine/IMG_6242.mov",
-      "start": 126.25,
-      "end": 130.25
-     },
-     1.5,
-     "right"
-    ],
-    [
-     {
-      "loc": "odesa",
-      "file": "sources/ukraine/IMG_6242.mov",
-      "start": 198.25,
-      "end": 202.25
-     },
-     1.5,
-     "in"
-    ],
-    [
-     {
-      "loc": "odesa",
-      "file": "sources/ukraine/IMG_6242.mov",
-      "start": 392.15,
-      "end": 396.15
-     },
-     1.5,
-     "left"
     ]
    ]
   },
@@ -752,6 +648,62 @@
   },
   {
    "type": "group",
+   "loc": "odesa",
+   "shots": [
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 243.25,
+      "end": 247.25
+     },
+     2.0,
+     "in"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 225.25,
+      "end": 229.25
+     },
+     1.5,
+     "right"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 81.25,
+      "end": 85.25
+     },
+     1.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 126.25,
+      "end": 130.25
+     },
+     1.5,
+     "right"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 198.25,
+      "end": 202.25
+     },
+     3.0,
+     "in"
+    ]
+   ]
+  },
+  {
+   "type": "group",
    "loc": "tijuana",
    "shots": [
     [
@@ -771,8 +723,8 @@
    "type": "wall",
    "dur": 10.5,
    "lines": [
-    "STEP IT ACADEMY",
-    "ONE ACADEMY. ACROSS THE WORLD."
+    "ITSTEP",
+    "ACROSS THE WORLD"
    ],
    "hero": 44,
    "pull": 4.8,
@@ -831,8 +783,8 @@
      null
     ],
     [
-     "sources/extra/baku_tour.mp4",
-     100,
+     "sources/extra/baku_v2.mp4",
+     0.2,
      null
     ],
     [
@@ -851,8 +803,8 @@
      null
     ],
     [
-     "sources/extra/baku_tour.mp4",
-     152,
+     "sources/extra/baku_v2.mp4",
+     6,
      null
     ],
     [
@@ -901,8 +853,8 @@
      null
     ],
     [
-     "sources/extra/baku_tour.mp4",
-     80,
+     "sources/extra/baku_v2.mp4",
+     11,
      null
     ],
     [
@@ -936,8 +888,8 @@
      null
     ],
     [
-     "sources/zhytomyr/zhytomyr_school.mp4",
-     0,
+     "sources/extra/baku_v2.mp4",
+     15,
      null
     ],
     [
@@ -966,19 +918,14 @@
      null
     ],
     [
-     "sources/extra/baku_new.mp4",
-     80.5,
+     "sources/extra/baku_v2.mp4",
+     24,
      null
     ],
     [
-     "sources/extra/tbilisi_new.mp4",
-     68,
-     [
-      0.15,
-      0.14,
-      0.7,
-      0.7
-     ]
+     "sources/extra/baku_v2.mp4",
+     36,
+     null
     ],
     [
      "sources/extra/globus.mp4",
@@ -1016,8 +963,8 @@
      null
     ],
     [
-     "sources/extra/baku_new.mp4",
-     75.5,
+     "sources/extra/baku_v2.mp4",
+     43,
      null
     ],
     [
@@ -1096,8 +1043,8 @@
      null
     ],
     [
-     "sources/extra/baku_tour.mp4",
-     60,
+     "sources/extra/baku_v2.mp4",
+     47,
      null
     ],
     [
@@ -1126,18 +1073,13 @@
      null
     ],
     [
-     "sources/extra/tbilisi_new.mp4",
-     50,
-     [
-      0.15,
-      0.14,
-      0.7,
-      0.7
-     ]
+     "sources/extra/baku_v2.mp4",
+     57,
+     null
     ],
     [
-     "sources/extra/baku_tour.mp4",
-     120,
+     "sources/extra/baku_v2.mp4",
+     63,
      null
     ],
     [
@@ -1146,8 +1088,8 @@
      null
     ],
     [
-     "sources/extra/baku_tour.mp4",
-     40,
+     "sources/extra/baku_v2.mp4",
+     66,
      null
     ],
     [
@@ -1161,8 +1103,8 @@
      null
     ],
     [
-     "sources/dnipro/dnipro_school.mp4",
-     200,
+     "sources/extra/baku_v2.mp4",
+     71,
      null
     ],
     [
@@ -1171,8 +1113,8 @@
      null
     ],
     [
-     "sources/extra/baku_tour.mp4",
-     140,
+     "sources/extra/baku_v2.mp4",
+     74,
      null
     ],
     [
@@ -1276,18 +1218,13 @@
      null
     ],
     [
-     "sources/extra/tbilisi_new.mp4",
-     60,
-     [
-      0.15,
-      0.14,
-      0.7,
-      0.7
-     ]
+     "sources/extra/baku_v2.mp4",
+     81,
+     null
     ],
     [
-     "sources/dnipro/dnipro_school.mp4",
-     150,
+     "sources/extra/baku_v2.mp4",
+     85,
      null
     ],
     [
