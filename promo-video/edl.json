@@ -316,21 +316,21 @@
      {
       "loc": "tbilisi",
       "file": "sources/extra/tbilisi_b.mp4",
-      "start": 0.3,
-      "end": 3.0
+      "start": 27.0,
+      "end": 29.2
      },
      2.0,
-     "left"
+     "in"
     ],
     [
      {
       "loc": "tbilisi",
       "file": "sources/extra/tbilisi_b.mp4",
-      "start": 3.2,
-      "end": 5.0
+      "start": 45.0,
+      "end": 47.0
      },
      1.5,
-     "in"
+     "right"
     ]
    ]
   },
@@ -382,6 +382,17 @@
      {
       "loc": "chisinau",
       "file": "sources/extra/chisinau.mp4",
+      "start": 2.5,
+      "end": 4.0,
+      "clean": true
+     },
+     1.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "chisinau",
+      "file": "sources/extra/chisinau.mp4",
       "start": 24.8,
       "end": 26.8,
       "clean": true
@@ -393,22 +404,11 @@
      {
       "loc": "chisinau",
       "file": "sources/extra/chisinau.mp4",
-      "start": 57.2,
-      "end": 58.8,
-      "clean": true
-     },
-     1.5,
-     "in"
-    ],
-    [
-     {
-      "loc": "chisinau",
-      "file": "sources/extra/chisinau.mp4",
       "start": 54.8,
       "end": 56.8,
       "clean": true
      },
-     1.5,
+     2.5,
      "left"
     ]
    ]
@@ -664,11 +664,11 @@
      {
       "loc": "odesa",
       "file": "sources/ukraine/IMG_6242.mov",
-      "start": 225.25,
-      "end": 229.25
+      "start": 4.75,
+      "end": 8.75
      },
      1.5,
-     "right"
+     "in"
     ],
     [
      {
@@ -684,6 +684,17 @@
      {
       "loc": "odesa",
       "file": "sources/ukraine/IMG_6242.mov",
+      "start": 18.25,
+      "end": 19.0,
+      "speed": 0.5
+     },
+     1.5,
+     "right"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
       "start": 126.25,
       "end": 130.25
      },
@@ -694,10 +705,20 @@
      {
       "loc": "odesa",
       "file": "sources/ukraine/IMG_6242.mov",
+      "start": 40.75,
+      "end": 44.75
+     },
+     1.5,
+     "in"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
       "start": 198.25,
       "end": 202.25
      },
-     3.0,
+     2.0,
      "in"
     ]
    ]
