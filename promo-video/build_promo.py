@@ -272,6 +272,16 @@ def move_chain(dur, w, h, move):
 
 
 def render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
+    try:
+        _render_shot(shot, dur, out, w, h, move, extra)
+    except subprocess.CalledProcessError:
+        if shot.get("nostab"):
+            raise
+        print("    (stabiliser failed, rendering without it)", flush=True)
+        _render_shot(dict(shot, nostab=True), dur, out, w, h, move, extra)
+
+
+def _render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
     src_len = shot["end"] - shot["start"]
     speed = 1.0
     if shot.get("speed"):
@@ -279,8 +289,12 @@ def render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
     elif src_len > dur * 1.4:
         speed = min(src_len / dur, 1.25)          # gentle energy; more would exaggerate hand-held shake
     ss = shot["start"] + max(0, (src_len - dur * speed) / 2) + shot.get("offset", 0)
-    pre = ([f"setpts=PTS/{speed:.3f}"] if speed != 1.0 else []) + \
-        [f"fps={FPS}", f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={w}:{h}"]
+    fill = [f"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={w}:{h}"]
+    if speed < 0.85:   # real slow motion: motion-compensated in-between frames instead of duplicates
+        pre = [f"setpts=PTS/{speed:.3f}"] + fill + \
+            [f"minterpolate=fps={FPS}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1"]
+    else:
+        pre = ([f"setpts=PTS/{speed:.3f}"] if speed != 1.0 else []) + [f"fps={FPS}"] + fill
     inp = ["-ss", f"{ss:.3f}", "-t", f"{dur * speed + 0.6:.2f}", "-i", shot["file"], "-an"]
     vf = list(pre)
     if not shot.get("nostab"):
@@ -373,7 +387,7 @@ def render(length=120.0):
                 overlay_text(out, caption_filter(loc["city"], loc["country"], seg["dur"]), fixed)
                 fixed.replace(out)
         elif kind == "grid":            # 2x2: four countries at once
-            gw, gh = (W - GAP) // 2, (H - GAP) // 2
+            gw, gh = (W - 8) // 2, (H - 8) // 2
             parts = []
             for j, ref in enumerate(seg["shots"]):
                 loc = L[ref_loc(ref)]
@@ -384,8 +398,8 @@ def render(length=120.0):
                 parts.append(r)
             ins = sum((["-i", str(x)] for x in parts), [])
             fc = (f"color=c=0x05070C:s={W}x{H}:r={FPS}:d={seg['dur']}[bg];[bg][0:v]overlay=0:0[a];"
-                  f"[a][1:v]overlay={gw + GAP}:0:enable='gte(t,0.1)'[b];[b][2:v]overlay=0:{gh + GAP}:enable='gte(t,0.2)'[c];"
-                  f"[c][3:v]overlay={gw + GAP}:{gh + GAP}:enable='gte(t,0.3)',format=yuv420p")
+                  f"[a][1:v]overlay={gw + 8}:0:enable='gte(t,0.1)'[b];[b][2:v]overlay=0:{gh + 8}:enable='gte(t,0.2)'[c];"
+                  f"[c][3:v]overlay={gw + 8}:{gh + 8}:enable='gte(t,0.3)',format=yuv420p")
             run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + ins + ["-filter_complex", fc, "-t", str(seg["dur"]),
                  "-c:v", "libx264", "-preset", "slow", "-crf", "14", str(out)])
         elif kind == "montage":         # fast cuts, small corner label per shot
