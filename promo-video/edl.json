@@ -403,12 +403,12 @@
       "loc": "chisinau",
       "file": "sources/extra/chisinau.mp4",
       "start": 0.5,
-      "end": 2.6,
+      "end": 1.55,
       "clean": true,
       "speed": 0.7,
       "smooth": 90
      },
-     3.0,
+     1.5,
      "still"
     ],
     [
@@ -724,16 +724,6 @@
      },
      1.5,
      "right"
-    ],
-    [
-     {
-      "loc": "odesa",
-      "file": "sources/ukraine/IMG_6242.mov",
-      "start": 40.75,
-      "end": 44.75
-     },
-     1.5,
-     "in"
     ],
     [
      {
