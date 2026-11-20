@@ -1,0 +1,896 @@
+{
+ "_comment": "Short 45s cut, static camera",
+ "segments": [
+  {
+   "type": "title",
+   "lines": [
+    "ITSTEP",
+    "ACROSS THE WORLD"
+   ],
+   "t_in": 0.6,
+   "t_out": 3.8,
+   "fade_in": 0.6,
+   "dim": 0.28,
+   "big": 140,
+   "small": 50,
+   "shots": [
+    [
+     {
+      "loc": "stanislav",
+      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
+      "start": 0.6,
+      "end": 1.9,
+      "speed": 0.6,
+      "nostab": true
+     },
+     2.0,
+     "none"
+    ],
+    [
+     {
+      "loc": "stanislav",
+      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
+      "start": 89.9,
+      "end": 91.5,
+      "speed": 0.75,
+      "nostab": true
+     },
+     2.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "stanislav",
+   "shots": [
+    [
+     {
+      "loc": "stanislav",
+      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
+      "start": 12.0,
+      "end": 13.9
+     },
+     1.5,
+     "none"
+    ],
+    [
+     {
+      "loc": "stanislav",
+      "file": "sources/ivano_frankivsk/stanislav_school.mp4",
+      "start": 47.0,
+      "end": 47.95
+     },
+     1.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "bucharest",
+   "shots": [
+    [
+     {
+      "ref": "bucharest:6",
+      "start": 1.3,
+      "end": 2.8
+     },
+     1.5,
+     "none"
+    ],
+    [
+     "bucharest:2",
+     1.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "globus",
+   "shots": [
+    [
+     {
+      "loc": "globus",
+      "file": "sources/extra/globus.mp4",
+      "start": 0.0,
+      "end": 2.4,
+      "nostab": true
+     },
+     1.5,
+     "none"
+    ],
+    [
+     {
+      "loc": "globus",
+      "file": "sources/extra/globus.mp4",
+      "start": 9.75,
+      "end": 10.85
+     },
+     1.5,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "baku",
+   "shots": [
+    [
+     {
+      "loc": "baku",
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 0.2,
+      "end": 3.0
+     },
+     1.5,
+     "none"
+    ],
+    [
+     {
+      "loc": "baku",
+      "file": "sources/extra/baku_v2.mp4",
+      "start": 43.3,
+      "end": 46.0
+     },
+     1.5,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "kyiv",
+   "shots": [
+    [
+     {
+      "loc": "kyiv",
+      "file": "sources/ukraine/step_school_2026.mp4",
+      "start": 1.6,
+      "end": 3.4
+     },
+     2.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "tbilisi",
+   "shots": [
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_new.mp4",
+      "start": 62.4,
+      "end": 64.4,
+      "crop": [
+       0.15,
+       0.14,
+       0.7,
+       0.7
+      ],
+      "clean": true,
+      "nostab": true
+     },
+     1.5,
+     "none"
+    ],
+    [
+     {
+      "loc": "tbilisi",
+      "file": "sources/extra/tbilisi_b.mp4",
+      "start": 62.1,
+      "end": 63.4
+     },
+     1.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "lviv",
+   "shots": [
+    [
+     {
+      "loc": "lviv",
+      "file": "sources/extra/lviv_tour.mp4",
+      "start": 89.6,
+      "end": 91.2,
+      "nostab": true,
+      "clean": true
+     },
+     1.5,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "bratislava",
+   "shots": [
+    [
+     {
+      "ref": "bratislava:4",
+      "start": 0.0,
+      "end": 1.25,
+      "speed": 0.8
+     },
+     1.5,
+     "none"
+    ],
+    [
+     "bratislava:3",
+     1.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "ivano_frankivsk",
+   "shots": [
+    [
+     {
+      "loc": "ivano_frankivsk",
+      "file": "sources/ivano_frankivsk/ivano_frankivsk.mp4",
+      "start": 48.3,
+      "end": 49.85
+     },
+     1.5,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "kazakhstan",
+   "shots": [
+    [
+     {
+      "loc": "kazakhstan",
+      "file": "sources/kazakhstan/IMG_6001.mov",
+      "start": 0.25,
+      "end": 2.48
+     },
+     1.5,
+     "none"
+    ],
+    [
+     {
+      "loc": "kazakhstan",
+      "file": "sources/kazakhstan/IMG_6001.mov",
+      "start": 76.6,
+      "end": 78.7
+     },
+     1.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "odesa",
+   "shots": [
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 0.05,
+      "end": 2.0
+     },
+     1.5,
+     "none"
+    ],
+    [
+     {
+      "loc": "odesa",
+      "file": "sources/ukraine/IMG_6242.mov",
+      "start": 81.25,
+      "end": 85.25
+     },
+     1.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "nolabel",
+   "shots": [
+    [
+     {
+      "ref": "nolabel:4",
+      "start": 2.65,
+      "end": 4.2,
+      "speed": 0.9
+     },
+     1.5,
+     "none"
+    ],
+    [
+     "nolabel:0",
+     1.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "cambodia_tk",
+   "shots": [
+    [
+     {
+      "loc": "cambodia_tk",
+      "file": "sources/cambodia/DJI_20260428100112_0651_D.MP4",
+      "start": 0.2,
+      "end": 2.6,
+      "nostab": true
+     },
+     2.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "cambodia_ol",
+   "shots": [
+    [
+     {
+      "loc": "cambodia_ol",
+      "file": "sources/olympic/DJI_20260429100444_0674_D.MP4",
+      "start": 4.5,
+      "end": 7.0
+     },
+     1.5,
+     "none"
+    ],
+    [
+     {
+      "loc": "cambodia_ol",
+      "file": "sources/olympic/DJI_20260429101448_0685_D.MP4",
+      "start": 1.0,
+      "end": 3.0
+     },
+     1.0,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "group",
+   "loc": "tijuana",
+   "shots": [
+    [
+     {
+      "loc": "tijuana",
+      "file": "sources/tijuana/tijuana.mov",
+      "start": 2.4,
+      "end": 3.2,
+      "speed": 0.55
+     },
+     1.5,
+     "none"
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "dur": 7.0,
+   "lines": [
+    "ITSTEP",
+    "ACROSS THE WORLD"
+   ],
+   "hero": 44,
+   "pull": 3.2,
+   "z0": 4.0,
+   "t_in": 3.4,
+   "dim": 0.5,
+   "tiles": [
+    [
+     "sources/extra/lviv_tour.mp4",
+     11,
+     null
+    ],
+    [
+     "sources/olympic/cam_0706.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/extra/lviv_tour.mp4",
+     33,
+     null
+    ],
+    [
+     "sources/ukraine/IMG_6242.mov",
+     200,
+     null
+    ],
+    [
+     "sources/olympic/cam_0708.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/DJI_20260429100652_0676_D.MP4",
+     0.5,
+     null
+    ],
+    [
+     "sources/kazakhstan/IMG_6001.mov",
+     75,
+     null
+    ],
+    [
+     "sources/extra/tbilisi_b.mp4",
+     24,
+     null
+    ],
+    [
+     "sources/extra/lviv_tour.mp4",
+     88,
+     null
+    ],
+    [
+     "sources/bratislava/IMG_8497.MOV",
+     0.3,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     0.2,
+     null
+    ],
+    [
+     "sources/ukraine/IMG_6242.mov",
+     126,
+     null
+    ],
+    [
+     "sources/extra/tbilisi_b.mp4",
+     12,
+     null
+    ],
+    [
+     "sources/extra/lviv_tour.mp4",
+     55,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     6,
+     null
+    ],
+    [
+     "sources/ukraine/step_school_2026.mp4",
+     85,
+     null
+    ],
+    [
+     "sources/olympic/DJI_20260429100853_0678_D.MP4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/cam_0713.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/nolabel/promo_video.mp4",
+     55,
+     null
+    ],
+    [
+     "sources/olympic/cam_0698.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/ukraine/IMG_6242.mov",
+     20,
+     null
+    ],
+    [
+     "sources/olympic/cam_0707.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/cam_0710.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/bucharest/bucharest.mp4",
+     1.3,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     11,
+     null
+    ],
+    [
+     "sources/extra/globus.mp4",
+     7,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     22,
+     null
+    ],
+    [
+     "sources/ukraine/step_school_2026.mp4",
+     110,
+     null
+    ],
+    [
+     "sources/ukraine/step_school_2026.mp4",
+     60,
+     null
+    ],
+    [
+     "sources/extra/lviv_tour.mp4",
+     77,
+     null
+    ],
+    [
+     "sources/kazakhstan/IMG_6001.mov",
+     20,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     15,
+     null
+    ],
+    [
+     "sources/bucharest/bucharest.mp4",
+     16,
+     null
+    ],
+    [
+     "sources/kazakhstan/IMG_6001.mov",
+     40,
+     null
+    ],
+    [
+     "sources/bratislava/IMG_8505.MOV",
+     0.3,
+     null
+    ],
+    [
+     "sources/bratislava/IMG_8489.MOV",
+     0.3,
+     null
+    ],
+    [
+     "sources/olympic/cam_0703.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     24,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     36,
+     null
+    ],
+    [
+     "sources/extra/globus.mp4",
+     18,
+     null
+    ],
+    [
+     "sources/olympic/DJI_20260429100342_0672_D.MP4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/cam_0702.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/bratislava/IMG_8526.MOV",
+     0.3,
+     null
+    ],
+    [
+     "sources/olympic/DJI_20260429102311_0687_D.MP4",
+     0.5,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     89.9,
+     null
+    ],
+    [
+     "sources/bratislava/IMG_8510.MOV",
+     0.3,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     43,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     72,
+     null
+    ],
+    [
+     "sources/extra/tbilisi_b.mp4",
+     50,
+     null
+    ],
+    [
+     "sources/olympic/cam_0699.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/cam_0695.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/cam_0709.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/extra/tbilisi_b.mp4",
+     0,
+     null
+    ],
+    [
+     "sources/extra/lviv_tour.mp4",
+     0,
+     null
+    ],
+    [
+     "sources/bratislava/IMG_8515.MOV",
+     0.3,
+     null
+    ],
+    [
+     "sources/olympic/cam_0697.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/extra/lviv_tour.mp4",
+     22,
+     null
+    ],
+    [
+     "sources/bratislava/IMG_8501.MOV",
+     0.3,
+     null
+    ],
+    [
+     "sources/olympic/cam_0704.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/ukraine/IMG_6242.mov",
+     80,
+     null
+    ],
+    [
+     "sources/olympic/DJI_20260429100919_0679_D.MP4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/cam_0705.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     47,
+     null
+    ],
+    [
+     "sources/extra/tbilisi_b.mp4",
+     36,
+     null
+    ],
+    [
+     "sources/ukraine/IMG_6242.mov",
+     320,
+     null
+    ],
+    [
+     "sources/extra/globus.mp4",
+     9.5,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     2,
+     null
+    ],
+    [
+     "sources/kazakhstan/IMG_6001.mov",
+     60,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     57,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     63,
+     null
+    ],
+    [
+     "sources/nolabel/promo_video.mp4",
+     14,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     66,
+     null
+    ],
+    [
+     "sources/ukraine/IMG_6242.mov",
+     225,
+     null
+    ],
+    [
+     "sources/bucharest/bucharest.mp4",
+     8,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     71,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     35,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     74,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/ivano_frankivsk.mp4",
+     15,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     47,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     79,
+     null
+    ],
+    [
+     "sources/extra/globus.mp4",
+     0,
+     null
+    ],
+    [
+     "sources/nolabel/promo_video.mp4",
+     28,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     12,
+     null
+    ],
+    [
+     "sources/olympic/DJI_20260429103638_0692_D.MP4",
+     0.5,
+     null
+    ],
+    [
+     "sources/extra/lviv_tour.mp4",
+     66,
+     null
+    ],
+    [
+     "sources/olympic/cam_0700.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/ukraine/step_school_2026.mp4",
+     138,
+     null
+    ],
+    [
+     "sources/olympic/cam_0696.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/cam_0711.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/bratislava/IMG_8530.MOV",
+     0.3,
+     null
+    ],
+    [
+     "sources/olympic/DJI_20260429101448_0685_D.MP4",
+     0.5,
+     null
+    ],
+    [
+     "sources/ivano_frankivsk/stanislav_school.mp4",
+     61,
+     null
+    ],
+    [
+     "sources/olympic/DJI_20260429103705_0694_D.MP4",
+     0.5,
+     null
+    ],
+    [
+     "sources/olympic/cam_0701.mp4",
+     0.5,
+     null
+    ],
+    [
+     "sources/nolabel/promo_video.mp4",
+     46,
+     null
+    ],
+    [
+     "sources/extra/globus.mp4",
+     11,
+     null
+    ],
+    [
+     "sources/extra/lviv_tour.mp4",
+     44,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     81,
+     null
+    ],
+    [
+     "sources/extra/baku_v2.mp4",
+     85,
+     null
+    ],
+    [
+     "sources/extra/globus.mp4",
+     14.5,
+     null
+    ]
+   ]
+  }
+ ]
+}

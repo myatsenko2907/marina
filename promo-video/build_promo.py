@@ -261,8 +261,13 @@ GRADE = ("normalize=smoothing=45:independence=0.4:strength=0.55,"
          "colorbalance=rs=-0.02:bs=0.03:rh=0.02:bh=-0.02,unsharp=5:5:0.4")
 
 
+STATIC = bool(os.environ.get("STATIC"))
+
+
 def move_chain(dur, w, h, move):
     """Slow push-in / pull-out / lateral drift, computed on a 2x canvas so motion is sub-pixel smooth."""
+    if STATIC or move == "none":
+        return [GRADE]
     frames = max(int(round(dur * FPS)), 1)
     z0, z1, dx = {"in": (1.0, 1.07, 0), "out": (1.07, 1.0, 0), "left": (1.07, 1.07, -1),
                   "right": (1.07, 1.07, 1), "still": (1.02, 1.02, 0)}[move]
@@ -310,7 +315,7 @@ def _render_shot(shot, dur, out, w=W, h=H, move="in", extra=None):
         trf = str(out) + ".trf"
         run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error"] + inp +
             ["-vf", ",".join(pre + [f"vidstabdetect=shakiness=9:accuracy=15:stepsize=6:result={trf}"]), "-f", "null", "-"])
-        vf.append(f"vidstabtransform=input={trf}:smoothing={shot.get('smooth', 40)}:optzoom=1:zoomspeed=0.15:interpol=bicubic")
+        vf.append(f"vidstabtransform=input={trf}:smoothing={shot.get('smooth', 40)}:{'optzoom=0:zoom=6' if STATIC else 'optzoom=1:zoomspeed=0.15'}:interpol=bicubic")
     vf += move_chain(dur, w, h, move)
     if extra:
         vf.append(extra)
@@ -413,7 +418,7 @@ def ref_loc(ref):
 
 def render(length=120.0):
     picks = json.loads((WORK / "shots.json").read_text())
-    edl = json.loads((ROOT / "edl.json").read_text())
+    edl = json.loads((ROOT / os.environ.get("EDL", "edl.json")).read_text())
     L = {l["dir"]: l for l in CFG["locations"]}
     tmp = WORK / "clips"
     tmp.mkdir(parents=True, exist_ok=True)
@@ -421,7 +426,7 @@ def render(length=120.0):
     def seg_job(args):
         n, seg = args
         import hashlib
-        key = hashlib.md5(json.dumps(seg, sort_keys=True).encode()).hexdigest()[:10]
+        key = hashlib.md5((json.dumps(seg, sort_keys=True) + ("S" if STATIC else "")).encode()).hexdigest()[:10]
         out = tmp / f"seg_{key}.mp4"
         kind = seg["type"]
         if out.exists() and out.stat().st_size > 10000 and not os.environ.get("REBUILD"):
@@ -530,8 +535,8 @@ def render(length=120.0):
     concat(clips, silent)
     dur = float(run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
                      str(silent)]).stdout)
-    final = OUT / "STEP_IT_Academy_global_promo_1080p.mp4"
-    music = ROOT / "music.mp3"
+    final = OUT / os.environ.get("OUTNAME", "STEP_IT_Academy_global_promo_1080p.mp4")
+    music = ROOT / os.environ.get("MUSIC", "music.mp3")
     if music.exists():
         run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(silent), "-i", str(music),
              "-filter_complex", f"[1:a]atrim=0:{dur},afade=in:st=0:d=0.5,afade=out:st={dur - 2.5}:d=2.5,"
